@@ -252,15 +252,19 @@ function DealCard({
     return "";
   }, [deal]);
   
-  // Get the deal name with optional brand
+  // Get the deal name with either brand or subcategory, but not the main category
   const dealName = useMemo(() => {
     let name = priceDisplay;
-    if (deal.drinkType) {
-      name += ` ${deal.drinkType.toUpperCase()}`;
-    }
+    
+    // If brand is available, use that
     if (deal.brand) {
       name += ` ${deal.brand.toUpperCase()}`;
+    } 
+    // If no brand but subcategory exists, use that
+    else if (deal.subCategory) {
+      name += ` ${deal.subCategory.toUpperCase()}`;
     }
+    
     return name;
   }, [deal, priceDisplay]);
   
