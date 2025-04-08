@@ -44,20 +44,23 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.bgImageUrl;
     }
     
-    // Use demo Cloudinary images for now to make sure something displays
+    // Use Cloudinary with flexible file extensions
     const category = deal.alcoholCategory?.toLowerCase() || '';
+    const cloudName = 'demo'; // Using demo cloud for now
+    
     if (category === 'beer') {
-      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg';
+      // Try both JPG and PNG formats
+      return `https://res.cloudinary.com/${cloudName}/image/upload/beer_background`;
     } else if (category === 'wine') {
-      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'; 
+      return `https://res.cloudinary.com/${cloudName}/image/upload/wine_background`;
     } else if (category === 'cocktail') {
-      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg';
+      return `https://res.cloudinary.com/${cloudName}/image/upload/cocktail_background`;
     } else if (category === 'whisky' || category === 'spirit') {
-      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg';
+      return `https://res.cloudinary.com/${cloudName}/image/upload/whisky_background`;
     }
     
-    // Otherwise return undefined to use the CSS color background
-    return undefined;
+    // Default image if none of the categories match
+    return `https://res.cloudinary.com/${cloudName}/image/upload/sample`;
   };
   
   // Format the deal price text
@@ -88,11 +91,24 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.brandImageUrl;
     }
     
-    // Use demo Cloudinary images for now
+    // Use appropriate image based on category
     const category = deal.alcoholCategory?.toLowerCase() || '';
+    const brand = deal.brandName?.toLowerCase().replace(/\s+/g, '_') || '';
+    const cloudName = 'demo'; // Using demo cloud
     
-    // Use Cloudinary demo bottle image for all types
-    return 'https://res.cloudinary.com/demo/image/upload/bottle.png';
+    if (category === 'beer') {
+      return `https://res.cloudinary.com/${cloudName}/image/upload/beer_glass`;
+    } else if (category === 'wine') {
+      return `https://res.cloudinary.com/${cloudName}/image/upload/wine_glass`;
+    } else if (category === 'cocktail') {
+      // Try to get specific cocktail or fallback to default
+      return `https://res.cloudinary.com/${cloudName}/image/upload/cocktail_glass`;
+    } else if (category === 'whisky' || category === 'spirit') {
+      return `https://res.cloudinary.com/${cloudName}/image/upload/whisky_glass`;
+    }
+    
+    // Fallback to sample bottle image
+    return `https://res.cloudinary.com/${cloudName}/image/upload/bottle`;
   };
 
   const cardBackground = getCardBackground();
