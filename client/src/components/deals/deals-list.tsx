@@ -228,12 +228,12 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
     );
   }
 
-  // For non-signed in users, show only grayed-out deals
-  const isSignedIn = !!user;
-  const isPremium = user?.subscriptionTier === 'premium';
+  // TEMPORARY: Show all deals as full deals for testing
+  const isSignedIn = true; // Force signed in for now
+  const isPremium = true;  // Force premium for now
   
-  // Determine how many deals to show fully vs grayed out based on user state
-  const fullDealsCount = isSignedIn ? (isPremium ? filteredDeals.active.length : 2) : 0;
+  // Show all deals as full deals for testing
+  const fullDealsCount = filteredDeals.active ? filteredDeals.active.length : 0;
   
   console.log("Filtered deals count:", filteredDeals.active ? filteredDeals.active.length : 0);
   console.log("Full deals count:", fullDealsCount);
@@ -259,25 +259,29 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
         
         {/* Deals Section - Show deals based on user tier */}
         {filteredDeals.active && filteredDeals.active.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
             {/* Full view deals (limited by user tier) */}
             {filteredDeals.active.slice(0, fullDealsCount).map((deal: any) => deal && (
-              <DealCard 
-                key={deal.id} 
-                deal={deal} 
-                userLocation={location}
-                isGrayedOut={false}
-              />
+              <div className="h-96 sm:h-[420px]" key={deal.id}>
+                <DealCard 
+                  key={deal.id} 
+                  deal={deal} 
+                  userLocation={location}
+                  isGrayedOut={false}
+                />
+              </div>
             ))}
             
             {/* Grayed out deals (the rest) */}
             {filteredDeals.active.slice(fullDealsCount).map((deal: any) => deal && (
-              <DealCard 
-                key={deal.id} 
-                deal={deal} 
-                userLocation={location}
-                isGrayedOut={true}
-              />
+              <div className="h-96 sm:h-[420px]" key={`gray-${deal.id}`}>
+                <DealCard 
+                  key={deal.id} 
+                  deal={deal} 
+                  userLocation={location}
+                  isGrayedOut={true}
+                />
+              </div>
             ))}
           </div>
         )}
