@@ -1,9 +1,9 @@
+/* Import Fredoka font */
+@import '@fontsource/fredoka';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import Fredoka font */
-@import '@fontsource/fredoka';
 
 @layer base {
   * {

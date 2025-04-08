@@ -15,46 +15,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test endpoint for Cloudinary image URLs
   app.get("/api/test-cloudinary", (_req, res) => {
     try {
+      // Get the cloud name from env var or use a placeholder for testing
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "democloud";
+      
+      // Use the actual Cloudinary folder structure as defined in cloudinaryService.ts
       const testUrls = {
         backgrounds: {
-          beer: "https://res.cloudinary.com/demo/image/upload/v1312461204/beer_background.jpg",
+          beer: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.jpg`,
           wine: {
-            red: "https://res.cloudinary.com/demo/image/upload/v1312461204/red_wine_background.jpg",
-            white: "https://res.cloudinary.com/demo/image/upload/v1312461204/white_wine_background.jpg"
+            red: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/image.jpg`,
+            white: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/image_white.jpg`
           },
-          whisky: "https://res.cloudinary.com/demo/image/upload/v1312461204/whisky_background.jpg",
-          cocktail: "https://res.cloudinary.com/demo/image/upload/v1312461204/cocktail_background.jpg",
-          default: "https://res.cloudinary.com/demo/image/upload/v1312461204/default_background.jpg"
+          whisky: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/whisky/image.jpg`,
+          cocktail: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/cocktail/image.jpg`,
+          default: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/default/image.jpg`
         },
         brands: {
           beer: {
             heineken: {
-              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/heineken_bottle.png",
-              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/heineken_glass.png"
+              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/bottle.png`,
+              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/glass.png`
             },
             asahi: {
-              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/asahi_bottle.png",
-              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/asahi_glass.png"
+              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/asahi/bottle.png`,
+              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/asahi/glass.png`
             }
           },
           wine: {
             yellowtail: {
-              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/yellowtail_bottle.png",
-              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/yellowtail_glass.png"
+              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/wine/yellowtail/bottle.png`,
+              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/wine/yellowtail/glass.png`
             }
           },
           whisky: {
             johnniewalker: {
-              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/johnnie_walker_bottle.png",
-              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/johnnie_walker_glass.png"
+              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/whisky/johnniewalker/bottle.png`,
+              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/whisky/johnniewalker/glass.png`
             }
           },
           cocktail: {
             margarita: {
-              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/margarita_glass.png"
+              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/margarita/glass.png`
             },
             mojito: {
-              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/mojito_glass.png"
+              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/mojito/glass.png`
             }
           }
         }

@@ -44,6 +44,13 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.bgImageUrl;
     }
     
+    // Generate a URL based on category with the correct folder structure
+    const category = deal.alcoholCategory?.toLowerCase() || '';
+    if (category) {
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'democloud';
+      return `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/${category}/image.jpg`;
+    }
+    
     // Otherwise return undefined to use the CSS color background
     return undefined;
   };
@@ -81,15 +88,17 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     const brand = deal.brandName?.toLowerCase() || '';
     const servingStyle = deal.servingStyle?.toLowerCase() || 'glass';
     
-    // If this is a known brand/category, build a fallback URL
-    if (category === 'beer' && brand === 'heineken') {
-      return `https://res.cloudinary.com/demo/image/upload/v1312461204/${brand}_${servingStyle}.png`;
-    } else if (category === 'wine' && brand === 'yellowtail') {
-      return `https://res.cloudinary.com/demo/image/upload/v1312461204/${brand}_${servingStyle}.png`;
-    } else if (category === 'cocktail' && brand === 'margarita') {
-      return `https://res.cloudinary.com/demo/image/upload/v1312461204/${brand}_${servingStyle}.png`;
-    } else if (category === 'whisky' && brand === 'johnniewalker') {
-      return `https://res.cloudinary.com/demo/image/upload/v1312461204/johnnie_walker_${servingStyle}.png`;
+    // Get the cloud name from environment variables
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'democloud';
+    
+    // Special handling for cocktails
+    if (category === 'cocktail') {
+      return `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/${brand}/glass.png`;
+    }
+    
+    // For all other alcohol types with specific brand/serving style path
+    if (category && brand) {
+      return `https://res.cloudinary.com/${cloudName}/image/upload/brands/${category}/${brand}/${servingStyle}.png`;
     }
     
     // Return a placeholder as last resort
