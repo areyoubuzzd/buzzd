@@ -10,6 +10,7 @@ import SearchPage from "@/pages/search-page";
 import ModernDealsPage from "@/pages/modern-deals-page";
 import CloudinaryTestPage from "@/pages/cloudinary-test";
 import CloudinaryUploadPage from "@/pages/cloudinary-upload-page";
+import CloudinaryCardsTest from "@/pages/cloudinary-cards-test";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/modern-deals" component={ModernDealsPage} />
       <Route path="/cloudinary-test" component={CloudinaryTestPage} />
       <Route path="/cloudinary-upload" component={CloudinaryUploadPage} />
+      <Route path="/cloudinary-cards" component={CloudinaryCardsTest} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/saved" component={SavedDealsPage} />
       <Route component={NotFound} />

@@ -1,156 +1,112 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { PriceTag } from "./price-tag";
-import { Clock, MapPin } from "lucide-react";
-import { getBackgroundImage, getHeroImage } from "@/lib/imageUtils";
+import { Clock, Heart, MapPin } from "lucide-react";
+import { getBackgroundImageUrl, getHeroImageUrl } from "@/lib/cloudinaryImages";
 
-export interface DealCardProps {
+export interface ModernDealCardProps {
   id: number;
-  name: string;
-  description: string;
-  originalPrice: number;
-  dealPrice: number;
-  dayOfWeek: string;
-  timeStart: string;
-  timeEnd: string;
-  category: string;
+  dealType: string; // e.g., "$6 BEER", "1-FOR-1", "$3 MARGARITA"
+  discount: number; // percentage discount, e.g., 30
+  category: string; // beer, wine, cocktail, etc.
   subcategory?: string;
   brand?: string;
-  isPremiumDeal: boolean;
   servingStyle?: 'bottle' | 'glass';
-  establishment: {
-    name: string;
-    address: string;
-    distance?: number;
-    logoUrl?: string;
-  };
+  endTime: string; // e.g., "6:00 PM"
+  distance: number; // kilometers, e.g., 0.7
   onClick?: () => void;
+  isSaved?: boolean;
+  onSaveToggle?: () => void;
 }
 
-export const ModernDealCard = ({
+export function ModernDealCard({
   id,
-  name,
-  description,
-  originalPrice,
-  dealPrice,
-  dayOfWeek,
-  timeStart,
-  timeEnd,
+  dealType,
+  discount,
   category,
   subcategory,
   brand,
-  isPremiumDeal,
   servingStyle = 'glass',
-  establishment,
+  endTime,
+  distance,
   onClick,
-}: DealCardProps) => {
-  // Calculate savings
-  const savings = originalPrice - dealPrice;
-  const savingsPercentage = Math.round((savings / originalPrice) * 100);
+  isSaved = false,
+  onSaveToggle,
+}: ModernDealCardProps) {
+  // Get images from Cloudinary
+  const backgroundImageUrl = getBackgroundImageUrl(category);
+  const heroImageUrl = getHeroImageUrl(category, brand, servingStyle);
   
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-ZA', {
-      style: 'currency',
-      currency: 'ZAR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Format distance for display (e.g., "07 KM" or "1.3 KM")
+  const formattedDistance = distance < 10 ? 
+    `0${distance.toFixed(1)}`.replace('.0', '') : 
+    `${distance.toFixed(1)}`.replace('.0', '');
   
-  // Get background and hero images based on category
-  const backgroundImage = getBackgroundImage(category);
-  const heroImage = getHeroImage(category, servingStyle);
-  
-  // Format time
-  const formatTime = (time: string) => {
-    try {
-      const [hours, minutes] = time.split(':');
-      return `${hours}:${minutes}`;
-    } catch (e) {
-      return time;
-    }
-  };
-
   return (
-    <Card 
-      className="overflow-hidden relative group cursor-pointer transition-all duration-300 hover:shadow-xl"
+    <div 
+      className="relative rounded-xl overflow-hidden w-full cursor-pointer transition-transform hover:scale-105 shadow-lg"
       onClick={onClick}
+      style={{
+        backgroundImage: `url(${backgroundImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
     >
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 bg-cover bg-center z-0" style={{ backgroundImage: `url(${backgroundImage})` }}>
-        {/* Semi-transparent overlay to ensure text readability */}
-        <div className="absolute inset-0 bg-black/50"></div>
-      </div>
-      
-      {/* Premium Deal Indicator */}
-      {isPremiumDeal && (
-        <Badge variant="outline" className="absolute top-2 right-2 z-20 bg-amber-400/80 text-black border-amber-500">
-          Premium Deal
-        </Badge>
-      )}
-      
-      <CardContent className="p-4 relative z-10 text-white">
-        <div className="flex items-start gap-3">
-          {/* Hero/Product Image */}
-          <div className="flex-shrink-0 w-24 h-36 relative">
-            <img 
-              src={heroImage} 
-              alt={brand || category} 
-              className="w-full h-full object-contain"
-            />
+      {/* Card Content */}
+      <div className="flex flex-col h-full">
+        {/* Top section with hero image and discount */}
+        <div className="relative p-4 flex justify-center items-center">
+          {/* Discount badge */}
+          <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-lg font-bold">
+            +{discount}%
           </div>
           
-          {/* Content */}
-          <div className="flex-1 overflow-hidden">
-            {/* Deal Title */}
-            <h3 className="font-bold text-lg truncate mb-1">{name}</h3>
-            
-            {/* Brand & Category */}
-            <div className="text-sm text-white/80 mb-2">
-              {brand && <span className="font-medium">{brand} · </span>}
-              <span className="capitalize">{subcategory || category}</span>
-            </div>
-            
-            {/* Deal Description - limited to 2 lines */}
-            <p className="text-sm mb-2 line-clamp-2">{description}</p>
-            
-            {/* Establishment (Hidden for non-premium deals) */}
-            {(isPremiumDeal || true) && (
-              <div className="flex items-center text-xs text-white/90 mb-1">
-                <MapPin size={12} className="mr-1" />
-                <span className="truncate">
-                  {establishment.name} 
-                  {establishment.distance && ` · ${establishment.distance.toFixed(1)} km`}
-                </span>
-              </div>
-            )}
-            
-            {/* Deal Time */}
-            <div className="flex items-center text-xs text-white/90 mb-2">
-              <Clock size={12} className="mr-1" />
-              <span>
-                {dayOfWeek} · {formatTime(timeStart)} - {formatTime(timeEnd)}
-              </span>
-            </div>
-            
-            {/* Pricing */}
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex flex-col">
-                <span className="text-xs text-white/70 line-through">
-                  {formatCurrency(originalPrice)}
-                </span>
-                <PriceTag price={dealPrice} />
-              </div>
-              
-              {/* Savings */}
-              <Badge variant="outline" className="bg-green-600/80 border-green-700 text-white">
-                Save {savingsPercentage}%
-              </Badge>
-            </div>
+          {/* Save button */}
+          {onSaveToggle && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onSaveToggle();
+              }}
+              className="absolute top-2 left-2 p-1 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
+            >
+              <Heart 
+                className={cn(
+                  "w-5 h-5 transition-colors", 
+                  isSaved ? "fill-red-500 text-red-500" : "text-white"
+                )} 
+              />
+            </button>
+          )}
+          
+          {/* Hero image - centered */}
+          <div className="h-40 py-2 flex items-center justify-center">
+            <img 
+              src={heroImageUrl} 
+              alt={brand || subcategory || category}
+              className="h-full object-contain" 
+              onError={(e) => {
+                // If image fails to load, add a fallback class that uses a colored background
+                e.currentTarget.style.display = 'none';
+              }}
+            />
           </div>
         </div>
-      </CardContent>
-    </Card>
+        
+        {/* Bottom section with deal name and details */}
+        <div className="p-4 pt-2 bg-black/20 flex flex-col items-center mt-auto">
+          {/* Deal name in large text */}
+          <h3 className="font-bold text-white text-center text-3xl font-fredoka leading-tight tracking-wide">
+            {dealType}
+          </h3>
+          
+          {/* Time and distance */}
+          <div className="flex items-center gap-2 text-white/90 text-sm mt-1">
+            <Clock size={14} className="text-white/80" />
+            <span>Until {endTime}</span>
+            <span>•</span>
+            <span>{formattedDistance} KM</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-};
+}
