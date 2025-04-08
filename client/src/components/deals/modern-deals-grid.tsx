@@ -183,24 +183,15 @@ export default function ModernDealsGrid() {
       const data = await response.json();
       console.log('Cloudinary test data:', data);
       
-      // Use the hardcoded URLs directly from the test-cloudinary response
-      let beerBgUrl, cocktailBgUrl, beerBottleUrl, beerGlassUrl, margaritaGlassUrl;
+      // Using Cloudinary sample/demo images for testing until we upload our own
+      const cloudName = "demo"; // Use demo account for sample images
       
-      if (data && data.hardcodedUrls) {
-        beerBgUrl = data.hardcodedUrls.backgrounds.beer;
-        cocktailBgUrl = data.hardcodedUrls.backgrounds.cocktail;
-        beerBottleUrl = data.hardcodedUrls.brands.beer.heineken.bottle;
-        beerGlassUrl = data.hardcodedUrls.brands.beer.heineken.glass;
-        margaritaGlassUrl = data.hardcodedUrls.brands.cocktail.margarita.glass;
-      } else {
-        // Fallback to known format if API doesn't return the expected data
-        const cloudName = "dp2uoj3ts";
-        beerBgUrl = `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.png`;
-        cocktailBgUrl = `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/cocktail/image.png`;
-        beerBottleUrl = `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/bottle.png`;
-        beerGlassUrl = `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/glass.png`;
-        margaritaGlassUrl = `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/margarita/glass.png`;
-      }
+      // Sample images from Cloudinary demo account
+      const beerBgUrl = "https://res.cloudinary.com/demo/image/upload/beer_q6pl5z.jpg";
+      const cocktailBgUrl = "https://res.cloudinary.com/demo/image/upload/cocktail_ngvkuf.jpg";
+      const beerBottleUrl = "https://res.cloudinary.com/demo/image/upload/bottle_zx4wae.png";
+      const beerGlassUrl = "https://res.cloudinary.com/demo/image/upload/wine-glass_kfrr9f.png";
+      const margaritaGlassUrl = "https://res.cloudinary.com/demo/image/upload/cocktail-glass_b14htu.png";
       
       console.log("Using exact URLs from API for testing...");
       console.log("Beer background:", beerBgUrl);
