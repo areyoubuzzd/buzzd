@@ -2,6 +2,51 @@ import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Sample hero images for different drink types
+function getHeroImage(drinkType: string | undefined, brand?: string): string {
+  // Default images based on category
+  const defaultImages = {
+    beer: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/heineken/bottle_nsgbcr.png',
+    wine: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/wine/yellow-tail/bottle_azk1m4.png',
+    whisky: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/whisky/jameson/bottle_xdnbtb.png',
+    vodka: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/vodka/absolut/bottle_jptqxc.png',
+    gin: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/gin/bombay/bottle_mtqzxp.png',
+    rum: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/rum/bacardi/bottle_klndif.png',
+    tequila: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/tequila/patron/bottle_qkluwm.png',
+    cocktail: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/cocktail/margarita/glass_j4bvpf.png',
+  };
+  
+  // Brand-specific images (could expand based on actual brand data)
+  const brandImages: {[key: string]: {[key: string]: string}} = {
+    beer: {
+      'heineken': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/heineken/bottle_nsgbcr.png',
+      'corona': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/corona/bottle_vsjmbt.png',
+      'stella artois': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/stella/bottle_ncxrjb.png',
+    },
+    whisky: {
+      'jameson': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/whisky/jameson/bottle_xdnbtb.png',
+      'jack daniels': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/whisky/jackdaniels/bottle_ixznyk.png',
+    }
+  };
+  
+  // Normalize drink type to lower case
+  const normalizedType = drinkType?.toLowerCase() || '';
+  const normalizedBrand = brand?.toLowerCase() || '';
+  
+  // First try to match by brand if available
+  if (brand && brandImages[normalizedType]?.[normalizedBrand]) {
+    return brandImages[normalizedType][normalizedBrand];
+  }
+  
+  // Fall back to default image for the drink type
+  if (defaultImages[normalizedType as keyof typeof defaultImages]) {
+    return defaultImages[normalizedType as keyof typeof defaultImages];
+  }
+  
+  // Ultimate fallback
+  return defaultImages.beer;
+}
+
 // Abstract SVG accent patterns for cards based on provided examples
 function getAccentPattern(drinkType: string | undefined, id?: number): string {
   // If no drink type, return empty
@@ -310,7 +355,7 @@ function DealCard({
       {/* Card Content */}
       <div className="absolute inset-0 flex flex-col h-full">
         {/* Top section with discount badge */}
-        <div className="relative p-4 flex-grow">
+        <div className="relative p-4 flex-grow flex items-center justify-center">
           {/* Discount badge */}
           {savingsAmount && (
             <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold">
@@ -331,6 +376,22 @@ function DealCard({
                 )} 
               />
             </button>
+          )}
+          
+          {/* Hero Image (Bottle/Glass) */}
+          {deal.drinkType && (
+            <div className="w-24 h-32 relative">
+              {/* Choose image based on drink type */}
+              <img 
+                src={getHeroImage(deal.drinkType, deal.brand)}
+                alt={deal.brand || deal.drinkType}
+                className="h-full object-contain drop-shadow-lg"
+                style={{ 
+                  transform: 'rotate(-5deg)',
+                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.3))'
+                }}
+              />
+            </div>
           )}
         </div>
         
