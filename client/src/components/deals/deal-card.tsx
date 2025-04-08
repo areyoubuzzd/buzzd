@@ -168,6 +168,35 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
     }
   };
 
+  // Get drink image based on drink type with more reliable images
+  const getDrinkImage = () => {
+    // Use deal.imageUrl if available
+    if (deal.imageUrl) return deal.imageUrl;
+    
+    const drinkType = deal.drinkType?.toLowerCase() || '';
+    const brand = deal.brand?.toLowerCase() || '';
+    
+    // Use reliable, fixed image URLs for each drink type
+    if (drinkType.includes('beer')) {
+      return 'https://images.unsplash.com/photo-1618183479302-1e0aa382c36b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTJ8fGJlZXJ8ZW58MHx8MHx8&auto=format&fit=crop&w=600&q=60';
+    }
+    if (drinkType.includes('wine')) {
+      return 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8d2luZXxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=600&q=60';
+    }
+    if (drinkType.includes('whisky') || drinkType.includes('whiskey')) {
+      return 'https://images.unsplash.com/photo-1527281400683-1aefee6bfcab?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NXx8d2hpc2t5fGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=600&q=60';
+    }
+    if (drinkType.includes('gin')) {
+      return 'https://images.unsplash.com/photo-1514362453360-8f2f743c3d9c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Z2lufGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=600&q=60';
+    }
+    if (drinkType.includes('cocktail')) {
+      return 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8Y29ja3RhaWx8ZW58MHx8MHx8&auto=format&fit=crop&w=600&q=60';
+    }
+    
+    // Fallback image for other drink types
+    return 'https://images.unsplash.com/photo-1587212805519-47f396aa39a7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NXx8ZHJpbmtzfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=600&q=60';
+  };
+  
   // Get deal type icon
   const getDrinkTypeIcon = () => {
     const drinkType = deal.drinkType?.toLowerCase() || '';
@@ -184,7 +213,7 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
       {/* Top section with image and discount tag */}
       <div className="relative">
         <img 
-          src={deal.imageUrl || `https://source.unsplash.com/featured/?${deal.drinkType || 'cocktail'}`} 
+          src={getDrinkImage()} 
           alt={deal.title || "Drink special"} 
           className="w-full h-48 object-cover" 
         />
