@@ -44,11 +44,16 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.bgImageUrl;
     }
     
-    // Generate a URL based on category with the correct folder structure
+    // Use demo Cloudinary images for now to make sure something displays
     const category = deal.alcoholCategory?.toLowerCase() || '';
-    if (category) {
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'democloud';
-      return `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/${category}/image.jpg`;
+    if (category === 'beer') {
+      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg';
+    } else if (category === 'wine') {
+      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'; 
+    } else if (category === 'cocktail') {
+      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg';
+    } else if (category === 'whisky' || category === 'spirit') {
+      return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg';
     }
     
     // Otherwise return undefined to use the CSS color background
@@ -83,26 +88,11 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.brandImageUrl;
     }
     
-    // Create a specific default based on category and type
+    // Use demo Cloudinary images for now
     const category = deal.alcoholCategory?.toLowerCase() || '';
-    const brand = deal.brandName?.toLowerCase() || '';
-    const servingStyle = deal.servingStyle?.toLowerCase() || 'glass';
     
-    // Get the cloud name from environment variables
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'democloud';
-    
-    // Special handling for cocktails
-    if (category === 'cocktail') {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/${brand}/glass.png`;
-    }
-    
-    // For all other alcohol types with specific brand/serving style path
-    if (category && brand) {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/brands/${category}/${brand}/${servingStyle}.png`;
-    }
-    
-    // Return a placeholder as last resort
-    return 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23FFFFFF22%22%3E%3C%2Frect%3E%3C%2Fsvg%3E';
+    // Use Cloudinary demo bottle image for all types
+    return 'https://res.cloudinary.com/demo/image/upload/bottle.png';
   };
 
   const cardBackground = getCardBackground();
