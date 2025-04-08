@@ -4,28 +4,28 @@ import { cn } from "@/lib/utils";
 
 // Sample hero images for different drink types
 function getHeroImage(drinkType: string | undefined, brand?: string): string {
-  // Default images based on category
+  // Default images based on category - using publicly accessible image URLs
   const defaultImages = {
-    beer: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/heineken/bottle_nsgbcr.png',
-    wine: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/wine/yellow-tail/bottle_azk1m4.png',
-    whisky: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/whisky/jameson/bottle_xdnbtb.png',
-    vodka: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/vodka/absolut/bottle_jptqxc.png',
-    gin: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/gin/bombay/bottle_mtqzxp.png',
-    rum: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/rum/bacardi/bottle_klndif.png',
-    tequila: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/tequila/patron/bottle_qkluwm.png',
-    cocktail: 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/cocktail/margarita/glass_j4bvpf.png',
+    beer: 'https://www.pngall.com/wp-content/uploads/2016/04/Beer-PNG-HD.png',
+    wine: 'https://www.pngall.com/wp-content/uploads/2016/06/Wine-Free-Download-PNG.png',
+    whisky: 'https://www.pngall.com/wp-content/uploads/12/Whiskey-Bottle-PNG-Picture.png',
+    vodka: 'https://www.pngall.com/wp-content/uploads/12/Alcohol-Bottle-PNG-Picture.png',
+    gin: 'https://www.pngall.com/wp-content/uploads/12/Gin-PNG-Image-HD.png',
+    rum: 'https://www.pngall.com/wp-content/uploads/12/Alcohol-Bottle-Transparent-PNG.png',
+    tequila: 'https://www.pngall.com/wp-content/uploads/12/Tequila-PNG-Images-HD.png',
+    cocktail: 'https://www.pngall.com/wp-content/uploads/2016/05/Cocktail-Download-PNG.png',
   };
   
   // Brand-specific images (could expand based on actual brand data)
   const brandImages: {[key: string]: {[key: string]: string}} = {
     beer: {
-      'heineken': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/heineken/bottle_nsgbcr.png',
-      'corona': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/corona/bottle_vsjmbt.png',
-      'stella artois': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/beer/stella/bottle_ncxrjb.png',
+      'heineken': 'https://www.pngall.com/wp-content/uploads/2016/04/Heineken-Beer-PNG.png',
+      'corona': 'https://www.pngall.com/wp-content/uploads/2016/04/Corona-Beer-PNG.png',
+      'stella artois': 'https://www.pngall.com/wp-content/uploads/2016/04/Beer-PNG-HD.png',
     },
     whisky: {
-      'jameson': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/whisky/jameson/bottle_xdnbtb.png',
-      'jack daniels': 'https://res.cloudinary.com/dlxrcak5b/image/upload/v1744132169/happy-hour/brand/whisky/jackdaniels/bottle_ixznyk.png',
+      'jameson': 'https://www.pngall.com/wp-content/uploads/12/Whiskey-Bottle-PNG-Clipart.png',
+      'jack daniels': 'https://www.pngall.com/wp-content/uploads/12/Jack-Daniels-PNG-Picture.png',
     }
   };
   
@@ -380,7 +380,7 @@ function DealCard({
           
           {/* Hero Image (Bottle/Glass) */}
           {deal.drinkType && (
-            <div className="w-24 h-32 relative">
+            <div className="w-36 h-40 relative flex items-center justify-center">
               {/* Choose image based on drink type */}
               <img 
                 src={getHeroImage(deal.drinkType, deal.brand)}
@@ -388,7 +388,8 @@ function DealCard({
                 className="h-full object-contain drop-shadow-lg"
                 style={{ 
                   transform: 'rotate(-5deg)',
-                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.3))'
+                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.3))',
+                  maxWidth: '100%'
                 }}
               />
             </div>
