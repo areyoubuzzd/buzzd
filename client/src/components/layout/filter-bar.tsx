@@ -19,13 +19,13 @@ export default function FilterBar({ onFilterChange }: FilterBarProps) {
   };
 
   return (
-    <div className="bg-white shadow-sm">
+    <div className="bg-[#f8f7f5] shadow-sm">
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center space-x-3 overflow-x-auto pb-1 scrollbar-hide">
           <Button
             variant={activeFilter === 'active' ? 'default' : 'outline'}
             className={`flex-shrink-0 px-4 py-1 rounded-full text-sm h-auto ${
-              activeFilter === 'active' ? 'bg-primary text-white' : 'bg-white border border-gray-300'
+              activeFilter === 'active' ? 'bg-primary text-white' : 'bg-[#f8f7f5] border border-gray-200 text-[#191632]'
             }`}
             onClick={() => handleFilterClick('active')}
           >
@@ -35,7 +35,7 @@ export default function FilterBar({ onFilterChange }: FilterBarProps) {
           <Button
             variant={activeFilter === 'one-for-one' ? 'default' : 'outline'}
             className={`flex-shrink-0 px-4 py-1 rounded-full text-sm h-auto ${
-              activeFilter === 'one-for-one' ? 'bg-primary text-white' : 'bg-white border border-gray-300'
+              activeFilter === 'one-for-one' ? 'bg-primary text-white' : 'bg-[#f8f7f5] border border-gray-200 text-[#191632]'
             }`}
             onClick={() => handleFilterClick('one-for-one')}
           >
@@ -45,7 +45,7 @@ export default function FilterBar({ onFilterChange }: FilterBarProps) {
           <Button
             variant={activeFilter === 'high-savings' ? 'default' : 'outline'}
             className={`flex-shrink-0 px-4 py-1 rounded-full text-sm h-auto ${
-              activeFilter === 'high-savings' ? 'bg-primary text-white' : 'bg-white border border-gray-300'
+              activeFilter === 'high-savings' ? 'bg-primary text-white' : 'bg-[#f8f7f5] border border-gray-200 text-[#191632]'
             }`}
             onClick={() => handleFilterClick('high-savings')}
           >
@@ -59,7 +59,7 @@ export default function FilterBar({ onFilterChange }: FilterBarProps) {
           <Button
             variant={activeFilter === 'beer' ? 'default' : 'outline'}
             className={`flex-shrink-0 px-4 py-1 rounded-full text-sm h-auto ${
-              activeFilter === 'beer' ? 'bg-primary text-white' : 'bg-white border border-gray-300'
+              activeFilter === 'beer' ? 'bg-primary text-white' : 'bg-[#f8f7f5] border border-gray-200 text-[#191632]'
             }`}
             onClick={() => handleFilterClick('beer')}
           >
@@ -69,7 +69,7 @@ export default function FilterBar({ onFilterChange }: FilterBarProps) {
           <Button
             variant={activeFilter === 'wine' ? 'default' : 'outline'}
             className={`flex-shrink-0 px-4 py-1 rounded-full text-sm h-auto ${
-              activeFilter === 'wine' ? 'bg-primary text-white' : 'bg-white border border-gray-300'
+              activeFilter === 'wine' ? 'bg-primary text-white' : 'bg-[#f8f7f5] border border-gray-200 text-[#191632]'
             }`}
             onClick={() => handleFilterClick('wine')}
           >
@@ -79,7 +79,7 @@ export default function FilterBar({ onFilterChange }: FilterBarProps) {
           <Button
             variant={activeFilter === 'whisky' ? 'default' : 'outline'}
             className={`flex-shrink-0 px-4 py-1 rounded-full text-sm h-auto ${
-              activeFilter === 'whisky' ? 'bg-primary text-white' : 'bg-white border border-gray-300'
+              activeFilter === 'whisky' ? 'bg-primary text-white' : 'bg-[#f8f7f5] border border-gray-200 text-[#191632]'
             }`}
             onClick={() => handleFilterClick('whisky')}
           >

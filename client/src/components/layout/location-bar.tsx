@@ -291,17 +291,18 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
                 <Badge 
                   key={filter.value} 
                   variant="secondary"
-                  className="flex items-center gap-1 py-1 pl-2 pr-1 bg-gray-100"
+                  className="flex items-center gap-1 py-1 pl-2 pr-1 bg-[#f8f7f5] border border-gray-200"
+                  style={{ color: "#191632" }}
                 >
-                  {filter.icon && <span className="mr-1">{filter.icon}</span>}
-                  <span className="truncate max-w-[80px] sm:max-w-full">{filter.label}</span>
+                  {filter.icon && <span className="mr-1 text-[#191632]">{filter.icon}</span>}
+                  <span className="truncate max-w-[80px] sm:max-w-full text-[#191632]">{filter.label}</span>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     className="h-5 w-5 p-0 ml-1 hover:bg-gray-200 rounded-full flex-shrink-0"
                     onClick={() => removeFilter(filter.value)}
                   >
-                    <FiX className="h-3 w-3" />
+                    <FiX className="h-3 w-3 text-[#191632]" />
                   </Button>
                 </Badge>
               ))}
@@ -310,7 +311,7 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs text-gray-500 h-6 px-2 py-0 hover:bg-gray-100"
+                  className="text-xs h-6 px-2 py-0 hover:bg-gray-100 text-[#191632]"
                   onClick={() => setSelectedFilters([])}
                 >
                   Clear all
