@@ -221,27 +221,36 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
     return 'DRINK';
   };
   
-  // Get background color based on drink type - with brighter, more visible colors
-  const getCardBackground = () => {
+  // Get neon accent color based on drink type
+  const getNeonColor = () => {
     const drinkType = deal.drinkType?.toLowerCase() || '';
     
-    // If card is grayed out, make the background lighter so content is still visible
-    const alpha = isGrayedOut ? 0.8 : 0.95;
-    
     if (drinkType.includes('beer')) {
-      return `linear-gradient(to bottom, rgba(0,100,0,${alpha}) 0%, rgba(0,150,0,${alpha}) 100%)`;
+      return '#00ff00'; // Neon green for beer
     } else if (drinkType.includes('wine')) {
-      return `linear-gradient(to bottom, rgba(120,0,60,${alpha}) 0%, rgba(180,0,90,${alpha}) 100%)`;
+      return '#ff3388'; // Neon pink for wine
     } else if (drinkType.includes('whisky') || drinkType.includes('whiskey')) {
-      return `linear-gradient(to bottom, rgba(150,75,0,${alpha}) 0%, rgba(200,120,0,${alpha}) 100%)`;
+      return '#ff9900'; // Neon orange for whisky
     } else if (drinkType.includes('gin')) {
-      return `linear-gradient(to bottom, rgba(60,0,150,${alpha}) 0%, rgba(90,0,200,${alpha}) 100%)`;
+      return '#aa00ff'; // Neon purple for gin
     } else if (drinkType.includes('cocktail') || drinkType.includes('margarita')) {
-      return `linear-gradient(to bottom, rgba(0,120,120,${alpha}) 0%, rgba(0,180,180,${alpha}) 100%)`;
+      return '#00ffff'; // Neon cyan for cocktails
     }
     
-    // Default background - brighter than before
-    return `linear-gradient(to bottom, rgba(60,60,120,${alpha}) 0%, rgba(90,90,160,${alpha}) 100%)`;
+    // Default accent color
+    return '#ff3388'; // Neon pink default
+  };
+  
+  // Get neon glow effect for the accent color
+  const getNeonGlow = (color: string) => {
+    return `0 0 5px ${color}, 0 0 10px ${color}, 0 0 15px ${color}`;
+  };
+  
+  // All cards now have black background with subtle gradient
+  const getCardBackground = () => {
+    // Black gradient background for all cards
+    const alpha = isGrayedOut ? 0.7 : 0.95;
+    return `linear-gradient(to bottom, rgba(10,10,15,${alpha}) 0%, rgba(0,0,5,${alpha}) 100%)`;
   };
 
   // State to track if card is flipped
@@ -273,8 +282,8 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
           className="h-full overflow-hidden relative rounded-xl backface-hidden" 
           style={{ 
             background: getCardBackground(),
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 0 15px rgba(255, 105, 180, 0.3)',
+            border: `1px solid ${getNeonColor()}`,
+            boxShadow: `0 0 15px ${getNeonColor()}`,
             backfaceVisibility: 'hidden',
             position: 'absolute',
             width: '100%',
@@ -283,27 +292,45 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
         >
           {/* Main content with neon style */}
           <div className="flex flex-col h-full">
-            {/* Top deal information */}
-            <div className="p-4 pb-0 text-center">
+            {/* Top deal information with neon colors */}
+            <div className="p-4 pb-0 text-center relative">
+              {/* Savings tag on top left corner */}
+              <div className="absolute top-0 left-0 transform -translate-x-2 -translate-y-2 rotate-[-12deg] z-10">
+                <div className="rounded-lg py-1 px-3 text-center text-sm font-bold" 
+                  style={{ 
+                    background: 'black',
+                    color: getNeonColor(),
+                    border: `1px solid ${getNeonColor()}`,
+                    boxShadow: getNeonGlow(getNeonColor()),
+                    textShadow: getNeonGlow(getNeonColor())
+                  }}>
+                  {deal.isOneForOne 
+                    ? "1-FOR-1" 
+                    : `${deal.savingsPercentage || 30}% OFF`}
+                </div>
+              </div>
+              
+              {/* Main price display */}
               {deal.isOneForOne ? (
-                <h1 className="text-6xl font-bold mb-1 neon-text" style={{ 
-                  color: '#ff4ddb', 
-                  textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
+                <h1 className="text-6xl font-bold mb-1" style={{ 
+                  color: getNeonColor(), 
+                  textShadow: getNeonGlow(getNeonColor())
                 }}>
                   1FOR1
                 </h1>
               ) : (
-                <h1 className="text-6xl font-bold mb-1 neon-text" style={{ 
-                  color: '#ff4ddb', 
-                  textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
+                <h1 className="text-6xl font-bold mb-1" style={{ 
+                  color: getNeonColor(), 
+                  textShadow: getNeonGlow(getNeonColor())
                 }}>
                   ${deal.dealPrice}
                 </h1>
               )}
               
+              {/* Drink type */}
               <h2 className="uppercase text-2xl font-bold mb-4" style={{ 
-                color: '#ff4ddb', 
-                textShadow: '0 0 5px rgba(255, 77, 219, 0.5)' 
+                color: getNeonColor(), 
+                textShadow: getNeonGlow(getNeonColor())
               }}>
                 {getDrinkTypeName()}
               </h2>
@@ -318,35 +345,47 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
               />
             </div>
             
-            {/* Bottom discount badge */}
-            <div className="mx-4 mb-3 rounded-lg py-2 px-2 text-center font-bold" 
-              style={{ 
-                background: '#ffdd00', 
-                color: '#000000',
-                boxShadow: '0 0 10px rgba(255, 221, 0, 0.6)'
-              }}>
-              {deal.isOneForOne 
-                ? "30% OFF" 
-                : `${deal.savingsPercentage || 30}% OFF`}
-            </div>
-            
-            {/* Restaurant and time info */}
-            <div className="px-4 pb-4 text-center text-xs">
-              <p style={{ color: 'white', fontWeight: 'bold', textShadow: '0 0 5px rgba(0,0,0,0.8)' }}>
-                UNTIL {format(new Date(deal.endTime), 'h a')} • {distance ? `${(distance * 1000).toFixed(0)}m` : 'nearby'}
-              </p>
+            {/* Time and distance info with icons */}
+            <div className="px-4 pb-4 flex items-center justify-center space-x-4">
+              <div className="flex items-center text-xs">
+                <FiClock className="mr-1" style={{ color: getNeonColor() }} />
+                <p style={{ color: 'white', fontWeight: 'bold', textShadow: '0 0 5px rgba(0,0,0,0.8)' }}>
+                  {format(new Date(deal.startTime), 'h:mm a')} - {format(new Date(deal.endTime), 'h:mm a')}
+                </p>
+              </div>
+              <div className="flex items-center text-xs">
+                <FiMapPin className="mr-1" style={{ color: getNeonColor() }} />
+                <p style={{ color: 'white', fontWeight: 'bold', textShadow: '0 0 5px rgba(0,0,0,0.8)' }}>
+                  {distance ? `${distance.toFixed(1)} km` : 'nearby'}
+                </p>
+              </div>
             </div>
           </div>
           
           {/* Status badge for active deals */}
           {status === 'active' && (
-            <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+            <div 
+              className="absolute top-2 right-2 text-xs px-2 py-1 rounded-full"
+              style={{ 
+                background: 'black',
+                color: getNeonColor(),
+                border: `1px solid ${getNeonColor()}`,
+                boxShadow: getNeonGlow(getNeonColor())
+              }}
+            >
               Live
             </div>
           )}
           
           {/* Flip indicator */}
-          <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+          <div 
+            className="absolute bottom-2 right-2 text-xs px-2 py-1 rounded-full"
+            style={{ 
+              background: 'black',
+              color: 'white',
+              border: `1px solid ${getNeonColor()}30`
+            }}
+          >
             Tap for details
           </div>
         </Card>
@@ -356,8 +395,8 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
           className="h-full overflow-hidden relative rounded-xl backface-hidden rotate-y-180" 
           style={{ 
             background: getCardBackground(),
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 0 15px rgba(255, 105, 180, 0.3)',
+            border: `1px solid ${getNeonColor()}`,
+            boxShadow: `0 0 10px ${getNeonColor()}`,
             backfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
             position: 'absolute',
@@ -368,16 +407,25 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
           {isGrayedOut ? (
             // Back for non-premium users - upgrade prompt
             <div className="flex flex-col h-full items-center justify-center text-center p-6 space-y-4">
-              <div className="bg-black bg-opacity-70 p-5 rounded-full mb-4">
+              <div className="bg-black p-5 rounded-full mb-4 border" style={{ borderColor: getNeonColor() }}>
                 <FiLock 
-                  className="h-12 w-12 text-white" 
-                  style={{ filter: 'drop-shadow(0 0 8px rgba(255, 105, 180, 0.8))' }} 
+                  className="h-12 w-12" 
+                  style={{ 
+                    color: getNeonColor(),
+                    filter: `drop-shadow(0 0 8px ${getNeonColor()})` 
+                  }} 
                 />
               </div>
-              <h3 className="text-white text-2xl font-bold neon-text">
+              <h3 
+                className="text-2xl font-bold" 
+                style={{ 
+                  color: getNeonColor(),
+                  textShadow: getNeonGlow(getNeonColor())
+                }}
+              >
                 {!user ? "Sign In Required" : "Premium Deal"}
               </h3>
-              <p className="text-white text-sm mb-4">
+              <p className="text-white text-sm mb-4" style={{ textShadow: '0 0 5px rgba(0,0,0,0.8)' }}>
                 {!user 
                   ? "Sign in to view this exclusive deal" 
                   : "Upgrade to premium to unlock all deals and save more"}
@@ -388,9 +436,12 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
                   e.stopPropagation();
                   handleViewDeal();
                 }}
-                className="w-full bg-primary hover:bg-primary/80 text-white"
+                className="w-full text-white"
                 style={{ 
-                  boxShadow: '0 0 10px rgba(255, 77, 219, 0.5)'
+                  backgroundColor: 'black',
+                  color: getNeonColor(),
+                  border: `1px solid ${getNeonColor()}`,
+                  boxShadow: getNeonGlow(getNeonColor())
                 }}
               >
                 {!user ? "Sign In Now" : "Upgrade Now"}
@@ -400,13 +451,28 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
             // Back for premium users - restaurant details
             <div className="flex flex-col h-full p-4">
               {/* Restaurant header */}
-              <div className="flex items-center mb-4 pb-2 border-b border-white/10">
-                {/* TODO: Replace with actual restaurant logo */}
-                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-2xl mr-4">
+              <div className="flex items-center mb-4 pb-2 border-b" style={{ borderColor: `${getNeonColor()}40` }}>
+                {/* Restaurant logo */}
+                <div 
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-2xl mr-4"
+                  style={{ 
+                    background: 'black',
+                    border: `1px solid ${getNeonColor()}`,
+                    boxShadow: getNeonGlow(getNeonColor())
+                  }}
+                >
                   🍽️
                 </div>
                 <div>
-                  <h3 className="text-white text-lg font-bold">{deal.establishment.name}</h3>
+                  <h3 
+                    className="text-lg font-bold"
+                    style={{ 
+                      color: getNeonColor(),
+                      textShadow: getNeonGlow(getNeonColor())
+                    }}
+                  >
+                    {deal.establishment.name}
+                  </h3>
                   <p className="text-white/80 text-xs">{deal.establishment.type || "Bar & Restaurant"}</p>
                 </div>
               </div>
@@ -414,19 +480,25 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
               {/* Deal details */}
               <div className="flex-grow space-y-3">
                 <div className="flex items-center text-white text-sm">
-                  <FiClock className="mr-2" />
+                  <FiClock className="mr-2" style={{ color: getNeonColor() }} />
                   <p>{getTimeDisplay()}</p>
                 </div>
                 <div className="flex items-center text-white text-sm">
-                  <FiMapPin className="mr-2" />
-                  <p>{distance ? `${(distance * 1000).toFixed(0)}m away • ${getWalkingTime()}` : 'Distance unknown'}</p>
+                  <FiMapPin className="mr-2" style={{ color: getNeonColor() }} />
+                  <p>{distance ? `${distance.toFixed(1)} km • ${getWalkingTime()}` : 'Distance unknown'}</p>
                 </div>
                 <div className="flex items-center text-white text-sm">
-                  <FiStar className="mr-2 text-yellow-400" />
+                  <FiStar className="mr-2" style={{ color: getNeonColor() }} />
                   <p>{deal.establishment.rating || '4.5'} rating</p>
                 </div>
                 
-                <div className="bg-black/30 p-3 rounded-lg mt-4">
+                <div 
+                  className="p-3 rounded-lg mt-4"
+                  style={{ 
+                    background: 'rgba(0,0,0,0.5)',
+                    border: `1px solid ${getNeonColor()}40`
+                  }}
+                >
                   <p className="text-white text-sm">{deal.description || `Enjoy ${deal.drinkType} specials at this popular venue!`}</p>
                 </div>
               </div>
@@ -439,7 +511,11 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
                     e.stopPropagation();
                     handleSaveOrRemind();
                   }}
-                  className="text-white border-white/20 hover:bg-white/10"
+                  className="text-white hover:bg-black/30"
+                  style={{ 
+                    borderColor: getNeonColor(),
+                    color: getNeonColor()
+                  }}
                 >
                   Save Deal
                 </Button>
@@ -449,9 +525,12 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
                     e.stopPropagation();
                     handleViewDeal();
                   }}
-                  className="bg-primary hover:bg-primary/80 text-white"
+                  className="text-white"
                   style={{ 
-                    boxShadow: '0 0 10px rgba(255, 77, 219, 0.5)'
+                    backgroundColor: 'black',
+                    color: getNeonColor(),
+                    border: `1px solid ${getNeonColor()}`,
+                    boxShadow: getNeonGlow(getNeonColor())
                   }}
                 >
                   View Deal
