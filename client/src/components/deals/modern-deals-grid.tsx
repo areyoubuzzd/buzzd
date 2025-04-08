@@ -200,27 +200,14 @@ export default function ModernDealsGrid() {
       console.log("Beer glass:", beerGlassUrl);
       console.log("Margarita glass:", margaritaGlassUrl);
       
-      // Update the deal's bgImageUrl and brandImageUrl with hardcoded Cloudinary URLs
+      // Update ALL deals with guaranteed sample images regardless of category
       const updatedDeals = deals.map(deal => {
-        const category = deal.alcoholCategory.toLowerCase();
+        // Always use the sample.jpg for background and sample.png for brand image
+        // These are guaranteed to exist in the demo account
+        const bgImageUrl = "https://res.cloudinary.com/demo/image/upload/sample.jpg";
+        const brandImageUrl = "https://res.cloudinary.com/demo/image/upload/sample.png";
         
-        // Get background image URL
-        let bgImageUrl = '';
-        if (category === 'beer') {
-          bgImageUrl = beerBgUrl;
-        } else if (category === 'cocktail') {
-          bgImageUrl = cocktailBgUrl;
-        }
-        
-        // Get brand image URL
-        let brandImageUrl = '';
-        if (category === 'beer' && deal.servingStyle === 'bottle') {
-          brandImageUrl = beerBottleUrl;
-        } else if (category === 'beer' && deal.servingStyle === 'glass') {
-          brandImageUrl = beerGlassUrl;
-        } else if (category === 'cocktail' && deal.brandName === 'margarita') {
-          brandImageUrl = margaritaGlassUrl;
-        }
+        console.log("Setting deal images for", deal.alcoholCategory, "- Background:", bgImageUrl, "- Brand:", brandImageUrl);
         
         return {
           ...deal,

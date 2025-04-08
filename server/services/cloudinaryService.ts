@@ -72,19 +72,20 @@ class CloudinaryService {
     try {
       // If we're using the demo account due to missing credentials, use direct URL method
       if (this.useDemoAccount) {
-        return this.getFallbackDemoUrl(`home/backgrounds/${formattedCategory}/image`, 'png');
+        // Use directory listing to get the first image in the category directory
+        return this.getFallbackDemoUrl(`home/backgrounds/${formattedCategory}/*`, 'auto');
       }
       
-      // Path structure: home/backgrounds/[category]/image
-      return cloudinary.url(`home/backgrounds/${formattedCategory}/image`, {
+      // Path structure using directory listing to get any image in the category folder
+      return cloudinary.url(`home/backgrounds/${formattedCategory}/*`, {
         secure: true,
         transformation: [
           { width: 800, height: 400, crop: 'fill' },
           { quality: 'auto' },
           { fetch_format: 'auto' }
         ],
-        // Fallback to default background if category-specific one doesn't exist
-        default_image: 'home/backgrounds/default/image'
+        // Fallback to any image in the default background directory
+        default_image: 'home/backgrounds/default/*'
       });
     } catch (error) {
       console.error('Error getting background image URL:', error);
@@ -107,9 +108,11 @@ class CloudinaryService {
       if (this.useDemoAccount) {
         // Special handling for cocktails
         if (formattedCategory === 'cocktail') {
-          return this.getFallbackDemoUrl(`home/brands/cocktail/${formattedBrand}/glass`, 'png');
+          // Use wildcard to get any image in the cocktail/brand/glass directory
+          return this.getFallbackDemoUrl(`home/brands/cocktail/${formattedBrand}/*`, 'auto');
         }
-        return this.getFallbackDemoUrl(`home/brands/${formattedCategory}/${formattedBrand}/${serving}`, 'png');
+        // Use wildcard to get any image in the category/brand/serving directory
+        return this.getFallbackDemoUrl(`home/brands/${formattedCategory}/${formattedBrand}/*`, 'auto');
       }
       
       // Special handling for cocktails - they are typically served in glasses
@@ -117,8 +120,8 @@ class CloudinaryService {
         // For cocktails, we always use 'glass' as the serving style (override any provided value)
         const cocktailServing = 'glass';
         
-        // Path structure for cocktails: home/brands/cocktail/[cocktail_name]/glass
-        return cloudinary.url(`home/brands/${formattedCategory}/${formattedBrand}/${cocktailServing}`, {
+        // Path structure for cocktails: home/brands/cocktail/[cocktail_name]/*
+        return cloudinary.url(`home/brands/${formattedCategory}/${formattedBrand}/*`, {
           secure: true,
           transformation: [
             { width: 200, crop: 'fill' },
@@ -126,25 +129,25 @@ class CloudinaryService {
             { fetch_format: 'auto' }
           ],
           // Fallback to a generic cocktail glass if the specific cocktail image doesn't exist
-          default_image: `home/brands/${formattedCategory}/${cocktailServing}/default`
+          default_image: `home/brands/${formattedCategory}/default/*`
         });
       }
       
-      // Path structure: home/brands/[category]/[brand]/[bottle_or_glass]
-      return cloudinary.url(`home/brands/${formattedCategory}/${formattedBrand}/${serving}`, {
+      // Path structure: home/brands/[category]/[brand]/*
+      return cloudinary.url(`home/brands/${formattedCategory}/${formattedBrand}/*`, {
         secure: true,
         transformation: [
           { width: 200, crop: 'fill' },
           { quality: 'auto' },
           { fetch_format: 'auto' }
         ],
-        // Fallback to category/serving/default if brand specific image doesn't exist
-        default_image: `home/brands/${formattedCategory}/${serving}/default`
+        // Fallback to category default if brand specific image doesn't exist
+        default_image: `home/brands/${formattedCategory}/default/*`
       });
     } catch (error) {
       console.error('Error getting brand image URL:', error);
       // If anything fails, return a demo URL
-      return this.getFallbackDemoUrl('bottle');
+      return this.getFallbackDemoUrl('sample');
     }
   }
   
@@ -163,23 +166,24 @@ class CloudinaryService {
       
       // If we're using the demo account due to missing credentials, use direct URL method
       if (this.useDemoAccount) {
-        return this.getFallbackDemoUrl(`home/restaurants/logos/${restaurantId}`, 'png');
+        // Use wildcard to get any image in the restaurant's logo directory
+        return this.getFallbackDemoUrl(`home/restaurants/logos/${restaurantId}/*`, 'auto');
       }
       
-      // Use the restaurant ID to fetch the logo from Cloudinary
-      return cloudinary.url(`home/restaurants/logos/${restaurantId}`, {
+      // Use the restaurant ID to fetch the logo from Cloudinary with wildcard to match any filename
+      return cloudinary.url(`home/restaurants/logos/${restaurantId}/*`, {
         secure: true,
         transformation: [
           { width: 150, height: 150, crop: 'fill' },
           { quality: 'auto' },
           { fetch_format: 'auto' }
         ],
-        default_image: 'home/restaurants/logos/default'
+        default_image: 'home/restaurants/logos/default/*'
       });
     } catch (error) {
       console.error('Error getting restaurant logo URL:', error);
       // If anything fails, return a demo URL
-      return this.getFallbackDemoUrl('home/restaurants/logos/default');
+      return this.getFallbackDemoUrl('sample');
     }
   }
   
