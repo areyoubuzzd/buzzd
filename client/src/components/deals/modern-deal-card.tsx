@@ -20,22 +20,32 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     navigate(`/deal/${deal.id}`);
   };
   
-  // Generate card background color based on alcohol category
-  const getCardBackgroundColor = () => {
+  // Generate card background styles based on alcohol category
+  const getCardBackground = () => {
     const category = deal.alcoholCategory?.toLowerCase() || '';
     
-    if (category.includes('beer')) {
-      return 'deal-card-beer';
-    } else if (category.includes('wine')) {
-      return 'deal-card-wine';
+    // First get the CSS class for color fallback
+    let colorClass = 'deal-card-beer';
+    if (category.includes('wine')) {
+      colorClass = 'deal-card-wine';
     } else if (category.includes('cocktail') || category.includes('margarita')) {
-      return 'deal-card-cocktail';
+      colorClass = 'deal-card-cocktail';
     } else if (category.includes('whisky') || category.includes('gin') || category.includes('vodka')) {
-      return 'deal-card-spirit';
+      colorClass = 'deal-card-spirit';
     }
     
-    // Default to beer if no category or unknown
-    return 'deal-card-beer';
+    return colorClass;
+  };
+  
+  // Get background image URL from Cloudinary
+  const getBackgroundImageUrl = () => {
+    // If deal has a specific background image, use that
+    if (deal.bgImageUrl) {
+      return deal.bgImageUrl;
+    }
+    
+    // Otherwise return undefined to use the CSS color background
+    return undefined;
   };
   
   // Format the deal price text
@@ -70,9 +80,16 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     return 'https://placehold.co/200x300/transparent/white?text=+';
   };
 
+  const cardBackground = getCardBackground();
+  
   return (
     <Card 
-      className={`deal-card ${getCardBackgroundColor()} cursor-pointer`} 
+      className={`deal-card ${cardBackground} cursor-pointer`} 
+      style={{
+        backgroundImage: getBackgroundImageUrl() ? `url(${getBackgroundImageUrl()})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
@@ -117,7 +134,7 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       
       {/* Decorative patterns/elements in the background for visual interest */}
       <div className="deal-pattern" aria-hidden="true">
-        {getCardBackgroundColor() === 'deal-card-beer' && (
+        {cardBackground === 'deal-card-beer' && (
           // Beer card pattern: bubbles/lines
           <>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-5 left-5">
@@ -135,7 +152,7 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
           </>
         )}
         
-        {getCardBackgroundColor() === 'deal-card-wine' && (
+        {cardBackground === 'deal-card-wine' && (
           // Wine card pattern: hearts/dots
           <>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-10 right-10">
@@ -147,7 +164,7 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
           </>
         )}
         
-        {getCardBackgroundColor() === 'deal-card-cocktail' && (
+        {cardBackground === 'deal-card-cocktail' && (
           // Cocktail card pattern: curved lines, tropical
           <>
             <svg width="50" height="30" viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-5 left-5">
@@ -162,7 +179,7 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
           </>
         )}
         
-        {getCardBackgroundColor() === 'deal-card-spirit' && (
+        {cardBackground === 'deal-card-spirit' && (
           // Spirit card pattern: angular, geometric
           <>
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-5 right-5">
