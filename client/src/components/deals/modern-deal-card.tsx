@@ -44,23 +44,26 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.bgImageUrl;
     }
     
-    // Use Cloudinary with flexible file extensions
+    // Use Cloudinary with flexible file format options
     const category = deal.alcoholCategory?.toLowerCase() || '';
-    const cloudName = 'demo'; // Using demo cloud for now
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo';
+    
+    // Construct a base path without file extension to let Cloudinary auto-detect the format
+    // We're also using the f_auto parameter to let Cloudinary optimize the format
+    const basePath = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto`;
     
     if (category === 'beer') {
-      // Try both JPG and PNG formats
-      return `https://res.cloudinary.com/${cloudName}/image/upload/beer_background`;
+      return `${basePath}/backgrounds/beer/image`;
     } else if (category === 'wine') {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/wine_background`;
+      return `${basePath}/backgrounds/wine/image`;
     } else if (category === 'cocktail') {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/cocktail_background`;
+      return `${basePath}/backgrounds/cocktail/image`;
     } else if (category === 'whisky' || category === 'spirit') {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/whisky_background`;
+      return `${basePath}/backgrounds/whisky/image`;
     }
     
     // Default image if none of the categories match
-    return `https://res.cloudinary.com/${cloudName}/image/upload/sample`;
+    return `${basePath}/backgrounds/default/image`;
   };
   
   // Format the deal price text
@@ -94,21 +97,38 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     // Use appropriate image based on category
     const category = deal.alcoholCategory?.toLowerCase() || '';
     const brand = deal.brandName?.toLowerCase().replace(/\s+/g, '_') || '';
-    const cloudName = 'demo'; // Using demo cloud
+    const servingStyle = deal.servingStyle?.toLowerCase() || 'glass';
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo';
     
-    if (category === 'beer') {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/beer_glass`;
-    } else if (category === 'wine') {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/wine_glass`;
-    } else if (category === 'cocktail') {
-      // Try to get specific cocktail or fallback to default
-      return `https://res.cloudinary.com/${cloudName}/image/upload/cocktail_glass`;
-    } else if (category === 'whisky' || category === 'spirit') {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/whisky_glass`;
+    // Construct a base path with format auto parameter
+    const basePath = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto`;
+    
+    // If we have a brand name, try to get a specific image for this brand
+    if (brand && brand !== 'default') {
+      if (category === 'beer') {
+        return `${basePath}/brands/beer/${brand}/${servingStyle}`;
+      } else if (category === 'wine') {
+        return `${basePath}/brands/wine/${brand}/${servingStyle}`;
+      } else if (category === 'cocktail') {
+        return `${basePath}/brands/cocktail/${brand}/glass`;
+      } else if (category === 'whisky' || category === 'spirit') {
+        return `${basePath}/brands/whisky/${brand}/${servingStyle}`;
+      }
     }
     
-    // Fallback to sample bottle image
-    return `https://res.cloudinary.com/${cloudName}/image/upload/bottle`;
+    // If no specific brand or the brand image doesn't exist, use category defaults
+    if (category === 'beer') {
+      return `${basePath}/brands/beer/default/${servingStyle}`;
+    } else if (category === 'wine') {
+      return `${basePath}/brands/wine/default/${servingStyle}`;
+    } else if (category === 'cocktail') {
+      return `${basePath}/brands/cocktail/default/glass`;
+    } else if (category === 'whisky' || category === 'spirit') {
+      return `${basePath}/brands/whisky/default/${servingStyle}`;
+    }
+    
+    // Fallback to sample bottle image from demo account
+    return `${basePath}/sample`;
   };
 
   const cardBackground = getCardBackground();

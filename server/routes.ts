@@ -547,65 +547,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/test-cloudinary", async (req, res) => {
     try {
-      // Create some test URLs to demonstrate the folder structure
-      const testUrls = {
-        // Backgrounds per alcohol category (simplified structure)
-        backgrounds: {
-          beer: cloudinaryService.getBackgroundImageUrl('beer'),
-          whisky: cloudinaryService.getBackgroundImageUrl('whisky'),
-          cocktail: cloudinaryService.getBackgroundImageUrl('cocktail'),
-          wine: {
-            red: cloudinaryService.getBackgroundImageUrl('wine'),
-            white: cloudinaryService.getBackgroundImageUrl('wine'),
-          },
-          default: cloudinaryService.getBackgroundImageUrl('default')
-        },
-        // Brand images for different serving types
-        brands: {
-          beer: {
-            heineken: {
-              bottle: cloudinaryService.getBrandImageUrl('beer', 'heineken', 'bottle'),
-              glass: cloudinaryService.getBrandImageUrl('beer', 'heineken', 'glass')
-            },
-            tiger: {
-              bottle: cloudinaryService.getBrandImageUrl('beer', 'tiger', 'bottle'),
-              glass: cloudinaryService.getBrandImageUrl('beer', 'tiger', 'glass')
-            }
-          },
-          whisky: {
-            johnnieWalker: {
-              bottle: cloudinaryService.getBrandImageUrl('whisky', 'johnnie_walker', 'bottle'),
-              glass: cloudinaryService.getBrandImageUrl('whisky', 'johnnie_walker', 'glass')
-            }
-          },
-          cocktail: {
-            margarita: {
-              glass: cloudinaryService.getBrandImageUrl('cocktail', 'margarita', 'glass')
-            },
-            mojito: {
-              glass: cloudinaryService.getBrandImageUrl('cocktail', 'mojito', 'glass')
-            },
-            oldFashioned: {
-              glass: cloudinaryService.getBrandImageUrl('cocktail', 'old_fashioned', 'glass')
-            }
-          }
-        },
-        // Restaurant logos
-        restaurants: {
-          logo1: cloudinaryService.getRestaurantLogoUrl('SG0109'), // Chimichanga
-          logo2: cloudinaryService.getRestaurantLogoUrl('SG0110'), // The Pit
-          logo3: cloudinaryService.getRestaurantLogoUrl('SG0111')  // Wala Wala
-        }
-      };
+      // Get both SDK-generated and hardcoded URLs
+      const { sdkUrls, hardcodedUrls, cloudName } = generateTestUrls();
       
+      // Check if we can connect to Cloudinary
+      let connectionOk = false;
+      try {
+        await testCloudinaryConnection();
+        connectionOk = true;
+      } catch (e) {
+        // Connection failed but we can still return test URLs
+        console.error('Cloudinary connection test failed:', e);
+      }
+      
+      // Log the Cloudinary configuration
+      logCloudinaryConfig();
+      
+      // Return a comprehensive response
       res.json({
-        success: true,
-        configuration: {
-          cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'Not configured',
-          apiKeyConfigured: process.env.CLOUDINARY_API_KEY ? 'Yes' : 'No',
-          apiSecretConfigured: process.env.CLOUDINARY_API_SECRET ? 'Yes' : 'No'
-        },
-        message: "These URLs demonstrate the folder structure for images. If Cloudinary is properly set up with these folders, the images will load.",
+        connectionOk,
+        cloudName,
+        message: "These URLs demonstrate the folder structure for images. If Cloudinary is properly set up with these folders, the images will load. The hardcoded URLs should work regardless of authentication.",
         recommendedFolderStructure: [
           "/backgrounds/beer/image", 
           "/backgrounds/wine/image",
@@ -614,14 +576,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "/backgrounds/default/image",
           "/brands/beer/heineken/bottle",
           "/brands/beer/heineken/glass",
-          "/brands/beer/bottle/default",
-          "/brands/beer/glass/default",
+          "/brands/beer/default/bottle",
+          "/brands/beer/default/glass",
           "/brands/cocktail/margarita/glass",
           "/brands/cocktail/mojito/glass", 
-          "/brands/cocktail/glass/default",
+          "/brands/cocktail/default/glass",
           "/restaurants/logos/"
         ],
-        testUrls
+        sdkUrls,
+        hardcodedUrls
       });
     } catch (error) {
       console.error("Error testing Cloudinary:", error);

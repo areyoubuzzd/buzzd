@@ -1,11 +1,8 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { cloudinaryService } from './services/cloudinaryService';
 
-// Configure Cloudinary with demo account for now
-cloudinary.config({
-  cloud_name: 'demo',
-  api_key: 'test',
-  api_secret: 'test'
-});
+// Use the same configuration as in the service - this will already be configured by the time this is imported
+// so we don't need to reconfigure it here
 
 export function testCloudinaryConnection(): Promise<boolean> {
   return new Promise((resolve, reject) => {
@@ -30,11 +27,8 @@ export function logCloudinaryConfig() {
 }
 
 export function generateTestUrls() {
-  // Use demo as the cloud name
-  const cloudName = 'demo';
-  
-  // Generate test URLs for various asset types
-  return {
+  // Generate test URLs for various asset types using the SDK
+  const sdkUrls = {
     backgrounds: {
       beer: cloudinary.url('backgrounds/beer/image', { 
         secure: true,
@@ -71,5 +65,46 @@ export function generateTestUrls() {
         }
       }
     }
+  };
+  
+  // Generate simple hardcoded demo URLs that work regardless of authentication status
+  // These don't use the SDK but are direct URLs to the demo account
+  const hardcodedUrls = {
+    backgrounds: {
+      beer: 'https://res.cloudinary.com/demo/image/upload/backgrounds/beer/image.jpg',
+      wine: {
+        red: 'https://res.cloudinary.com/demo/image/upload/backgrounds/wine/image.jpg',
+        white: 'https://res.cloudinary.com/demo/image/upload/backgrounds/wine/white.jpg'
+      },
+      cocktail: 'https://res.cloudinary.com/demo/image/upload/backgrounds/cocktail/image.jpg',
+      whisky: 'https://res.cloudinary.com/demo/image/upload/backgrounds/whisky/image.jpg',
+      default: 'https://res.cloudinary.com/demo/image/upload/sample' // Sample image from demo account
+    },
+    brands: {
+      beer: {
+        heineken: {
+          bottle: 'https://res.cloudinary.com/demo/image/upload/brands/beer/heineken/bottle.png',
+          glass: 'https://res.cloudinary.com/demo/image/upload/brands/beer/heineken/glass.png'
+        },
+        default: {
+          bottle: 'https://res.cloudinary.com/demo/image/upload/brands/beer/default/bottle.png',
+          glass: 'https://res.cloudinary.com/demo/image/upload/bottle' // Using demo sample bottle
+        }
+      },
+      cocktail: {
+        margarita: {
+          glass: 'https://res.cloudinary.com/demo/image/upload/brands/cocktail/margarita/glass.png'
+        },
+        default: {
+          glass: 'https://res.cloudinary.com/demo/image/upload/sample' // Using demo sample
+        }
+      }
+    }
+  };
+  
+  return {
+    sdkUrls,
+    hardcodedUrls,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'demo'
   };
 }
