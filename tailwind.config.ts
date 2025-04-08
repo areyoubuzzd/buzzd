@@ -9,6 +9,7 @@ export default {
         'fredoka': ['Fredoka', 'sans-serif'],
         'baloo': ['Baloo 2', 'cursive'],
         'titan': ['Titan One', 'cursive'],
+        'bangers': ['Bangers', 'cursive'],
       },
       borderRadius: {
         lg: "var(--radius)",
