@@ -2,6 +2,98 @@ import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// SVG accent patterns for each drink type
+function getAccentPattern(drinkType: string | undefined, id?: number): string {
+  // If no drink type, return empty
+  if (!drinkType) return '';
+  
+  const type = drinkType.toLowerCase();
+  const opacity = '0.12'; // Low opacity to keep it subtle
+  
+  // Different patterns based on drink type
+  if (type.includes("beer")) {
+    const beerPatterns = [
+      // Pattern 1: Bubbles for beer - different sizes in a scattered pattern
+      `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20%" cy="30%" r="5" fill="white" opacity="${opacity}"/>
+        <circle cx="25%" cy="40%" r="3" fill="white" opacity="${opacity}"/>
+        <circle cx="75%" cy="25%" r="4" fill="white" opacity="${opacity}"/>
+        <circle cx="80%" cy="70%" r="3" fill="white" opacity="${opacity}"/>
+        <circle cx="40%" cy="80%" r="5" fill="white" opacity="${opacity}"/>
+        <circle cx="55%" cy="60%" r="3" fill="white" opacity="${opacity}"/>
+      </svg>`,
+      
+      // Pattern 2: Wheat stalks for beer
+      `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20,70 Q25,65 20,60 Q25,55 20,50 Q25,45 20,40" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+        <path d="M30,80 Q35,75 30,70 Q35,65 30,60 Q35,55 30,50" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+        <path d="M80,40 Q85,35 80,30 Q85,25 80,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      </svg>`,
+      
+      // Pattern 3: Mug outline
+      `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30,30 v30 h15 v-30 h-15 m15,5 h5 v20 h-5" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+        <path d="M70,60 v30 h15 v-30 h-15 m15,5 h5 v20 h-5" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      </svg>`
+    ];
+    
+    // Select pattern based on ID or default to first
+    const patternIndex = (id !== undefined && id !== null) ? id % beerPatterns.length : 0;
+    return beerPatterns[patternIndex];
+  }
+  
+  if (type.includes("wine")) {
+    // Wine glass patterns
+    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M25,25 c5,5 5,15 0,20 l5,15 h5 l5,-15 c-5,-5 -5,-15 0,-20 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M75,65 c5,5 5,15 0,20 l5,15 h5 l5,-15 c-5,-5 -5,-15 0,-20 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M60,30 c0,5 5,5 5,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`;
+  }
+  
+  if (type.includes("cocktail")) {
+    // Cocktail glass and swirl patterns
+    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30,25 l15,25 v15 h-10 v5 h25 v-5 h-10 v-15 l15,-25 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M70,60 q5,-5 10,0 q5,5 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M80,40 q5,-5 10,0 q5,5 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`;
+  }
+  
+  if (type.includes("whisky") || type.includes("whiskey")) {
+    // Whisky bottle and glass
+    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <rect x="25" y="25" width="15" height="30" rx="2" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M75,50 l5,-10 h10 l5,10 v15 h-20 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <line x1="80" y1="25" x2="85" y2="40" stroke="white" stroke-width="1" opacity="${opacity}"/>
+    </svg>`;
+  }
+  
+  if (type.includes("gin")) {
+    // Gin botanical patterns
+    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M25,40 c0,-10 10,-10 10,0 c0,10 10,10 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M70,60 c0,-10 10,-10 10,0 c0,10 10,10 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <circle cx="80%" cy="30%" r="8" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`;
+  }
+  
+  if (type.includes("vodka") || type.includes("rum")) {
+    // Abstract curved lines
+    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20,30 c20,0 0,20 20,20 c20,0 0,20 20,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M70,20 c20,0 0,20 20,20 c20,0 0,-20 20,-20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M60,80 c10,-10 20,0 30,-10" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`;
+  }
+  
+  // Default pattern - some simple curved lines
+  return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20,20 c30,20 60,-20 80,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    <path d="M20,80 c20,-20 40,20 60,-20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+  </svg>`;
+}
+
 // Helper function to get gradient background by drink type - HIGH CONTRAST
 function getGradientBackground(drinkType: string | undefined, id?: number) {
   // If category is undefined or null, return a default gradient
@@ -179,6 +271,12 @@ function DealCard({
         marginBottom: '4px', // Small but noticeable margin
       }}
     >
+      {/* SVG Accent Pattern - Position absolute to overlay on background */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        dangerouslySetInnerHTML={{ __html: getAccentPattern(deal.drinkType, deal.id) }}
+      />
+      
       {/* Card Content */}
       <div className="absolute inset-0 flex flex-col h-full">
         {/* Top section with discount badge */}
