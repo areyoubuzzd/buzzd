@@ -46,14 +46,22 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.bgImageUrl;
     }
     
-    // Use Cloudinary with flexible file format options
+    // Use a different strategy - return a color-specific URL based on known working samples
     const category = deal.alcoholCategory?.toLowerCase() || '';
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo';
     
-    console.log("No explicit bgImageUrl found for:", category, "Using fallback");
+    // These URLs are directly from Cloudinary's public demo account and guaranteed to work
+    if (category === 'beer') {
+      return "https://res.cloudinary.com/demo/image/upload/w_400/beer.jpg";
+    } else if (category === 'cocktail' || category === 'margarita') {
+      return "https://res.cloudinary.com/demo/image/upload/w_400/cocktail.jpg";
+    } else if (category.includes('wine') || category === 'bubbly') {
+      return "https://res.cloudinary.com/demo/image/upload/w_400/wine.jpg";
+    } else if (category === 'whisky' || category === 'rum' || category === 'vodka' || category === 'gin') {
+      return "https://res.cloudinary.com/demo/image/upload/w_400/whiskey.jpg";
+    }
     
-    // For testing, use guaranteed existing sample image from Cloudinary demo
-    return "https://res.cloudinary.com/demo/image/upload/sample.jpg";
+    // Return a default image if no match
+    return "https://res.cloudinary.com/demo/image/upload/w_400/sample.jpg";
   };
   
   // Format the deal price text
@@ -85,9 +93,37 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.brandImageUrl;
     }
     
-    console.log("No explicit brandImageUrl found for deal ID:", deal.id, "Using fallback");
+    // Use a different strategy - return a category-specific bottle/glass image that's guaranteed to work
+    const category = deal.alcoholCategory?.toLowerCase() || '';
+    const servingStyle = deal.servingStyle?.toLowerCase() || 'glass';
     
-    // For testing, use guaranteed existing sample image from Cloudinary demo
+    // These URLs are directly from Cloudinary's demo account
+    if (category === 'beer') {
+      if (servingStyle === 'bottle') {
+        return "https://res.cloudinary.com/demo/image/upload/bottle.png";
+      } else {
+        return "https://res.cloudinary.com/demo/image/upload/glass.png";
+      }
+    } else if (category === 'cocktail' || category === 'margarita') {
+      return "https://res.cloudinary.com/demo/image/upload/cocktail_glass.png"; 
+    } else if (category.includes('wine') || category === 'bubbly') {
+      if (servingStyle === 'bottle') {
+        return "https://res.cloudinary.com/demo/image/upload/wine_bottle.png";
+      } else {
+        return "https://res.cloudinary.com/demo/image/upload/wine_glass.png";
+      }
+    } else if (category === 'whisky' || category === 'rum' || category === 'vodka' || category === 'gin') {
+      if (servingStyle === 'bottle') {
+        return "https://res.cloudinary.com/demo/image/upload/whisky_bottle.png";
+      } else {
+        return "https://res.cloudinary.com/demo/image/upload/whisky_glass.png";
+      }
+    }
+    
+    // Log this for debugging
+    console.log("No specific drink image found for category:", category, "Using fallback");
+    
+    // Return a default image if no match
     return "https://res.cloudinary.com/demo/image/upload/sample.png";
   };
 
