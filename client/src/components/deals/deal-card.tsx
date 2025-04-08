@@ -2,83 +2,104 @@ import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Abstract SVG accent patterns for cards
+// Abstract SVG accent patterns for cards based on provided examples
 function getAccentPattern(drinkType: string | undefined, id?: number): string {
   // If no drink type, return empty
   if (!drinkType) return '';
   
-  const opacity = '0.3'; // Increased opacity to 30% as requested
+  const opacity = '0.3'; // 30% opacity as requested
   
-  // Collection of abstract patterns that don't replicate drink types
+  // Collection of accent patterns based on the provided examples
   const patterns = [
-    // Pattern 1: Curved lines in corners
+    // Pattern 1: Wavy lines (based on Screenshot 2025-04-09 at 12.46.08 AM.png)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15,30 Q25,15 40,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M85,30 Q75,15 60,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M15,70 Q25,85 40,80" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M85,70 Q75,85 60,80" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M10,30 Q20,20 30,30 Q40,40 50,30 Q60,20 70,30 Q80,40 90,30" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
+      <path d="M10,45 Q20,35 30,45 Q40,55 50,45 Q60,35 70,45 Q80,55 90,45" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
+      <path d="M10,60 Q20,50 30,60 Q40,70 50,60 Q60,50 70,60 Q80,70 90,60" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
+      <path d="M10,75 Q20,65 30,75 Q40,85 50,75 Q60,65 70,75 Q80,85 90,75" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
     </svg>`,
     
-    // Pattern 2: Parallel lines
+    // Pattern 2: Circle of dashes (based on Screenshot 2025-04-09 at 12.46.19 AM.png)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <line x1="15" y1="25" x2="85" y2="25" stroke="white" stroke-width="1" opacity="${opacity}"/>
-      <line x1="15" y1="30" x2="85" y2="30" stroke="white" stroke-width="1" opacity="${opacity}"/>
-      <line x1="15" y1="75" x2="85" y2="75" stroke="white" stroke-width="1" opacity="${opacity}"/>
-      <line x1="15" y1="80" x2="85" y2="80" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <g transform="translate(50, 50)">
+        ${Array.from({length: 32}, (_, i) => {
+          const angle = (i * Math.PI * 2) / 32;
+          const x1 = 35 * Math.cos(angle);
+          const y1 = 35 * Math.sin(angle);
+          return `<line x1="${x1}" y1="${y1}" x2="${x1*1.2}" y2="${y1*1.2}" stroke="white" stroke-width="2" stroke-linecap="round" opacity="${opacity}"/>`;
+        }).join('')}
+      </g>
     </svg>`,
     
-    // Pattern 3: Concentric circles
+    // Pattern 3: Tapered spikes (based on Screenshot 2025-04-09 at 12.46.25 AM.png)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="25" cy="25" r="10" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <circle cx="25" cy="25" r="15" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <circle cx="75" cy="75" r="10" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <circle cx="75" cy="75" r="15" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M20,30 L30,80" stroke="white" stroke-width="4 1" stroke-linecap="round" opacity="${opacity}"/>
+      <path d="M40,20 L50,60" stroke="white" stroke-width="4 1" stroke-linecap="round" opacity="${opacity}"/>
+      <path d="M60,25 L65,75" stroke="white" stroke-width="4 1" stroke-linecap="round" opacity="${opacity}"/>
+      <path d="M80,35 L90,85" stroke="white" stroke-width="4 1" stroke-linecap="round" opacity="${opacity}"/>
     </svg>`,
     
-    // Pattern 4: Diagonal lines
+    // Pattern 4: Curved leaf/wing shapes (based on Screenshot 2025-04-09 at 12.46.34 AM.png)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <line x1="20" y1="20" x2="40" y2="40" stroke="white" stroke-width="1" opacity="${opacity}"/>
-      <line x1="60" y1="60" x2="80" y2="80" stroke="white" stroke-width="1" opacity="${opacity}"/>
-      <line x1="80" y1="20" x2="60" y2="40" stroke="white" stroke-width="1" opacity="${opacity}"/>
-      <line x1="40" y1="60" x2="20" y2="80" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <path d="M20,30 Q40,35 25,60" stroke="white" stroke-width="2 0" fill="white" opacity="${opacity}"/>
+      <path d="M50,25 Q65,45 45,55" stroke="white" stroke-width="2 0" fill="white" opacity="${opacity}"/>
+      <path d="M70,35 Q90,40 75,65" stroke="white" stroke-width="2 0" fill="white" opacity="${opacity}"/>
+      <path d="M30,70 Q50,60 60,80" stroke="white" stroke-width="2 0" fill="white" opacity="${opacity}"/>
     </svg>`,
     
-    // Pattern 5: Curls and swirls
+    // Pattern 5: Ornamental divider (based on Screenshot 2025-04-09 at 12.46.42 AM.png)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20,30 C30,10 40,40 20,30" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M80,30 C70,10 60,40 80,30" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M20,70 C30,90 40,60 20,70" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M80,70 C70,90 60,60 80,70" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <g transform="translate(50, 50)">
+        <path d="M-35,0 L-15,0" stroke="white" stroke-width="2" opacity="${opacity}"/>
+        <path d="M15,0 L35,0" stroke="white" stroke-width="2" opacity="${opacity}"/>
+        <circle cx="0" cy="0" r="1.5" fill="white" opacity="${opacity}"/>
+        <path d="M-8,-4 Q-4,0 -8,4" stroke="white" stroke-width="2" fill="white" opacity="${opacity}"/>
+        <path d="M8,-4 Q4,0 8,4" stroke="white" stroke-width="2" fill="white" opacity="${opacity}"/>
+      </g>
     </svg>`,
     
-    // Pattern 6: Dots in grid
+    // Additional patterns inspired by the provided examples
+    
+    // Pattern 6: Double wavy lines (variation of example 1)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="20" cy="20" r="2" fill="white" opacity="${opacity}"/>
-      <circle cx="40" cy="20" r="2" fill="white" opacity="${opacity}"/>
-      <circle cx="60" cy="20" r="2" fill="white" opacity="${opacity}"/>
-      <circle cx="80" cy="20" r="2" fill="white" opacity="${opacity}"/>
-      <circle cx="20" cy="80" r="2" fill="white" opacity="${opacity}"/>
-      <circle cx="40" cy="80" r="2" fill="white" opacity="${opacity}"/>
-      <circle cx="60" cy="80" r="2" fill="white" opacity="${opacity}"/>
-      <circle cx="80" cy="80" r="2" fill="white" opacity="${opacity}"/>
+      <path d="M10,35 Q25,25 40,35 Q55,45 70,35 Q85,25 100,35" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
+      <path d="M10,45 Q25,35 40,45 Q55,55 70,45 Q85,35 100,45" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
+      <path d="M10,65 Q25,55 40,65 Q55,75 70,65 Q85,55 100,65" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
+      <path d="M10,75 Q25,65 40,75 Q55,85 70,75 Q85,65 100,75" stroke="white" stroke-width="1.5" fill="none" opacity="${opacity}"/>
     </svg>`,
     
-    // Pattern 7: Corner triangles
+    // Pattern 7: Dotted arc (variation of example 2)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="15,15 30,15 15,30" fill="white" opacity="${opacity}"/>
-      <polygon points="85,15 70,15 85,30" fill="white" opacity="${opacity}"/>
-      <polygon points="15,85 30,85 15,70" fill="white" opacity="${opacity}"/>
-      <polygon points="85,85 70,85 85,70" fill="white" opacity="${opacity}"/>
+      <g transform="translate(50, 50)">
+        ${Array.from({length: 16}, (_, i) => {
+          const angle = (i * Math.PI) / 16;
+          const x = 35 * Math.cos(angle);
+          const y = 35 * Math.sin(angle);
+          return `<circle cx="${x}" cy="${y}" r="1.5" fill="white" opacity="${opacity}"/>`;
+        }).join('')}
+      </g>
     </svg>`,
     
-    // Pattern 8: Simple waves
+    // Pattern 8: Multiple ornamental dividers (variation of example 5)
     `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10,25 Q25,15 40,25 Q55,35 70,25 Q85,15 90,25" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M10,75 Q25,65 40,75 Q55,85 70,75 Q85,65 90,75" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <g transform="translate(50, 30)">
+        <path d="M-35,0 L-15,0" stroke="white" stroke-width="2" opacity="${opacity}"/>
+        <path d="M15,0 L35,0" stroke="white" stroke-width="2" opacity="${opacity}"/>
+        <circle cx="0" cy="0" r="1.5" fill="white" opacity="${opacity}"/>
+        <path d="M-8,-4 Q-4,0 -8,4" stroke="white" stroke-width="2" fill="white" opacity="${opacity}"/>
+        <path d="M8,-4 Q4,0 8,4" stroke="white" stroke-width="2" fill="white" opacity="${opacity}"/>
+      </g>
+      <g transform="translate(50, 70)">
+        <path d="M-35,0 L-15,0" stroke="white" stroke-width="2" opacity="${opacity}"/>
+        <path d="M15,0 L35,0" stroke="white" stroke-width="2" opacity="${opacity}"/>
+        <circle cx="0" cy="0" r="1.5" fill="white" opacity="${opacity}"/>
+        <path d="M-8,-4 Q-4,0 -8,4" stroke="white" stroke-width="2" fill="white" opacity="${opacity}"/>
+        <path d="M8,-4 Q4,0 8,4" stroke="white" stroke-width="2" fill="white" opacity="${opacity}"/>
+      </g>
     </svg>`,
   ];
   
-  // Use ID to deterministically select a pattern, or choose based on drink type
+  // Use ID to deterministically select a pattern
   let patternIndex = 0;
   
   if (id !== undefined && id !== null) {
@@ -99,19 +120,19 @@ function getAccentPattern(drinkType: string | undefined, id?: number): string {
   return patterns[patternIndex];
 }
 
-// Helper function to get gradient background by drink type - HIGH CONTRAST
+// Helper function to get gradient background by drink type - SOFTER CONTRAST (center brightness reduced by 20%)
 function getGradientBackground(drinkType: string | undefined, id?: number) {
   // If category is undefined or null, return a default gradient
-  if (!drinkType) return 'radial-gradient(circle at center, #DCFCE7 0%, #22C55E 50%, #14532D 100%)';
+  if (!drinkType) return 'radial-gradient(circle at center, #b4e0c1 0%, #22C55E 50%, #14532D 100%)';
   
   const type = drinkType.toLowerCase();
   
   // For beer, select one of three gradient options based on the id
   if (type.includes("beer")) {
     const beerGradients = [
-      'radial-gradient(circle at center, #FEF3C7 0%, #F59E0B 50%, #B45309 100%)',  // Orange gradient - HIGH CONTRAST
-      'radial-gradient(circle at center, #FFF7ED 0%, #FB923C 50%, #C2410C 100%)',  // Lighter orange gradient - HIGH CONTRAST
-      'radial-gradient(circle at center, #CCFBF1 0%, #14B8A6 50%, #134E4A 100%)',  // Teal gradient - HIGH CONTRAST
+      'radial-gradient(circle at center, #cfc2a0 0%, #F59E0B 50%, #B45309 100%)',  // Orange gradient - SOFTENED
+      'radial-gradient(circle at center, #ccc4be 0%, #FB923C 50%, #C2410C 100%)',  // Lighter orange gradient - SOFTENED
+      'radial-gradient(circle at center, #a3c8c0 0%, #14B8A6 50%, #134E4A 100%)',  // Teal gradient - SOFTENED
     ];
     
     // Use the id to deterministically select a gradient
@@ -124,16 +145,16 @@ function getGradientBackground(drinkType: string | undefined, id?: number) {
     return beerGradients[gradientIndex];
   }
   
-  // Define radial gradients for each category
-  if (type.includes("wine")) return 'radial-gradient(circle at center, #FEE2E2 0%, #EF4444 50%, #7F1D1D 100%)';
-  if (type.includes("cocktail")) return 'radial-gradient(circle at center, #DCFCE7 0%, #22C55E 50%, #14532D 100%)';
-  if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #F3E8FF 0%, #A855F7 50%, #581C87 100%)';
-  if (type.includes("gin")) return 'radial-gradient(circle at center, #CCFBF1 0%, #14B8A6 50%, #0F766E 100%)';
-  if (type.includes("vodka")) return 'radial-gradient(circle at center, #F3E8FF 0%, #A855F7 50%, #581C87 100%)';
-  if (type.includes("rum")) return 'radial-gradient(circle at center, #F3E8FF 0%, #A855F7 50%, #581C87 100%)';
+  // Define softer radial gradients for each category
+  if (type.includes("wine")) return 'radial-gradient(circle at center, #cbb5b5 0%, #EF4444 50%, #7F1D1D 100%)';
+  if (type.includes("cocktail")) return 'radial-gradient(circle at center, #b4e0c1 0%, #22C55E 50%, #14532D 100%)';
+  if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #c3bacb 0%, #A855F7 50%, #581C87 100%)';
+  if (type.includes("gin")) return 'radial-gradient(circle at center, #a3c8c1 0%, #14B8A6 50%, #0F766E 100%)';
+  if (type.includes("vodka")) return 'radial-gradient(circle at center, #c3bacb 0%, #A855F7 50%, #581C87 100%)';
+  if (type.includes("rum")) return 'radial-gradient(circle at center, #c3bacb 0%, #A855F7 50%, #581C87 100%)';
   
   // Default gradient if no match
-  return 'radial-gradient(circle at center, #DCFCE7 0%, #22C55E 50%, #14532D 100%)';
+  return 'radial-gradient(circle at center, #b4e0c1 0%, #22C55E 50%, #14532D 100%)';
 }
 
 // Keeping the old function for backward compatibility
