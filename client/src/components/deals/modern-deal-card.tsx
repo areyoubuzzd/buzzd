@@ -49,15 +49,12 @@ export function ModernDealCard({
   
   return (
     <div 
-      className="relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full mb-0"
+      className={`relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full mb-0 ${getBgColorForCategory(category, id)}`}
       onClick={onClick}
       style={{
         // Credit card aspect ratio (1.586:1) - Width to height ratio
         aspectRatio: '1.586/1',
         borderRadius: '8px', // Slightly smaller radius
-        background: backgroundImageUrl 
-          ? `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3)), url(${backgroundImageUrl})` 
-          : getGradientBackground(category, id),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
@@ -136,15 +133,34 @@ export function ModernDealCard({
 
 // Helper functions to maintain consistent styling
 
-function getBgColorForCategory(category?: string): string {
+function getBgColorForCategory(category?: string, id?: number): string {
   // Default to 'default' if category is undefined or null
   if (!category) return "bg-emerald-600";
   
-  // For beer, we can't easily do random selection with tailwind classes
-  // We'll use a variant of orange to match the most common beer color
+  // For beer, we'll use one of three color options based on the id
+  if (category.toLowerCase() === 'beer') {
+    const beerColors = [
+      "bg-amber-600", // Orange - #E67E30
+      "bg-orange-500", // Lighter orange - #F78E3D
+      "bg-teal-700", // Teal - #14655F
+    ];
+    
+    // Debug info
+    console.log(`ModernDealCard: Beer card with ID: ${id}, using color index: ${id ? id % beerColors.length : 'none'}`);
+    
+    // Use the id to deterministically select a color
+    // If id is undefined or null, use a fixed color
+    if (id === undefined || id === null) {
+      return beerColors[0]; // Default to first color if no id
+    }
+    
+    // Use modulo to select one of the colors based on id
+    const colorIndex = id % beerColors.length;
+    return beerColors[colorIndex];
+  }
   
+  // For other drink types
   const colorMap: Record<string, string> = {
-    beer: "bg-amber-600", // closest to #E67E30
     wine: "bg-rose-600",
     red_wine: "bg-rose-600",
     white_wine: "bg-rose-600",
@@ -152,7 +168,7 @@ function getBgColorForCategory(category?: string): string {
     whisky: "bg-purple-700",
     vodka: "bg-purple-700",
     rum: "bg-purple-700",
-    gin: "bg-purple-700",
+    gin: "bg-teal-600",
   };
   
   return colorMap[category.toLowerCase()] || "bg-emerald-600";
