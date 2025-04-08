@@ -18,39 +18,43 @@ class CloudinaryService {
   }
   
   /**
-   * Get a background image URL based on alcohol category and subcategory
+   * Get a background image URL based on alcohol category
+   * Note: Background images are not divided by bottle/glass as they are just general category backgrounds
    */
-  getBackgroundImageUrl(alcoholCategory: string, alcoholSubCategory?: string): string {
-    const subCategory = alcoholSubCategory || 'default';
+  getBackgroundImageUrl(alcoholCategory: string, alcoholSubCategory?: string, servingStyle?: 'bottle' | 'glass'): string {
     const formattedCategory = alcoholCategory.toLowerCase().replace(/\s+/g, '_');
-    const formattedSubCategory = subCategory.toLowerCase().replace(/\s+/g, '_');
     
-    return cloudinary.url(`backgrounds/${formattedCategory}/${formattedSubCategory}`, {
+    // Simplified path structure: backgrounds/[category]/image
+    return cloudinary.url(`backgrounds/${formattedCategory}/image`, {
       secure: true,
       transformation: [
         { width: 800, height: 400, crop: 'fill' },
         { quality: 'auto' },
         { fetch_format: 'auto' }
       ],
-      default_image: 'backgrounds/default/default'
+      // Fallback to default background if category-specific one doesn't exist
+      default_image: 'backgrounds/default/image'
     });
   }
   
   /**
-   * Get a brand image URL based on alcohol category and brand name
+   * Get a brand image URL based on alcohol category, brand name, and serving style (bottle/glass)
    */
-  getBrandImageUrl(alcoholCategory: string, brandName: string): string {
+  getBrandImageUrl(alcoholCategory: string, brandName: string, servingStyle?: 'bottle' | 'glass'): string {
+    const serving = servingStyle || 'default';
     const formattedCategory = alcoholCategory.toLowerCase().replace(/\s+/g, '_');
     const formattedBrand = brandName.toLowerCase().replace(/\s+/g, '_');
     
-    return cloudinary.url(`brands/${formattedCategory}/${formattedBrand}`, {
+    // Path structure: brands/[category]/[brand]/[bottle_or_glass]
+    return cloudinary.url(`brands/${formattedCategory}/${formattedBrand}/${serving}`, {
       secure: true,
       transformation: [
         { width: 200, crop: 'fill' },
         { quality: 'auto' },
         { fetch_format: 'auto' }
       ],
-      default_image: `brands/${formattedCategory}/default`
+      // Fallback to category/bottle/default if brand specific image doesn't exist
+      default_image: `brands/${formattedCategory}/${serving}/default`
     });
   }
   

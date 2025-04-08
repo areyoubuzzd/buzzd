@@ -40,6 +40,7 @@ Create a Google Sheets document with the following sheets and columns:
 - alcoholCategory (beer, wine, cocktails, whisky, bubbly, etc.)
 - alcoholSubCategory (light_beer, red_wine, etc.)
 - brandName (specific brand like "Heineken")
+- servingStyle (bottle, glass, default) - indicates whether this is a deal on bottle or by the glass
 - originalPrice (original price before discount)
 - discountedPrice (price after discount)
 - discountPercentage (calculated discount percentage)
@@ -78,14 +79,57 @@ For image storage and delivery, this app uses Cloudinary:
 
 For optimal performance, organize your images in Cloudinary following this structure:
 
-- /backgrounds/[alcoholCategory]/[alcoholSubCategory].jpg
-  - Example: /backgrounds/beer/craft_beer.jpg
-  - Make sure to have /backgrounds/[alcoholCategory]/default.jpg images as fallbacks
-  
-- /brands/[alcoholCategory]/[brandName].png
-  - Example: /brands/beer/heineken.png
-  - Make sure to have /brands/[alcoholCategory]/default.png images as fallbacks
-  
-- /restaurants/logos/[restaurantId].png
-  - Example: /restaurants/logos/r123.png
-  - With a /restaurants/logos/default.png fallback
+#### Background Images
+```
+/backgrounds/[alcoholCategory]/image
+```
+
+Examples:
+- `/backgrounds/beer/image`
+- `/backgrounds/wine/image`
+- `/backgrounds/whisky/image`
+
+Default fallback:
+- `/backgrounds/default/image`
+
+#### Brand Images (with bottle/glass distinction)
+```
+/brands/[alcoholCategory]/[brandName]/[bottle_or_glass]
+```
+
+Examples:
+- `/brands/beer/heineken/bottle`
+- `/brands/beer/heineken/glass`
+- `/brands/wine/yellowtail/bottle`
+- `/brands/wine/yellowtail/glass`
+
+Default fallbacks by category and serving style:
+- `/brands/beer/bottle/default`
+- `/brands/beer/glass/default`
+- `/brands/wine/bottle/default`
+- `/brands/wine/glass/default`
+
+#### Restaurant Logos
+```
+/restaurants/logos/[restaurantId]
+```
+
+Example:
+- `/restaurants/logos/SG0109` (for Chimichanga restaurant)
+
+Default fallback:
+- `/restaurants/logos/default`
+
+## Test Endpoints
+
+You can verify your setup is working by accessing these test endpoints:
+
+1. `/api/test-cloudinary` - Shows sample image URLs for different categories and serving styles
+2. `/api/test-restaurants` - Lists all restaurants from your Google Sheet
+3. `/api/test-google-sheets` - Shows metadata about your Google Sheets document
+
+## Testing the App
+
+1. Start the server with workflow "Start application"
+2. Access the app at `http://localhost:5000`
+3. For the deals endpoint, try: `/api/sheets/deals/nearby?lat=1.3521&lng=103.8198&radius=5`

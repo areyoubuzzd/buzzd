@@ -33,6 +33,7 @@ interface Deal {
   alcoholCategory: string;
   alcoholSubCategory: string;
   brandName: string;
+  servingStyle: 'bottle' | 'glass' | 'default';
   originalPrice: number;
   discountedPrice: number;
   discountPercentage: number;
@@ -149,47 +150,72 @@ class GoogleSheetsService {
         s.properties.title.toLowerCase() === 'deals'
       );
       
-      const sheetName = dealsSheet?.properties?.title || 
-                        (metadata.data.sheets.length > 1 ? metadata.data.sheets[1].properties.title : 'Deals');
+      // If no Deals sheet exists, return an empty array
+      if (!dealsSheet) {
+        console.log('No Deals sheet found in the spreadsheet. Only available sheets:', 
+          metadata.data.sheets.map((s: any) => s.properties.title).join(', '));
+        return [];
+      }
       
+      const sheetName = dealsSheet.properties.title;
       console.log('Using sheet for deals:', sheetName);
       
-      const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!A2:W`, // Adjust range based on your data
-      });
-
-      const rows = response.data.values;
-      if (!rows || rows.length === 0) {
+      let rows: any[] = [];
+      try {
+        const response = await this.sheets.spreadsheets.values.get({
+          spreadsheetId: this.spreadsheetId,
+          range: `${sheetName}!A2:X`, // Extended range to include serving style
+        });
+  
+        rows = response.data.values || [];
+      } catch (error) {
+        console.error(`Error fetching data from sheet "${sheetName}":`, error);
+        return [];
+      }
+      
+      if (rows.length === 0) {
+        console.log(`No deal data found in sheet "${sheetName}"`);
         return [];
       }
 
-      // Map row data to deal objects
-      return rows.map((row: string[]) => ({
-        dealId: row[0],
-        restaurantId: row[1],
-        title: row[2],
-        description: row[3],
-        startTime: row[4],
-        endTime: row[5],
-        startDate: row[6],
-        endDate: row[7],
-        daysActive: row[8] ? row[8].split(',').map((day: string) => day.trim()) : [],
-        dealStatus: row[9] as 'active' | 'upcoming' | 'inactive',
-        dealType: row[10] as 'drink' | 'food' | 'both',
-        alcoholCategory: row[11],
-        alcoholSubCategory: row[12],
-        brandName: row[13],
-        originalPrice: parseFloat(row[14]) || 0,
-        discountedPrice: parseFloat(row[15]) || 0,
-        discountPercentage: parseFloat(row[16]) || 0,
-        isFeatured: row[17] === 'TRUE',
-        isPremium: row[18] === 'TRUE',
-        isOneForOne: row[19] === 'TRUE',
-        tags: row[20] ? row[20].split(',').map((tag: string) => tag.trim()) : [],
-        customBgImageUrl: row[21],
-        customBrandImageUrl: row[22]
-      }));
+      // Map row data to deal objects 
+      return rows.map((row: string[]) => {
+        // Default values
+        const servingStyleValue = row[14] ? row[14].toLowerCase().trim() : 'default';
+        
+        // Ensure the serving style is one of the allowed values
+        let servingStyle: 'bottle' | 'glass' | 'default' = 'default';
+        if (servingStyleValue === 'bottle' || servingStyleValue === 'glass') {
+          servingStyle = servingStyleValue as 'bottle' | 'glass';
+        }
+        
+        return {
+          dealId: row[0] || '',
+          restaurantId: row[1] || '',
+          title: row[2] || '',
+          description: row[3] || '',
+          startTime: row[4] || '',
+          endTime: row[5] || '',
+          startDate: row[6] || '',
+          endDate: row[7] || '',
+          daysActive: row[8] ? row[8].split(',').map((day: string) => day.trim()) : [],
+          dealStatus: (row[9] || 'inactive') as 'active' | 'upcoming' | 'inactive',
+          dealType: (row[10] || 'drink') as 'drink' | 'food' | 'both',
+          alcoholCategory: row[11] || '',
+          alcoholSubCategory: row[12] || '',
+          brandName: row[13] || '',
+          servingStyle, // New field for bottle/glass
+          originalPrice: parseFloat(row[15]) || 0,
+          discountedPrice: parseFloat(row[16]) || 0,
+          discountPercentage: parseFloat(row[17]) || 0,
+          isFeatured: row[18] === 'TRUE',
+          isPremium: row[19] === 'TRUE',
+          isOneForOne: row[20] === 'TRUE',
+          tags: row[21] ? row[21].split(',').map((tag: string) => tag.trim()) : [],
+          customBgImageUrl: row[22] || '',
+          customBrandImageUrl: row[23] || ''
+        };
+      });
     } catch (error) {
       console.error('Error fetching deals:', error);
       throw error;

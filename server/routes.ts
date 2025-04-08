@@ -486,6 +486,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/test-cloudinary", async (req, res) => {
+    try {
+      // Create some test URLs to demonstrate the folder structure
+      const testUrls = {
+        // Backgrounds per alcohol category (simplified structure)
+        backgrounds: {
+          beer: cloudinaryService.getBackgroundImageUrl('beer'),
+          whisky: cloudinaryService.getBackgroundImageUrl('whisky'),
+          wine: {
+            red: cloudinaryService.getBackgroundImageUrl('wine'),
+            white: cloudinaryService.getBackgroundImageUrl('wine'),
+          },
+          default: cloudinaryService.getBackgroundImageUrl('default')
+        },
+        // Brand images for different serving types
+        brands: {
+          beer: {
+            heineken: {
+              bottle: cloudinaryService.getBrandImageUrl('beer', 'heineken', 'bottle'),
+              glass: cloudinaryService.getBrandImageUrl('beer', 'heineken', 'glass')
+            },
+            tiger: {
+              bottle: cloudinaryService.getBrandImageUrl('beer', 'tiger', 'bottle'),
+              glass: cloudinaryService.getBrandImageUrl('beer', 'tiger', 'glass')
+            }
+          },
+          whisky: {
+            johnnieWalker: {
+              bottle: cloudinaryService.getBrandImageUrl('whisky', 'johnnie_walker', 'bottle'),
+              glass: cloudinaryService.getBrandImageUrl('whisky', 'johnnie_walker', 'glass')
+            }
+          }
+        },
+        // Restaurant logos
+        restaurants: {
+          logo1: cloudinaryService.getRestaurantLogoUrl('SG0109'), // Chimichanga
+          logo2: cloudinaryService.getRestaurantLogoUrl('SG0110'), // The Pit
+          logo3: cloudinaryService.getRestaurantLogoUrl('SG0111')  // Wala Wala
+        }
+      };
+      
+      res.json({
+        success: true,
+        configuration: {
+          cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'Not configured',
+          apiKeyConfigured: process.env.CLOUDINARY_API_KEY ? 'Yes' : 'No',
+          apiSecretConfigured: process.env.CLOUDINARY_API_SECRET ? 'Yes' : 'No'
+        },
+        message: "These URLs demonstrate the folder structure for images. If Cloudinary is properly set up with these folders, the images will load.",
+        recommendedFolderStructure: [
+          "/backgrounds/beer/image", 
+          "/backgrounds/wine/image",
+          "/backgrounds/whisky/image",
+          "/backgrounds/default/image",
+          "/brands/beer/heineken/bottle",
+          "/brands/beer/heineken/glass",
+          "/brands/beer/bottle/default",
+          "/brands/beer/glass/default",
+          "/restaurants/logos/"
+        ],
+        testUrls
+      });
+    } catch (error) {
+      console.error("Error testing Cloudinary:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: String(error)
+      });
+    }
+  });
+
   app.get("/api/test-restaurants", async (req, res) => {
     try {
       // Get restaurants with our updated mapping
@@ -628,9 +699,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             },
             distance,
             bgImageUrl: deal.customBgImageUrl || 
-              cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
+              cloudinaryService.getBackgroundImageUrl(
+                deal.alcoholCategory, 
+                deal.alcoholSubCategory, 
+                deal.servingStyle as 'bottle' | 'glass'
+              ),
             brandImageUrl: deal.customBrandImageUrl || 
-              cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
+              cloudinaryService.getBrandImageUrl(
+                deal.alcoholCategory, 
+                deal.brandName, 
+                deal.servingStyle as 'bottle' | 'glass'
+              )
           };
         });
       
