@@ -29,39 +29,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate URLs using the Cloudinary SDK
-      const testUrls = generateTestUrls();
+      const testUrlsData = generateTestUrls();
       
-      // Use demo cloud name
-      const cloudName = "demo";
-      const hardcodedUrls = {
-        backgrounds: {
-          beer: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.jpg`,
-          wine: {
-            red: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/image.jpg`,
-            white: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/image_white.jpg`
-          },
-          whisky: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/whisky/image.jpg`,
-          cocktail: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/cocktail/image.jpg`,
-          default: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/default/image.jpg`
-        },
-        brands: {
-          beer: {
-            heineken: {
-              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/bottle.png`,
-              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/glass.png`
-            }
-          },
-          cocktail: {
-            margarita: {
-              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/margarita/glass.png`
-            }
-          }
-        }
-      };
+      // Use the configured Cloudinary account, with fallback to demo
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "demo";
+      const hardcodedUrls = testUrlsData.hardcodedUrls;
       
       res.json({ 
         connectionOk,
-        sdkUrls: testUrls,
+        sdkUrls: testUrlsData,
         hardcodedUrls,
         cloudName
       });
