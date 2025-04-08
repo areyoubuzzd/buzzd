@@ -183,19 +183,16 @@ function getBgColorHex(category?: string, id?: number): string {
 function getGradientBackground(category?: string, id?: number): string {
   // Default to emerald if category is undefined or null
   if (!category) {
-    return 'radial-gradient(circle at center, #059669 0%, #047857 55%, #036645 100%)';
+    return 'radial-gradient(circle at center, #6ee7b7 0%, #059669 60%, #065f46 100%)';
   }
   
   // For beer, select one of three gradient options based on the id
   if (category.toLowerCase() === 'beer') {
     const beerGradients = [
-      'radial-gradient(circle at center, #F97316 0%, #E67E30 55%, #D96C29 100%)',  // Orange gradient
-      'radial-gradient(circle at center, #FDBA74 0%, #F78E3D 55%, #E57A2A 100%)',  // Lighter orange gradient
-      'radial-gradient(circle at center, #14655F 0%, #115E59 55%, #0F5551 100%)',  // Teal gradient
+      'radial-gradient(circle at center, #FDBA74 0%, #E67E30 60%, #C2410C 100%)',  // Orange gradient - more contrast
+      'radial-gradient(circle at center, #FED7AA 0%, #F78E3D 60%, #EA580C 100%)',  // Lighter orange gradient - more contrast
+      'radial-gradient(circle at center, #5EEAD4 0%, #14655F 60%, #064E3B 100%)',  // Teal gradient - more contrast
     ];
-    
-    // Debug info
-    console.log(`DealCard: Beer card with ID: ${id}, using color index: ${id ? id % beerGradients.length : 'none'}`);
     
     // Use the id to deterministically select a gradient
     // If id is undefined or null, use a fixed gradient
@@ -208,19 +205,19 @@ function getGradientBackground(category?: string, id?: number): string {
     return beerGradients[gradientIndex];
   }
   
-  // Define radial gradients for each category - with central highlight
+  // Define radial gradients for each category - with central highlight and more contrast
   const gradientMap: Record<string, string> = {
-    wine: 'radial-gradient(circle at center, #fb7185 0%, #e11d48 55%, #be123c 100%)',
-    red_wine: 'radial-gradient(circle at center, #fb7185 0%, #e11d48 55%, #be123c 100%)',
-    white_wine: 'radial-gradient(circle at center, #fb7185 0%, #e11d48 55%, #be123c 100%)',
-    cocktail: 'radial-gradient(circle at center, #34d399 0%, #059669 55%, #047857 100%)',
-    whisky: 'radial-gradient(circle at center, #a855f7 0%, #7e22ce 55%, #6b21a8 100%)',
-    vodka: 'radial-gradient(circle at center, #a855f7 0%, #7e22ce 55%, #6b21a8 100%)', 
-    rum: 'radial-gradient(circle at center, #a855f7 0%, #7e22ce 55%, #6b21a8 100%)',
-    gin: 'radial-gradient(circle at center, #2dd4bf 0%, #0d9488 55%, #0f766e 100%)',
+    wine: 'radial-gradient(circle at center, #fda4af 0%, #e11d48 60%, #9f1239 100%)',
+    red_wine: 'radial-gradient(circle at center, #fda4af 0%, #e11d48 60%, #9f1239 100%)',
+    white_wine: 'radial-gradient(circle at center, #fda4af 0%, #e11d48 60%, #9f1239 100%)',
+    cocktail: 'radial-gradient(circle at center, #6ee7b7 0%, #059669 60%, #065f46 100%)',
+    whisky: 'radial-gradient(circle at center, #c4b5fd 0%, #7e22ce 60%, #581c87 100%)',
+    vodka: 'radial-gradient(circle at center, #c4b5fd 0%, #7e22ce 60%, #581c87 100%)', 
+    rum: 'radial-gradient(circle at center, #c4b5fd 0%, #7e22ce 60%, #581c87 100%)',
+    gin: 'radial-gradient(circle at center, #5eead4 0%, #0d9488 60%, #0f766e 100%)',
   };
   
-  return gradientMap[category.toLowerCase()] || 'radial-gradient(circle at center, #059669 0%, #047857 55%, #036645 100%)';
+  return gradientMap[category.toLowerCase()] || 'radial-gradient(circle at center, #6ee7b7 0%, #059669 60%, #065f46 100%)';
 }
 
 export default DealCard;

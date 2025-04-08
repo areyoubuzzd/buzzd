@@ -45,8 +45,8 @@ export default function GradientTestPage() {
               height: 0,
               paddingBottom: 'calc(100% / 1.586)',
               marginBottom: '4px',
-              // Linear gradient
-              background: 'linear-gradient(135deg, #E67E30 0%, #D96C29 100%)',
+              // Linear gradient with more contrast
+              background: 'linear-gradient(135deg, #F97316 0%, #D96C29 100%)',
             }}
           >
             <div className="absolute inset-0 flex flex-col h-full">
@@ -72,8 +72,8 @@ export default function GradientTestPage() {
               height: 0,
               paddingBottom: 'calc(100% / 1.586)',
               marginBottom: '4px',
-              // Radial gradient
-              background: 'radial-gradient(circle at center, #F97316 0%, #E67E30 55%, #D96C29 100%)',
+              // Radial gradient with more contrast
+              background: 'radial-gradient(circle at center, #FDBA74 0%, #E67E30 55%, #C2410C 100%)',
             }}
           >
             <div className="absolute inset-0 flex flex-col h-full">
