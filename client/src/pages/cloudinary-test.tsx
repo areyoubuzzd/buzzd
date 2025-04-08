@@ -1,279 +1,416 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useEffect, useState } from "react";
-import { Separator } from "@/components/ui/separator";
+import { useEffect, useState } from 'react';
+import { apiRequest } from '@/lib/queryClient';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
 
 export default function CloudinaryTestPage() {
-  const [testData, setTestData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchTestData = async () => {
+  const [testResults, setTestResults] = useState<any>(null);
+  const [category, setCategory] = useState('beer');
+  const [brand, setBrand] = useState('heineken');
+  const [servingStyle, setServingStyle] = useState('bottle');
+  const [restaurantId, setRestaurantId] = useState('001');
+  const [cocktailName, setCocktailName] = useState('margarita');
+  
+  // Function to test cloudinary connection
+  async function testConnection() {
     setLoading(true);
-    setError(null);
     try {
-      const response = await fetch('/api/test-cloudinary');
+      const response = await apiRequest('GET', '/api/cloudinary/test');
       const data = await response.json();
-      console.log("Test data:", data);
-      setTestData(data);
-    } catch (err) {
-      console.error("Error fetching test data:", err);
-      setError("Failed to fetch test data");
+      console.log('Connection test result:', data);
+      setTestResults({ ...testResults, connection: data });
+    } catch (error) {
+      console.error('Error testing connection:', error);
+      setTestResults({ ...testResults, connection: { error: error.message } });
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchTestData();
-  }, []);
-
+  }
+  
+  // Function to test background image
+  async function testBackgroundImage() {
+    setLoading(true);
+    try {
+      // This just formats the URL, doesn't actually make a request
+      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/backgrounds/${category}/bg.png`;
+      
+      // Intentionally trigger a load error to see if image exists
+      const img = new Image();
+      img.onload = () => {
+        setTestResults({ ...testResults, backgroundImage: { success: true, url: imageUrl } });
+        setLoading(false);
+      };
+      img.onerror = () => {
+        setTestResults({ ...testResults, backgroundImage: { success: false, url: imageUrl } });
+        setLoading(false);
+      };
+      img.src = imageUrl;
+    } catch (error) {
+      console.error('Error testing background image:', error);
+      setTestResults({ ...testResults, backgroundImage: { error: error.message } });
+      setLoading(false);
+    }
+  }
+  
+  // Function to test brand image
+  async function testBrandImage() {
+    setLoading(true);
+    try {
+      // This just formats the URL, doesn't actually make a request
+      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/brands/${category}/${brand}/${servingStyle}.png`;
+      
+      // Intentionally trigger a load error to see if image exists
+      const img = new Image();
+      img.onload = () => {
+        setTestResults({ ...testResults, brandImage: { success: true, url: imageUrl } });
+        setLoading(false);
+      };
+      img.onerror = () => {
+        setTestResults({ ...testResults, brandImage: { success: false, url: imageUrl } });
+        setLoading(false);
+      };
+      img.src = imageUrl;
+    } catch (error) {
+      console.error('Error testing brand image:', error);
+      setTestResults({ ...testResults, brandImage: { error: error.message } });
+      setLoading(false);
+    }
+  }
+  
+  // Function to test cocktail image
+  async function testCocktailImage() {
+    setLoading(true);
+    try {
+      // This just formats the URL, doesn't actually make a request
+      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/brands/cocktail/${cocktailName}/glass.png`;
+      
+      // Intentionally trigger a load error to see if image exists
+      const img = new Image();
+      img.onload = () => {
+        setTestResults({ ...testResults, cocktailImage: { success: true, url: imageUrl } });
+        setLoading(false);
+      };
+      img.onerror = () => {
+        setTestResults({ ...testResults, cocktailImage: { success: false, url: imageUrl } });
+        setLoading(false);
+      };
+      img.src = imageUrl;
+    } catch (error) {
+      console.error('Error testing cocktail image:', error);
+      setTestResults({ ...testResults, cocktailImage: { error: error.message } });
+      setLoading(false);
+    }
+  }
+  
+  // Function to test restaurant logo
+  async function testRestaurantLogo() {
+    setLoading(true);
+    try {
+      // This just formats the URL, doesn't actually make a request
+      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/restaurants/logos/${restaurantId}.png`;
+      
+      // Intentionally trigger a load error to see if image exists
+      const img = new Image();
+      img.onload = () => {
+        setTestResults({ ...testResults, restaurantLogo: { success: true, url: imageUrl } });
+        setLoading(false);
+      };
+      img.onerror = () => {
+        setTestResults({ ...testResults, restaurantLogo: { success: false, url: imageUrl } });
+        setLoading(false);
+      };
+      img.src = imageUrl;
+    } catch (error) {
+      console.error('Error testing restaurant logo:', error);
+      setTestResults({ ...testResults, restaurantLogo: { error: error.message } });
+      setLoading(false);
+    }
+  }
+  
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">Cloudinary Test</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6">Cloudinary Integration Test</h1>
       
-      <Button onClick={fetchTestData} disabled={loading} className="mb-8">
-        {loading ? "Loading..." : "Refresh Test Data"}
-      </Button>
-      
-      {error && (
-        <div className="p-4 mb-4 bg-red-500 text-white rounded">
-          {error}
-        </div>
-      )}
-      
-      <div className="space-y-8 mb-8">
-        <h2 className="text-xl font-semibold mb-2">Demo Image Test</h2>
-        <Card className="p-4 border-2 border-blue-500">
-          <h3 className="font-bold mb-4 text-center text-blue-600 text-lg">WORKING DEMO IMAGES (PUBLIC CLOUDINARY)</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-bold mb-2">Cloudinary Demo Image</h3>
-              <div className="aspect-video mb-2 bg-gray-100 rounded overflow-hidden">
-                <img 
-                  src="https://res.cloudinary.com/demo/image/upload/sample" 
-                  alt="Cloudinary sample image" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => { 
-                    e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                  }}
-                />
-              </div>
-              <div className="text-xs break-all">https://res.cloudinary.com/demo/image/upload/sample</div>
-            </div>
-            <div>
-              <h3 className="font-bold mb-2">Sample Bottle Image</h3>
-              <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
-                <img 
-                  src="https://res.cloudinary.com/demo/image/upload/bottle" 
-                  alt="Sample bottle" 
-                  className="max-h-full max-w-full"
-                  onError={(e) => { 
-                    e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                  }}
-                />
-              </div>
-              <div className="text-xs break-all">https://res.cloudinary.com/demo/image/upload/bottle</div>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 border-2 border-green-500">
-          <h3 className="font-bold mb-4 text-center text-green-600 text-lg">DIRECT PNG HARDCODED URLS</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-bold mb-2">Beer Background (PNG)</h3>
-              <div className="aspect-video mb-2 bg-gray-100 rounded overflow-hidden">
-                <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/backgrounds/beer/image.png" 
-                  alt="Beer background" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => { 
-                    e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                  }}
-                />
-              </div>
-              <div className="text-xs break-all">https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/beer/image.png</div>
-            </div>
-            <div>
-              <h3 className="font-bold mb-2">Heineken Bottle (PNG)</h3>
-              <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
-                <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken/bottle.png" 
-                  alt="Heineken bottle" 
-                  className="max-h-full max-w-full"
-                  onError={(e) => { 
-                    e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                  }}
-                />
-              </div>
-              <div className="text-xs break-all">https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/beer/heineken/bottle.png</div>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 border-2 border-purple-500">
-          <h3 className="font-bold mb-4 text-center text-purple-600 text-lg">EXTENSION-LESS URLS (AUTO-FORMAT)</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-bold mb-2">Beer Background (No Extension)</h3>
-              <div className="aspect-video mb-2 bg-gray-100 rounded overflow-hidden">
-                <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/home/backgrounds/beer/image" 
-                  alt="Beer background" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => { 
-                    e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                  }}
-                />
-              </div>
-              <div className="text-xs break-all">https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/backgrounds/beer/image</div>
-            </div>
-            <div>
-              <h3 className="font-bold mb-2">Heineken Bottle (No Extension)</h3>
-              <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
-                <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/home/brands/beer/heineken/bottle" 
-                  alt="Heineken bottle" 
-                  className="max-h-full max-w-full"
-                  onError={(e) => { 
-                    e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                  }}
-                />
-              </div>
-              <div className="text-xs break-all">https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/brands/beer/heineken/bottle</div>
-            </div>
-          </div>
-        </Card>
-        <Separator />
-      </div>
-      
-      {testData && (
-        <div className="space-y-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Connection Status</h2>
-            <Card className="p-4">
-              <p>
-                Cloudinary Connection: {testData.connectionOk ? "✅ Connected" : "❌ Failed"}
-              </p>
-              <p>Cloud Name: {testData.cloudName || "Not found"}</p>
-            </Card>
-          </div>
-          
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Background Image Tests</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {testData.hardcodedUrls?.backgrounds && (
-                Object.entries(testData.hardcodedUrls.backgrounds)
-                  .filter(([key]) => key !== 'wine') // Skip wine object because it's nested
-                  .map(([category, url]: [string, any]) => (
-                    <Card key={category} className="p-4">
-                      <h3 className="font-bold mb-2 capitalize">{category}</h3>
-                      <div className="aspect-video mb-2 bg-gray-100 rounded overflow-hidden">
-                        <img 
-                          src={url} 
-                          alt={`${category} background`} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => { 
-                            e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                          }}
-                        />
-                      </div>
-                      <div className="text-xs break-all">{url}</div>
-                    </Card>
-                  ))
-              )}
-              
-              {/* Add wine separately since it's nested */}
-              {testData.hardcodedUrls?.backgrounds?.wine && (
-                <Card className="p-4">
-                  <h3 className="font-bold mb-2 capitalize">Wine (Red)</h3>
-                  <div className="aspect-video mb-2 bg-gray-100 rounded overflow-hidden">
-                    <img 
-                      src={testData.hardcodedUrls.backgrounds.wine.red} 
-                      alt="wine background" 
-                      className="w-full h-full object-cover"
-                      onError={(e) => { 
-                        e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22300%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                      }}
-                    />
-                  </div>
-                  <div className="text-xs break-all">{testData.hardcodedUrls.backgrounds.wine.red}</div>
-                </Card>
-              )}
-            </div>
-          </div>
-          
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Brand Image Tests</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Beer - Heineken */}
-              {testData.hardcodedUrls?.brands?.beer?.heineken && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Connection Test</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={testConnection} 
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? (
                 <>
-                  <Card className="p-4">
-                    <h3 className="font-bold mb-2">Heineken (Bottle)</h3>
-                    <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
-                      <img 
-                        src={testData.hardcodedUrls.brands.beer.heineken.bottle}
-                        alt="Heineken bottle"
-                        className="max-h-full max-w-full"
-                        onError={(e) => { 
-                          e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                        }}
-                      />
-                    </div>
-                    <div className="text-xs break-all">{testData.hardcodedUrls.brands.beer.heineken.bottle}</div>
-                  </Card>
-                  
-                  <Card className="p-4">
-                    <h3 className="font-bold mb-2">Heineken (Glass)</h3>
-                    <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
-                      <img 
-                        src={testData.hardcodedUrls.brands.beer.heineken.glass}
-                        alt="Heineken glass"
-                        className="max-h-full max-w-full"
-                        onError={(e) => { 
-                          e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                        }}
-                      />
-                    </div>
-                    <div className="text-xs break-all">{testData.hardcodedUrls.brands.beer.heineken.glass}</div>
-                  </Card>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Testing...
                 </>
-              )}
-              
-              {/* Cocktails - Margarita */}
-              {testData.hardcodedUrls?.brands?.cocktail?.margarita && (
-                <Card className="p-4">
-                  <h3 className="font-bold mb-2">Margarita (Glass)</h3>
-                  <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
-                    <img 
-                      src={testData.hardcodedUrls.brands.cocktail.margarita.glass}
-                      alt="Margarita glass"
-                      className="max-h-full max-w-full"
-                      onError={(e) => { 
-                        e.currentTarget.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%22%20height%3D%22200%22%20fill%3D%22%23FF0000%22%3E%3C%2Frect%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22white%22%3EImage%20Load%20Failed%3C%2Ftext%3E%3C%2Fsvg%3E';
-                      }}
-                    />
-                  </div>
-                  <div className="text-xs break-all">{testData.hardcodedUrls.brands.cocktail.margarita.glass}</div>
-                </Card>
-              )}
-            </div>
-          </div>
-          
-          {testData.sdkUrls && (
-            <div>
-              <h2 className="text-xl font-semibold mb-2">SDK Generated URLs</h2>
-              <Card className="p-4">
-                <pre className="text-xs whitespace-pre-wrap break-all">
-                  {JSON.stringify(testData.sdkUrls, null, 2)}
+              ) : 'Test Cloudinary Connection'}
+            </Button>
+            
+            {testResults?.connection && (
+              <div className="mt-4 p-4 bg-muted rounded-md">
+                <pre className="whitespace-pre-wrap">
+                  {JSON.stringify(testResults.connection, null, 2)}
                 </pre>
-              </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Background Image Test</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beer">Beer</SelectItem>
+                    <SelectItem value="wine">Wine</SelectItem>
+                    <SelectItem value="cocktail">Cocktail</SelectItem>
+                    <SelectItem value="whisky">Whisky</SelectItem>
+                    <SelectItem value="vodka">Vodka</SelectItem>
+                    <SelectItem value="rum">Rum</SelectItem>
+                    <SelectItem value="gin">Gin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button 
+                onClick={testBackgroundImage} 
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testing...
+                  </>
+                ) : 'Test Background Image'}
+              </Button>
+              
+              {testResults?.backgroundImage && (
+                <div className="mt-4">
+                  <div className="p-4 bg-muted rounded-md mb-2">
+                    <pre className="whitespace-pre-wrap text-xs">
+                      {JSON.stringify(testResults.backgroundImage, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  {testResults.backgroundImage.success && (
+                    <div className="border rounded-md overflow-hidden">
+                      <img 
+                        src={testResults.backgroundImage.url} 
+                        alt="Background Image" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Brand Image Test</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="brand-category">Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger id="brand-category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beer">Beer</SelectItem>
+                    <SelectItem value="wine">Wine</SelectItem>
+                    <SelectItem value="whisky">Whisky</SelectItem>
+                    <SelectItem value="vodka">Vodka</SelectItem>
+                    <SelectItem value="rum">Rum</SelectItem>
+                    <SelectItem value="gin">Gin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="brand">Brand</Label>
+                <Input 
+                  id="brand" 
+                  placeholder="e.g., heineken" 
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="serving-style">Serving Style</Label>
+                <Select value={servingStyle} onValueChange={setServingStyle}>
+                  <SelectTrigger id="serving-style">
+                    <SelectValue placeholder="Select serving style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bottle">Bottle</SelectItem>
+                    <SelectItem value="glass">Glass</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button 
+                onClick={testBrandImage} 
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testing...
+                  </>
+                ) : 'Test Brand Image'}
+              </Button>
+              
+              {testResults?.brandImage && (
+                <div className="mt-4">
+                  <div className="p-4 bg-muted rounded-md mb-2">
+                    <pre className="whitespace-pre-wrap text-xs">
+                      {JSON.stringify(testResults.brandImage, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  {testResults.brandImage.success && (
+                    <div className="border rounded-md overflow-hidden">
+                      <img 
+                        src={testResults.brandImage.url} 
+                        alt="Brand Image" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Cocktail Image Test</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="cocktail-name">Cocktail Name</Label>
+                <Input 
+                  id="cocktail-name" 
+                  placeholder="e.g., margarita" 
+                  value={cocktailName}
+                  onChange={(e) => setCocktailName(e.target.value)}
+                />
+              </div>
+              
+              <Button 
+                onClick={testCocktailImage} 
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testing...
+                  </>
+                ) : 'Test Cocktail Image'}
+              </Button>
+              
+              {testResults?.cocktailImage && (
+                <div className="mt-4">
+                  <div className="p-4 bg-muted rounded-md mb-2">
+                    <pre className="whitespace-pre-wrap text-xs">
+                      {JSON.stringify(testResults.cocktailImage, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  {testResults.cocktailImage.success && (
+                    <div className="border rounded-md overflow-hidden">
+                      <img 
+                        src={testResults.cocktailImage.url} 
+                        alt="Cocktail Image" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Restaurant Logo Test</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="restaurant-id">Restaurant ID</Label>
+                <Input 
+                  id="restaurant-id" 
+                  placeholder="e.g., 001" 
+                  value={restaurantId}
+                  onChange={(e) => setRestaurantId(e.target.value)}
+                />
+              </div>
+              
+              <Button 
+                onClick={testRestaurantLogo} 
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testing...
+                  </>
+                ) : 'Test Restaurant Logo'}
+              </Button>
+              
+              {testResults?.restaurantLogo && (
+                <div className="mt-4">
+                  <div className="p-4 bg-muted rounded-md mb-2">
+                    <pre className="whitespace-pre-wrap text-xs">
+                      {JSON.stringify(testResults.restaurantLogo, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  {testResults.restaurantLogo.success && (
+                    <div className="border rounded-md overflow-hidden">
+                      <img 
+                        src={testResults.restaurantLogo.url} 
+                        alt="Restaurant Logo" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
