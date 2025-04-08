@@ -27,8 +27,8 @@ const sampleDeals = [
   },
   {
     id: 2,
-    title: 'Wine Special',
-    alcoholCategory: 'wine',
+    title: 'Red Wine Special',
+    alcoholCategory: 'red_wine',
     brandName: 'yellowtail',
     servingStyle: 'glass',
     discountedPrice: 7,
@@ -36,14 +36,57 @@ const sampleDeals = [
     discountPercentage: 40,
     startTime: '17:00',
     endTime: '20:00',
-    isOneForOne: true,
+    isOneForOne: false,
     isPremium: false,
-    bgImageUrl: 'https://res.cloudinary.com/demo/image/upload/v1312461204/red_wine_background.jpg',
-    brandImageUrl: 'https://res.cloudinary.com/demo/image/upload/v1312461204/yellowtail_glass.png',
+    bgImageUrl: '',
+    brandImageUrl: '',
     establishment: {
       name: 'Wine & Dine',
       latitude: 1.3521,
       longitude: 103.8198,
+    }
+  },
+  {
+    id: 5,
+    title: 'White Wine Special',
+    alcoholCategory: 'white_wine',
+    brandName: 'chardonnay',
+    servingStyle: 'glass',
+    discountedPrice: 8,
+    regularPrice: 14,
+    discountPercentage: 45,
+    startTime: '17:00',
+    endTime: '20:00',
+    isOneForOne: false,
+    isPremium: false,
+    bgImageUrl: '',
+    brandImageUrl: '',
+    establishment: {
+      name: 'Wine Cellar',
+      latitude: 1.3421,
+      longitude:
+      103.8298,
+    }
+  },
+  {
+    id: 6,
+    title: 'Bubbly Special',
+    alcoholCategory: 'bubbly',
+    brandName: 'prosecco',
+    servingStyle: 'glass',
+    discountedPrice: 9,
+    regularPrice: 18,
+    discountPercentage: 50,
+    startTime: '17:00',
+    endTime: '21:00',
+    isOneForOne: true,
+    isPremium: true,
+    bgImageUrl: '',
+    brandImageUrl: '',
+    establishment: {
+      name: 'Bubbles Bar',
+      latitude: 1.3621,
+      longitude: 103.8098,
     }
   },
   {
@@ -146,24 +189,42 @@ export default function ModernDealsGrid() {
         
         // Get background image URL
         let bgImageUrl = '';
-        if (category === 'beer' && data.testUrls.backgrounds.beer) {
-          bgImageUrl = data.testUrls.backgrounds.beer;
-        } else if (category === 'wine' && data.testUrls.backgrounds.wine.red) {
-          bgImageUrl = data.testUrls.backgrounds.wine.red;
-        } else if (category === 'whisky' && data.testUrls.backgrounds.whisky) {
-          bgImageUrl = data.testUrls.backgrounds.whisky;
-        } else if (category === 'cocktail' && data.testUrls.backgrounds.cocktail) {
-          bgImageUrl = data.testUrls.backgrounds.cocktail;
+        if (category === 'beer' && data.hardcodedUrls?.backgrounds?.beer) {
+          bgImageUrl = data.hardcodedUrls.backgrounds.beer;
+        } else if (category === 'red_wine' && data.hardcodedUrls?.backgrounds?.red_wine) {
+          bgImageUrl = data.hardcodedUrls.backgrounds.red_wine;
+        } else if (category === 'white_wine' && data.hardcodedUrls?.backgrounds?.white_wine) {
+          bgImageUrl = data.hardcodedUrls.backgrounds.white_wine;
+        } else if (category === 'bubbly' && data.hardcodedUrls?.backgrounds?.bubbly) {
+          bgImageUrl = data.hardcodedUrls.backgrounds.bubbly;
+        } else if (category === 'whisky' && data.hardcodedUrls?.backgrounds?.whisky) {
+          bgImageUrl = data.hardcodedUrls.backgrounds.whisky;
+        } else if (category === 'cocktail' && data.hardcodedUrls?.backgrounds?.cocktail) {
+          bgImageUrl = data.hardcodedUrls.backgrounds.cocktail;
         } else {
-          bgImageUrl = data.testUrls.backgrounds.default;
+          bgImageUrl = data.hardcodedUrls?.backgrounds?.default || '';
         }
         
         // Get brand image URL
         let brandImageUrl = '';
         if (category === 'beer' && deal.brandName === 'heineken') {
-          brandImageUrl = data.testUrls.brands.beer.heineken[deal.servingStyle];
+          brandImageUrl = data.hardcodedUrls?.brands?.beer?.heineken?.[deal.servingStyle] || '';
+        } else if (category === 'beer' && deal.brandName === 'asahi') {
+          brandImageUrl = data.hardcodedUrls?.brands?.beer?.asahi?.[deal.servingStyle] || '';
+        } else if (category === 'red_wine') {
+          // Use a default red wine image for now
+          brandImageUrl = `https://res.cloudinary.com/${data.cloudName}/image/upload/brands/red_wine/${deal.brandName}/${deal.servingStyle}.png`;
+        } else if (category === 'white_wine') {
+          // Use a default white wine image for now
+          brandImageUrl = `https://res.cloudinary.com/${data.cloudName}/image/upload/brands/white_wine/${deal.brandName}/${deal.servingStyle}.png`;
+        } else if (category === 'bubbly' && deal.brandName === 'prosecco') {
+          brandImageUrl = data.hardcodedUrls?.brands?.bubbly?.prosecco?.[deal.servingStyle] || '';
+        } else if (category === 'whisky' && deal.brandName === 'monkey_shoulder') {
+          brandImageUrl = data.hardcodedUrls?.brands?.whisky?.monkey_shoulder?.[deal.servingStyle] || '';
+        } else if (category === 'whisky' && deal.brandName === 'jack_daniels') {
+          brandImageUrl = data.hardcodedUrls?.brands?.whisky?.jack_daniels?.[deal.servingStyle] || '';
         } else if (category === 'cocktail' && deal.brandName === 'margarita') {
-          brandImageUrl = data.testUrls.brands.cocktail?.margarita?.glass || '';
+          brandImageUrl = data.hardcodedUrls?.brands?.cocktail?.margarita?.glass || '';
         }
         
         return {
