@@ -2,18 +2,20 @@ import { useState, useEffect } from "react";
 import Header from "@/components/layout/header";
 import LocationBar from "@/components/layout/location-bar";
 import FilterBar from "@/components/layout/filter-bar";
-import MapPreview from "@/components/map/map-preview";
 import DealsList from "@/components/deals/deals-list";
 import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FiMapPin } from "react-icons/fi";
 
-type FilterType = 'all' | 'drinks' | 'food' | 'active' | 'upcoming' | 'weekend';
+// Updated FilterType to match the new filter-bar component
+type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
 
 export default function HomePage() {
-  // Initialize with a default location to prevent null issues
-  const [location, setLocation] = useState<{ lat: number; lng: number }>({ lat: 43.651070, lng: -79.347015 });
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const [isMapExpanded, setIsMapExpanded] = useState(false);
+  // Initialize with a default location - Singapore
+  const [location, setLocation] = useState<{ lat: number; lng: number }>({ lat: 1.3521, lng: 103.8198 });
+  const [activeFilter, setActiveFilter] = useState<FilterType>('active');
+  const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
 
   useEffect(() => {
     // Try to get user's location on mount
@@ -27,7 +29,7 @@ export default function HomePage() {
         },
         (error) => {
           console.error("Error getting location:", error);
-          // We already have a default location set in state
+          // We already have a default location (Singapore) set in state
         }
       );
     }
@@ -35,19 +37,23 @@ export default function HomePage() {
 
   const handleLocationChange = (newLocation: { lat: number; lng: number }) => {
     setLocation(newLocation);
+    
+    // In a real app, we'd recalculate deals based on new location
+    // For now, just simulate different number of deals
+    setTotalDealsFound(Math.floor(Math.random() * 20) + 10);
   };
 
   const handleFilterChange = (filter: FilterType) => {
     setActiveFilter(filter);
+    
+    // In a real app, we'd filter deals based on the new filter
+    // For now, just simulate different number of deals
+    setTotalDealsFound(Math.floor(Math.random() * 20) + 10);
   };
 
   const handleOpenFilters = () => {
     // This would open a more detailed filters panel in a real app
     console.log("Open detailed filters");
-  };
-
-  const handleExpandMap = () => {
-    setIsMapExpanded(!isMapExpanded);
   };
 
   return (
@@ -61,12 +67,20 @@ export default function HomePage() {
       
       <FilterBar onFilterChange={handleFilterChange} />
       
-      <MapPreview 
-        deals={[]} // This would be populated with actual deals
-        userLocation={location}
-        radiusKm={1}
-        onExpandClick={handleExpandMap}
-      />
+      {/* Location and deal count indicator */}
+      <div className="bg-gray-50 px-4 py-2">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-sm text-gray-600">
+              <FiMapPin className="mr-1 h-4 w-4" />
+              <span>Singapore</span>
+            </div>
+            <div className="text-sm font-medium">
+              {totalDealsFound} deals found
+            </div>
+          </div>
+        </div>
+      </div>
       
       <DealsList 
         location={location} 
