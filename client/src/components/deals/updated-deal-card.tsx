@@ -139,8 +139,11 @@ function getBgColorForCategory(category?: string): string {
   // Default to 'default' if category is undefined or null
   if (!category) return "bg-emerald-600";
   
+  // For beer, we can't easily do random selection with tailwind classes
+  // We'll use a variant of orange to match the most common beer color
+  
   const colorMap: Record<string, string> = {
-    beer: "bg-orange-500",
+    beer: "bg-amber-600", // closest to #E67E30
     wine: "bg-rose-600",
     red_wine: "bg-rose-600",
     white_wine: "bg-rose-600",
@@ -158,8 +161,16 @@ function getBgColorHex(category?: string): string {
   // Default to emerald if category is undefined or null
   if (!category) return "#059669";
   
+  // For beer, select one of three colors randomly
+  if (category.toLowerCase() === 'beer') {
+    const beerColors = ["#E67E30", "#F78E3D", "#14655F"];
+    // Use the id or timestamp or some other value to select a color deterministically
+    // For now, let's just use a random selection as a simple approach
+    const randomIndex = Math.floor(Math.random() * beerColors.length);
+    return beerColors[randomIndex];
+  }
+  
   const colorMap: Record<string, string> = {
-    beer: "#f97316",
     wine: "#e11d48",
     red_wine: "#e11d48",
     white_wine: "#e11d48",
