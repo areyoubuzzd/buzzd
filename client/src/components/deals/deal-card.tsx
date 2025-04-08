@@ -145,7 +145,7 @@ function DealCard({
       style={{
         // Credit card aspect ratio (1.586:1) - Width to height ratio
         aspectRatio: '1.586/1',
-        borderRadius: '12px',
+        borderRadius: '8px', // Slightly smaller radius
         backgroundColor: getCardBackgroundColor(deal.drinkType),
         backgroundImage: deal.imageUrl ? `url(${deal.imageUrl})` : undefined,
         backgroundSize: 'cover',
@@ -153,6 +153,7 @@ function DealCard({
         maxWidth: '100%', // Ensure it doesn't overflow its container
         height: 0, // This forces the aspect ratio to be respected
         paddingBottom: 'calc(100% / 1.586)', // 1/1.586 ≈ 63% - makes it landscape!
+        marginBottom: '1px', // Absolute minimum margin
       }}
     >
       {/* Card Content */}
