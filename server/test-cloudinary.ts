@@ -1,10 +1,10 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-// Configure Cloudinary with environment variables
+// Configure Cloudinary with demo account for now
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: 'demo',
+  api_key: 'test',
+  api_secret: 'test'
 });
 
 export function testCloudinaryConnection(): Promise<boolean> {
@@ -30,7 +30,8 @@ export function logCloudinaryConfig() {
 }
 
 export function generateTestUrls() {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  // Use demo as the cloud name
+  const cloudName = 'demo';
   
   // Generate test URLs for various asset types
   return {

@@ -31,8 +31,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate URLs using the Cloudinary SDK
       const testUrls = generateTestUrls();
       
-      // Add hardcoded URLs as fallback
-      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "democloud";
+      // Use demo cloud name
+      const cloudName = "demo";
       const hardcodedUrls = {
         backgrounds: {
           beer: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.jpg`,
