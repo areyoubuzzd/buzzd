@@ -5,6 +5,8 @@ import { setupAuth } from "./auth";
 import { insertDealSchema, insertEstablishmentSchema, insertReviewSchema, insertSavedDealSchema, insertUserDealViewSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { googleSheetsService } from "./services/googleSheetsService";
+import { cloudinaryService } from "./services/cloudinaryService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -372,6 +374,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
       handleZodError(error, res);
     }
   });
+
+  // ======================================
+  // Google Sheets API Integration
+  // ======================================
+  
+  // Get all restaurants from Google Sheets
+  app.get("/api/sheets/restaurants", async (req, res) => {
+    try {
+      const restaurants = await googleSheetsService.getRestaurants();
+      
+      // Map through restaurants and add Cloudinary logo URLs
+      const enhancedRestaurants = restaurants.map(restaurant => ({
+        ...restaurant,
+        logoUrl: restaurant.logoUrl || cloudinaryService.getRestaurantLogoUrl(restaurant.restaurantId)
+      }));
+      
+      res.json(enhancedRestaurants);
+    } catch (error) {
+      console.error("Error fetching restaurants from Google Sheets:", error);
+      res.status(500).json({ message: "Failed to fetch restaurants" });
+    }
+  });
+  
+  // Get all deals from Google Sheets
+  app.get("/api/sheets/deals", async (req, res) => {
+    try {
+      const deals = await googleSheetsService.getDeals();
+      
+      // Enhance deals with Cloudinary image URLs
+      const enhancedDeals = deals.map(deal => ({
+        ...deal,
+        bgImageUrl: deal.customBgImageUrl || 
+          cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
+        brandImageUrl: deal.customBrandImageUrl || 
+          cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
+      }));
+      
+      res.json(enhancedDeals);
+    } catch (error) {
+      console.error("Error fetching deals from Google Sheets:", error);
+      res.status(500).json({ message: "Failed to fetch deals" });
+    }
+  });
+  
+  // Get active deals from Google Sheets
+  app.get("/api/sheets/deals/active", async (req, res) => {
+    try {
+      const activeDeals = await googleSheetsService.getActiveDeals();
+      
+      // Enhance deals with Cloudinary image URLs
+      const enhancedDeals = activeDeals.map(deal => ({
+        ...deal,
+        bgImageUrl: deal.customBgImageUrl || 
+          cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
+        brandImageUrl: deal.customBrandImageUrl || 
+          cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
+      }));
+      
+      res.json(enhancedDeals);
+    } catch (error) {
+      console.error("Error fetching active deals from Google Sheets:", error);
+      res.status(500).json({ message: "Failed to fetch active deals" });
+    }
+  });
+  
+  // Get deals for a specific restaurant
+  app.get("/api/sheets/restaurants/:id/deals", async (req, res) => {
+    try {
+      const restaurantId = req.params.id;
+      const deals = await googleSheetsService.getDealsByRestaurantId(restaurantId);
+      
+      // Enhance deals with Cloudinary image URLs
+      const enhancedDeals = deals.map(deal => ({
+        ...deal,
+        bgImageUrl: deal.customBgImageUrl || 
+          cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
+        brandImageUrl: deal.customBrandImageUrl || 
+          cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
+      }));
+      
+      res.json(enhancedDeals);
+    } catch (error) {
+      console.error(`Error fetching deals for restaurant ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to fetch restaurant deals" });
+    }
+  });
+  
+  // Get deals near a location (from Google Sheets)
+  app.get("/api/sheets/deals/nearby", async (req, res) => {
+    try {
+      const latitude = parseFloat(req.query.lat as string);
+      const longitude = parseFloat(req.query.lng as string);
+      const radius = parseFloat(req.query.radius as string) || 1; // Default 1km
+      
+      if (isNaN(latitude) || isNaN(longitude)) {
+        return res.status(400).json({ message: "Invalid coordinates" });
+      }
+      
+      // Get all restaurants and deals
+      const restaurants = await googleSheetsService.getRestaurants();
+      const deals = await googleSheetsService.getDeals();
+      
+      // Create a map of restaurants by ID for faster lookups
+      const restaurantMap = restaurants.reduce((map, restaurant) => {
+        map[restaurant.restaurantId] = restaurant;
+        return map;
+      }, {} as Record<string, typeof restaurants[0]>);
+      
+      // Filter restaurants based on location
+      const nearbyRestaurants = restaurants.filter(restaurant => {
+        const distance = calculateDistance(
+          latitude, longitude,
+          restaurant.latitude, restaurant.longitude
+        );
+        return distance <= radius;
+      });
+      
+      // Get restaurant IDs of nearby restaurants
+      const nearbyRestaurantIds = nearbyRestaurants.map(r => r.restaurantId);
+      
+      // Filter deals based on restaurant location and status
+      const nearbyDeals = deals.filter(deal => 
+        nearbyRestaurantIds.includes(deal.restaurantId)
+      );
+      
+      // Group deals by status
+      const activeDeals = nearbyDeals.filter(deal => deal.dealStatus === 'active');
+      const upcomingDeals = nearbyDeals.filter(deal => deal.dealStatus === 'upcoming');
+      
+      // Enhance deals with restaurant info and images
+      const enhanceDealsWithInfo = (dealList: typeof deals) => 
+        dealList.map(deal => {
+          const restaurant = restaurantMap[deal.restaurantId];
+          const distance = calculateDistance(
+            latitude, longitude,
+            restaurant.latitude, restaurant.longitude
+          );
+          
+          return {
+            ...deal,
+            restaurant: {
+              ...restaurant,
+              logoUrl: restaurant.logoUrl || cloudinaryService.getRestaurantLogoUrl(restaurant.restaurantId)
+            },
+            distance,
+            bgImageUrl: deal.customBgImageUrl || 
+              cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
+            brandImageUrl: deal.customBrandImageUrl || 
+              cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
+          };
+        });
+      
+      // Sort deals by restaurant priority (higher first) and then by distance
+      const sortDealsByPriorityAndDistance = (deals: ReturnType<typeof enhanceDealsWithInfo>) => 
+        deals.sort((a, b) => {
+          // First sort by priority (higher first)
+          if (b.restaurant.priority !== a.restaurant.priority) {
+            return b.restaurant.priority - a.restaurant.priority;
+          }
+          // Then sort by distance (closer first)
+          return a.distance - b.distance;
+        });
+      
+      const enhancedActiveDeals = sortDealsByPriorityAndDistance(enhanceDealsWithInfo(activeDeals));
+      const enhancedUpcomingDeals = sortDealsByPriorityAndDistance(enhanceDealsWithInfo(upcomingDeals));
+      
+      // For free users, limit the number of deals returned (similar to the existing endpoint)
+      if (req.isAuthenticated() && req.user.subscriptionTier === 'free') {
+        const dealsViewed = req.user.dealsViewed || 0;
+        const maxFreeDeals = 3;
+        const remainingDeals = Math.max(0, maxFreeDeals - dealsViewed);
+        
+        const limitedActiveDeals = enhancedActiveDeals.slice(0, remainingDeals);
+        
+        return res.json({
+          active: limitedActiveDeals,
+          upcoming: enhancedUpcomingDeals,
+          subscription: {
+            tier: 'free',
+            viewed: dealsViewed,
+            limit: maxFreeDeals,
+            remaining: remainingDeals
+          }
+        });
+      }
+      
+      // For premium users or non-authenticated users
+      res.json({
+        active: enhancedActiveDeals,
+        upcoming: enhancedUpcomingDeals,
+        subscription: req.isAuthenticated() 
+          ? { tier: req.user.subscriptionTier }
+          : { tier: 'free', viewed: 0, limit: 3, remaining: 3 }
+      });
+    } catch (error) {
+      console.error("Error fetching nearby deals from Google Sheets:", error);
+      res.status(500).json({ message: "Failed to fetch nearby deals" });
+    }
+  });
+  
+  // Helper function to calculate distance between two points using Haversine formula
+  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    return distance;
+  }
+  
+  function deg2rad(deg: number): number {
+    return deg * (Math.PI/180);
+  }
 
   const httpServer = createServer(app);
   return httpServer;
