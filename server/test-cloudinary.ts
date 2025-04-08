@@ -67,36 +67,36 @@ export function generateTestUrls() {
     }
   };
   
-  // Generate simple hardcoded demo URLs that work regardless of authentication status
-  // These don't use the SDK but are direct URLs to the demo account
+  // Generate hardcoded URLs using the current cloud name
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'demo';
   const hardcodedUrls = {
     backgrounds: {
-      beer: 'https://res.cloudinary.com/demo/image/upload/backgrounds/beer/image.png',
+      beer: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.png`,
       wine: {
-        red: 'https://res.cloudinary.com/demo/image/upload/backgrounds/wine/image.png',
-        white: 'https://res.cloudinary.com/demo/image/upload/backgrounds/wine/white.png'
+        red: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/image.png`,
+        white: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/white.png`
       },
-      cocktail: 'https://res.cloudinary.com/demo/image/upload/backgrounds/cocktail/image.png',
-      whisky: 'https://res.cloudinary.com/demo/image/upload/backgrounds/whisky/image.png',
-      default: 'https://res.cloudinary.com/demo/image/upload/sample' // Sample image from demo account
+      cocktail: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/cocktail/image.png`,
+      whisky: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/whisky/image.png`,
+      default: `https://res.cloudinary.com/${cloudName}/image/upload/sample` // Sample image
     },
     brands: {
       beer: {
         heineken: {
-          bottle: 'https://res.cloudinary.com/demo/image/upload/brands/beer/heineken/bottle.png',
-          glass: 'https://res.cloudinary.com/demo/image/upload/brands/beer/heineken/glass.png'
+          bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/bottle.png`,
+          glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/glass.png`
         },
         default: {
-          bottle: 'https://res.cloudinary.com/demo/image/upload/brands/beer/default/bottle.png',
-          glass: 'https://res.cloudinary.com/demo/image/upload/bottle' // Using demo sample bottle
+          bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/default/bottle.png`,
+          glass: `https://res.cloudinary.com/${cloudName}/image/upload/bottle` // Generic bottle
         }
       },
       cocktail: {
         margarita: {
-          glass: 'https://res.cloudinary.com/demo/image/upload/brands/cocktail/margarita/glass.png'
+          glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/margarita/glass.png`
         },
         default: {
-          glass: 'https://res.cloudinary.com/demo/image/upload/sample' // Using demo sample
+          glass: `https://res.cloudinary.com/${cloudName}/image/upload/sample` // Generic image
         }
       }
     }
