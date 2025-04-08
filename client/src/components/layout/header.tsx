@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import logoLight from "@/assets/logo.png";
+import logoDark from "@/assets/logo_dark.png";
 
 export default function Header() {
   const { user, logoutMutation } = useAuth();
@@ -28,15 +30,11 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">
-                <h1 
-                  className="font-bold text-2xl"
-                  style={{ 
-                    color: '#ff36b3',
-                    textShadow: '0 0 10px #ff36b3, 0 0 20px #ff36b3'
-                  }}
-                >
-                  HappyHourHunt
-                </h1>
+                <img 
+                  src={logoDark} 
+                  alt="Buzzd Logo" 
+                  className="h-12"
+                />
               </div>
             </Link>
           </div>
