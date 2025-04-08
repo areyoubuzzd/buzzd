@@ -1,47 +1,59 @@
+// Import actual hero images
+import asahiPint from './Asahi_pint.png';
+import heinekenPint from './Heineken_pint.png';
+import sapporoPint from './Sapporo_pint.png';
+import margarita from './margarita.png';
+import monkeyShoulder from './MonkeyShoulder.png';
+
 // Hero images (bottles/glasses) for different alcohol categories
 export const heroes = {
   beer: {
-    bottle: '/heroes/beer-bottle.png',
-    glass: '/heroes/beer-glass.png',
+    bottle: heinekenPint,
+    glass: heinekenPint,
+    asahi: asahiPint,
+    heineken: heinekenPint,
+    sapporo: sapporoPint
   },
   wine: {
-    bottle: '/heroes/wine-bottle.png',
-    glass: '/heroes/wine-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
   },
   red_wine: {
-    bottle: '/heroes/wine-bottle.png',
-    glass: '/heroes/wine-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
   },
   white_wine: {
-    bottle: '/heroes/wine-bottle.png',
-    glass: '/heroes/wine-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
   },
   bubbly: {
-    bottle: '/heroes/bubbly-bottle.png',
-    glass: '/heroes/bubbly-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
   },
   cocktail: {
-    glass: '/heroes/cocktail-glass.png',
+    glass: margarita,
+    margarita: margarita
   },
   whisky: {
-    bottle: '/heroes/whisky-bottle.png',
-    glass: '/heroes/whisky-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
+    monkey_shoulder: monkeyShoulder
   },
   vodka: {
-    bottle: '/heroes/vodka-bottle.png',
-    glass: '/heroes/vodka-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
   },
   rum: {
-    bottle: '/heroes/rum-bottle.png',
-    glass: '/heroes/rum-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
   },
   gin: {
-    bottle: '/heroes/gin-bottle.png',
-    glass: '/heroes/gin-glass.png',
+    bottle: monkeyShoulder,
+    glass: monkeyShoulder,
   },
 };
 
-export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' = 'glass'): string {
+export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' = 'glass'): any {
   const formattedCategory = category.toLowerCase();
   
   // Check if the category exists
@@ -51,6 +63,27 @@ export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' 
     // If the requested serving style exists for this category
     if (servingStyle in categoryHeroes) {
       return categoryHeroes[servingStyle as keyof typeof categoryHeroes];
+    }
+    
+    // Check for special brands
+    if (category.toLowerCase().includes('asahi')) {
+      return heroes.beer.asahi;
+    }
+    
+    if (category.toLowerCase().includes('heineken')) {
+      return heroes.beer.heineken;
+    }
+    
+    if (category.toLowerCase().includes('sapporo')) {
+      return heroes.beer.sapporo;
+    }
+    
+    if (category.toLowerCase().includes('margarita')) {
+      return heroes.cocktail.margarita;
+    }
+    
+    if (category.toLowerCase().includes('monkey')) {
+      return heroes.whisky.monkey_shoulder;
     }
     
     // Default to glass if bottle not available, or the first available style

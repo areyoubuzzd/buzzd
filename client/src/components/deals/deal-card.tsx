@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getHeroImage } from "@/assets/heroes";
 
-// Sample hero images for different drink types
-function getHeroImage(drinkType: string | undefined, brand?: string): string {
+// Legacy function (not used anymore, using the imported getHeroImage instead)
+function _getDemoHeroImage(drinkType: string | undefined, brand?: string): string {
   // Default images based on category - using publicly accessible image URLs
   const defaultImages = {
     beer: 'https://www.pngall.com/wp-content/uploads/2016/04/Beer-PNG-HD.png',
@@ -355,7 +356,17 @@ function DealCard({
       {/* Card Content */}
       <div className="absolute inset-0 flex flex-col h-full">
         {/* Top section with discount badge */}
-        <div className="relative p-4 flex-grow">
+        <div className="relative p-4 flex-grow flex justify-center items-center">
+          {/* Hero Image - centered bottle/glass image */}
+          <div className="h-[75%] flex items-center justify-center">
+            <img 
+              src={getHeroImage(deal.brand || deal.drinkType, 'glass')} 
+              alt={`${deal.brand || deal.drinkType} hero image`}
+              className="h-full object-contain mix-blend-overlay"
+              style={{ filter: 'brightness(1.5) contrast(1.2)' }}
+            />
+          </div>
+          
           {/* Discount badge */}
           {savingsAmount && (
             <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold">
