@@ -138,22 +138,25 @@ function DealCard({
   return (
     <div 
       className={cn(
-        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg h-full w-full",
+        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full",
         isGrayedOut && "opacity-50"
       )}
       onClick={handleCardClick}
       style={{
-        aspectRatio: '1.586/1', // Credit card aspect ratio
+        // Credit card aspect ratio (1.586:1) - Width to height ratio
+        aspectRatio: '1.586/1',
         borderRadius: '12px',
         backgroundColor: getCardBackgroundColor(deal.drinkType),
         backgroundImage: deal.imageUrl ? `url(${deal.imageUrl})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
+        height: 0, // This forces the aspect ratio to be respected
+        paddingBottom: 'calc(100% / 1.586)', // 1/1.586 ≈ 63% - makes it landscape!
       }}
     >
       {/* Card Content */}
-      <div className="flex flex-col h-full">
+      <div className="absolute inset-0 flex flex-col h-full">
         {/* Top section with discount badge */}
         <div className="relative p-4 flex-grow">
           {/* Discount badge */}
@@ -180,14 +183,14 @@ function DealCard({
         </div>
         
         {/* Bottom section with deal name and details */}
-        <div className="p-4 pt-2 bg-black/20 flex flex-col items-center mt-auto">
+        <div className="p-3 pt-1 bg-black/20 flex flex-col items-center mt-auto">
           {/* Deal name */}
-          <h3 className="font-bold text-white text-center text-3xl font-fredoka leading-tight tracking-wide">
+          <h3 className="font-bold text-white text-center text-xl font-fredoka leading-tight tracking-wide">
             {dealName}
           </h3>
           
           {/* Time and establishment */}
-          <div className="flex items-center gap-1 text-white/90 text-sm mt-1">
+          <div className="flex items-center gap-1 text-white/90 text-xs mt-1">
             <Clock size={12} className="text-white/80" />
             <span>{formattedTimeRange}</span>
             {distance && (

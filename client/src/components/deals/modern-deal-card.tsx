@@ -52,7 +52,7 @@ export function ModernDealCard({
       className="relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full"
       onClick={onClick}
       style={{
-        // Credit card aspect ratio (1.586:1)
+        // Credit card aspect ratio (1.586:1) - Width to height ratio
         aspectRatio: '1.586/1',
         borderRadius: '12px',
         background: backgroundImageUrl ? `url(${backgroundImageUrl})` : undefined,
@@ -60,10 +60,12 @@ export function ModernDealCard({
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
+        height: 0, // This forces the aspect ratio to be respected
+        paddingBottom: 'calc(100% / 1.586)', // 1/1.586 ≈ 63% - makes it landscape!
       }}
     >
       {/* Card Content */}
-      <div className="flex flex-col h-full">
+      <div className="absolute inset-0 flex flex-col h-full">
         {/* Top section with hero image and discount */}
         <div className="relative p-4 flex-grow flex justify-center items-center">
           {/* Discount badge - positioned in top left with minus sign */}
@@ -90,12 +92,12 @@ export function ModernDealCard({
           )}
           
           {/* Hero image - centered */}
-          <div className="h-32 w-full flex items-center justify-center">
+          <div className="h-24 w-full flex items-center justify-center">
             {heroImageUrl ? (
               <img 
                 src={heroImageUrl} 
                 alt={dealType}
-                className="h-full max-h-32 object-contain" 
+                className="h-full max-h-24 object-contain" 
                 onError={(e) => {
                   console.error(`Failed to load hero image: ${heroImageUrl}`);
                   e.currentTarget.style.display = 'none';
@@ -111,15 +113,15 @@ export function ModernDealCard({
         </div>
         
         {/* Bottom section with deal name and details */}
-        <div className="p-4 pt-2 bg-black/20 flex flex-col items-center">
+        <div className="p-3 pt-1 bg-black/20 flex flex-col items-center">
           {/* Deal name in large text with Fredoka font */}
-          <h3 className="font-bold text-white text-center text-3xl font-fredoka leading-tight tracking-wide">
+          <h3 className="font-bold text-white text-center text-xl font-fredoka leading-tight tracking-wide">
             {dealType}
           </h3>
           
           {/* Time and distance */}
-          <div className="flex items-center gap-2 text-white/90 text-sm mt-1">
-            <Clock size={14} className="text-white/80" />
+          <div className="flex items-center gap-2 text-white/90 text-xs mt-1">
+            <Clock size={12} className="text-white/80" />
             <span>Until {endTime}</span>
             <span>•</span>
             <span>{formattedDistance}</span>
