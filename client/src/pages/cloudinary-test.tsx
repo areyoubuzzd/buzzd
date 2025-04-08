@@ -16,6 +16,9 @@ export default function CloudinaryTestPage() {
   const [restaurantId, setRestaurantId] = useState('001');
   const [cocktailName, setCocktailName] = useState('margarita');
   
+  // Define the cloud name as a constant instead of using process.env
+  const cloudName = 'dp2uoj3ts'; // Replace with your actual Cloudinary cloud name
+  
   // Function to test cloudinary connection
   async function testConnection() {
     setLoading(true);
@@ -36,20 +39,40 @@ export default function CloudinaryTestPage() {
   async function testBackgroundImage() {
     setLoading(true);
     try {
-      // This just formats the URL, doesn't actually make a request
-      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/backgrounds/${category}/bg.png`;
+      // Try multiple possible filenames within the category folder
+      const possibleExtensions = ['png', 'jpg', 'jpeg'];
+      const possibleFilenames = ['image', 'bg', 'background', category];
       
-      // Intentionally trigger a load error to see if image exists
-      const img = new Image();
-      img.onload = () => {
-        setTestResults({ ...testResults, backgroundImage: { success: true, url: imageUrl } });
-        setLoading(false);
-      };
-      img.onerror = () => {
-        setTestResults({ ...testResults, backgroundImage: { success: false, url: imageUrl } });
-        setLoading(false);
-      };
-      img.src = imageUrl;
+      let foundImage = false;
+      let imageUrl = '';
+      let testedUrls = [];
+      
+      for (const filename of possibleFilenames) {
+        for (const ext of possibleExtensions) {
+          // Build a URL to try
+          imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v1/home/backgrounds/${category}/${filename}.${ext}`;
+          testedUrls.push(imageUrl);
+          
+          // Use fetch with HEAD request to check if image exists
+          try {
+            const response = await fetch(imageUrl, { method: 'HEAD' });
+            if (response.ok) {
+              foundImage = true;
+              break;
+            }
+          } catch (e) {
+            // Ignore fetch errors and continue trying
+          }
+        }
+        if (foundImage) break;
+      }
+      
+      if (foundImage) {
+        setTestResults({ ...testResults, backgroundImage: { success: true, url: imageUrl, testedUrls } });
+      } else {
+        setTestResults({ ...testResults, backgroundImage: { success: false, testedUrls } });
+      }
+      setLoading(false);
     } catch (error) {
       console.error('Error testing background image:', error);
       setTestResults({ ...testResults, backgroundImage: { error: error.message } });
@@ -61,20 +84,36 @@ export default function CloudinaryTestPage() {
   async function testBrandImage() {
     setLoading(true);
     try {
-      // This just formats the URL, doesn't actually make a request
-      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/brands/${category}/${brand}/${servingStyle}.png`;
+      // Try multiple possible extensions
+      const possibleExtensions = ['png', 'jpg', 'jpeg'];
       
-      // Intentionally trigger a load error to see if image exists
-      const img = new Image();
-      img.onload = () => {
-        setTestResults({ ...testResults, brandImage: { success: true, url: imageUrl } });
-        setLoading(false);
-      };
-      img.onerror = () => {
-        setTestResults({ ...testResults, brandImage: { success: false, url: imageUrl } });
-        setLoading(false);
-      };
-      img.src = imageUrl;
+      let foundImage = false;
+      let imageUrl = '';
+      let testedUrls = [];
+      
+      for (const ext of possibleExtensions) {
+        // Build a URL to try
+        imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v1/home/brands/${category}/${brand}/${servingStyle}.${ext}`;
+        testedUrls.push(imageUrl);
+        
+        // Use fetch with HEAD request to check if image exists
+        try {
+          const response = await fetch(imageUrl, { method: 'HEAD' });
+          if (response.ok) {
+            foundImage = true;
+            break;
+          }
+        } catch (e) {
+          // Ignore fetch errors and continue trying
+        }
+      }
+      
+      if (foundImage) {
+        setTestResults({ ...testResults, brandImage: { success: true, url: imageUrl, testedUrls } });
+      } else {
+        setTestResults({ ...testResults, brandImage: { success: false, testedUrls } });
+      }
+      setLoading(false);
     } catch (error) {
       console.error('Error testing brand image:', error);
       setTestResults({ ...testResults, brandImage: { error: error.message } });
@@ -86,20 +125,36 @@ export default function CloudinaryTestPage() {
   async function testCocktailImage() {
     setLoading(true);
     try {
-      // This just formats the URL, doesn't actually make a request
-      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/brands/cocktail/${cocktailName}/glass.png`;
+      // Try multiple possible extensions
+      const possibleExtensions = ['png', 'jpg', 'jpeg'];
       
-      // Intentionally trigger a load error to see if image exists
-      const img = new Image();
-      img.onload = () => {
-        setTestResults({ ...testResults, cocktailImage: { success: true, url: imageUrl } });
-        setLoading(false);
-      };
-      img.onerror = () => {
-        setTestResults({ ...testResults, cocktailImage: { success: false, url: imageUrl } });
-        setLoading(false);
-      };
-      img.src = imageUrl;
+      let foundImage = false;
+      let imageUrl = '';
+      let testedUrls = [];
+      
+      for (const ext of possibleExtensions) {
+        // Build a URL to try
+        imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v1/home/brands/cocktail/${cocktailName}/glass.${ext}`;
+        testedUrls.push(imageUrl);
+        
+        // Use fetch with HEAD request to check if image exists
+        try {
+          const response = await fetch(imageUrl, { method: 'HEAD' });
+          if (response.ok) {
+            foundImage = true;
+            break;
+          }
+        } catch (e) {
+          // Ignore fetch errors and continue trying
+        }
+      }
+      
+      if (foundImage) {
+        setTestResults({ ...testResults, cocktailImage: { success: true, url: imageUrl, testedUrls } });
+      } else {
+        setTestResults({ ...testResults, cocktailImage: { success: false, testedUrls } });
+      }
+      setLoading(false);
     } catch (error) {
       console.error('Error testing cocktail image:', error);
       setTestResults({ ...testResults, cocktailImage: { error: error.message } });
@@ -111,20 +166,36 @@ export default function CloudinaryTestPage() {
   async function testRestaurantLogo() {
     setLoading(true);
     try {
-      // This just formats the URL, doesn't actually make a request
-      let imageUrl = `https://res.cloudinary.com/${process.env.VITE_CLOUDINARY_CLOUD_NAME || 'dp2uoj3ts'}/image/upload/v1/home/restaurants/logos/${restaurantId}.png`;
+      // Try multiple possible extensions
+      const possibleExtensions = ['png', 'jpg', 'jpeg'];
       
-      // Intentionally trigger a load error to see if image exists
-      const img = new Image();
-      img.onload = () => {
-        setTestResults({ ...testResults, restaurantLogo: { success: true, url: imageUrl } });
-        setLoading(false);
-      };
-      img.onerror = () => {
-        setTestResults({ ...testResults, restaurantLogo: { success: false, url: imageUrl } });
-        setLoading(false);
-      };
-      img.src = imageUrl;
+      let foundImage = false;
+      let imageUrl = '';
+      let testedUrls = [];
+      
+      for (const ext of possibleExtensions) {
+        // Build a URL to try
+        imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v1/home/restaurants/logos/${restaurantId}.${ext}`;
+        testedUrls.push(imageUrl);
+        
+        // Use fetch with HEAD request to check if image exists
+        try {
+          const response = await fetch(imageUrl, { method: 'HEAD' });
+          if (response.ok) {
+            foundImage = true;
+            break;
+          }
+        } catch (e) {
+          // Ignore fetch errors and continue trying
+        }
+      }
+      
+      if (foundImage) {
+        setTestResults({ ...testResults, restaurantLogo: { success: true, url: imageUrl, testedUrls } });
+      } else {
+        setTestResults({ ...testResults, restaurantLogo: { success: false, testedUrls } });
+      }
+      setLoading(false);
     } catch (error) {
       console.error('Error testing restaurant logo:', error);
       setTestResults({ ...testResults, restaurantLogo: { error: error.message } });
