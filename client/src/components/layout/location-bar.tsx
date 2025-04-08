@@ -292,11 +292,11 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
                   className="flex items-center gap-1 py-1 pl-2 pr-1 bg-gray-100"
                 >
                   {filter.icon && <span className="mr-1">{filter.icon}</span>}
-                  {filter.label}
+                  <span className="truncate max-w-[80px] sm:max-w-full">{filter.label}</span>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-5 w-5 p-0 ml-1 hover:bg-gray-200 rounded-full"
+                    className="h-5 w-5 p-0 ml-1 hover:bg-gray-200 rounded-full flex-shrink-0"
                     onClick={() => removeFilter(filter.value)}
                   >
                     <FiX className="h-3 w-3" />

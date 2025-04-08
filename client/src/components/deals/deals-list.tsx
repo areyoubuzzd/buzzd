@@ -236,8 +236,8 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
   const fullDealsCount = isSignedIn ? (isPremium ? filteredDeals.active.length : 2) : 0;
   
   return (
-    <main className="flex-1 bg-gray-100">
-      <div className="container mx-auto px-4 py-5 pb-20">
+    <main className="flex-1 bg-gray-50">
+      <div className="px-2 sm:px-4 py-2 sm:py-4 pb-24">
         {/* Premium Prompt for Free Signed In Users */}
         {isSignedIn && !isPremium && (
           <PremiumPrompt 
@@ -248,7 +248,7 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
         
         {/* Deals Section - Show deals based on user tier */}
         {filteredDeals.active && filteredDeals.active.length > 0 && (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {/* Full view deals (limited by user tier) */}
             {filteredDeals.active.slice(0, fullDealsCount).map((deal: any) => deal && (
               <DealCard 
@@ -281,7 +281,7 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
         
         {/* Premium upgrade teaser */}
         {!isPremium && (
-          <div className="mt-8 bg-white rounded-lg shadow-md overflow-hidden border-2 border-dashed border-gray-300 p-6">
+          <div className="mt-6 bg-white rounded-lg shadow-md overflow-hidden border-2 border-dashed border-gray-300 p-4 sm:p-6">
             <PremiumUpgrade
               totalDeals={totalAvailableDeals}
               visibleDeals={visibleDealsCount}
