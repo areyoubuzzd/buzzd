@@ -170,7 +170,7 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
   };
 
   return (
-    <div className="bg-white shadow-sm">
+    <div className="bg-[#f8f7f5] shadow-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
@@ -182,8 +182,9 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
                   </div>
                   <Input
                     type="text"
-                    className="w-full py-2 pl-10 pr-20 text-sm"
+                    className="w-full py-2 pl-10 pr-20 text-sm bg-[#f8f7f5] border-gray-200 placeholder:text-gray-400"
                     placeholder={`Search ${placeholderText}...`}
+                    style={{ color: "#444" }}
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onFocus={() => setShowSuggestions(true)}
@@ -275,10 +276,11 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
               type="button" 
               variant="ghost" 
               size="sm" 
-              className="ml-3 bg-gray-200 hover:bg-gray-300 rounded-lg p-2"
+              className="ml-3 border border-gray-200 hover:bg-gray-100 rounded-lg p-2"
+              style={{ background: "#f8f7f5" }}
               onClick={onOpenFilters}
             >
-              <FiFilter className="h-5 w-5 text-gray-700" />
+              <FiFilter className="h-5 w-5 text-[#191632]" />
             </Button>
           </div>
           
