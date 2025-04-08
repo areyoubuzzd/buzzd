@@ -49,12 +49,13 @@ export function ModernDealCard({
   
   return (
     <div 
-      className={`relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full mb-0 ${getBgColorForCategory(category, id)}`}
+      className="relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full mb-0"
       onClick={onClick}
       style={{
         // Credit card aspect ratio (1.586:1) - Width to height ratio
         aspectRatio: '1.586/1',
         borderRadius: '8px', // Slightly smaller radius
+        background: getGradientBackground(category, id),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
@@ -182,15 +183,15 @@ function getBgColorHex(category?: string, id?: number): string {
 function getGradientBackground(category?: string, id?: number): string {
   // Default to emerald if category is undefined or null
   if (!category) {
-    return 'linear-gradient(135deg, #059669 0%, #03734d 100%)';
+    return 'radial-gradient(circle at center, #059669 0%, #047857 55%, #036645 100%)';
   }
   
   // For beer, select one of three gradient options based on the id
   if (category.toLowerCase() === 'beer') {
     const beerGradients = [
-      'linear-gradient(135deg, #E67E30 0%, #D96C29 100%)',  // Orange gradient
-      'linear-gradient(135deg, #F78E3D 0%, #E57A2A 100%)',  // Lighter orange gradient
-      'linear-gradient(135deg, #14655F 0%, #0F5551 100%)',  // Teal gradient
+      'radial-gradient(circle at center, #F97316 0%, #E67E30 55%, #D96C29 100%)',  // Orange gradient
+      'radial-gradient(circle at center, #FDBA74 0%, #F78E3D 55%, #E57A2A 100%)',  // Lighter orange gradient
+      'radial-gradient(circle at center, #14655F 0%, #115E59 55%, #0F5551 100%)',  // Teal gradient
     ];
     
     // Debug info
@@ -207,19 +208,19 @@ function getGradientBackground(category?: string, id?: number): string {
     return beerGradients[gradientIndex];
   }
   
-  // Define gradients for each category
+  // Define radial gradients for each category - with central highlight
   const gradientMap: Record<string, string> = {
-    wine: 'linear-gradient(135deg, #e11d48 0%, #a21130 100%)',
-    red_wine: 'linear-gradient(135deg, #e11d48 0%, #a21130 100%)',
-    white_wine: 'linear-gradient(135deg, #e11d48 0%, #a21130 100%)',
-    cocktail: 'linear-gradient(135deg, #059669 0%, #03734d 100%)',
-    whisky: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)',
-    vodka: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)', 
-    rum: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)',
-    gin: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)',
+    wine: 'radial-gradient(circle at center, #fb7185 0%, #e11d48 55%, #be123c 100%)',
+    red_wine: 'radial-gradient(circle at center, #fb7185 0%, #e11d48 55%, #be123c 100%)',
+    white_wine: 'radial-gradient(circle at center, #fb7185 0%, #e11d48 55%, #be123c 100%)',
+    cocktail: 'radial-gradient(circle at center, #34d399 0%, #059669 55%, #047857 100%)',
+    whisky: 'radial-gradient(circle at center, #a855f7 0%, #7e22ce 55%, #6b21a8 100%)',
+    vodka: 'radial-gradient(circle at center, #a855f7 0%, #7e22ce 55%, #6b21a8 100%)', 
+    rum: 'radial-gradient(circle at center, #a855f7 0%, #7e22ce 55%, #6b21a8 100%)',
+    gin: 'radial-gradient(circle at center, #2dd4bf 0%, #0d9488 55%, #0f766e 100%)',
   };
   
-  return gradientMap[category.toLowerCase()] || 'linear-gradient(135deg, #059669 0%, #03734d 100%)';
+  return gradientMap[category.toLowerCase()] || 'radial-gradient(circle at center, #059669 0%, #047857 55%, #036645 100%)';
 }
 
 export default ModernDealCard;
