@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { FiMapPin, FiSearch } from "react-icons/fi";
+import { FiMapPin, FiSearch, FiX } from "react-icons/fi";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FiFilter } from "react-icons/fi";
+import { FiFilter, FiChevronsRight } from "react-icons/fi";
+import { FaBeer, FaWineGlassAlt, FaGlassWhiskey, FaUsers } from "react-icons/fa";
 import {
   Command,
   CommandDialog,
@@ -13,6 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 interface LocationBarProps {
   onLocationChange: (location: { lat: number; lng: number }) => void;
@@ -21,18 +23,26 @@ interface LocationBarProps {
 
 // Sample search suggestions
 const SEARCH_SUGGESTIONS = [
-  { type: 'location', label: 'Tanjong Pagar', value: 'tanjong-pagar' },
-  { type: 'location', label: 'Raffles Place', value: 'raffles-place' },
-  { type: 'location', label: 'Clarke Quay', value: 'clarke-quay' },
-  { type: 'location', label: 'Orchard Road', value: 'orchard-road' },
-  { type: 'alcohol', label: 'Beer', value: 'beer' },
-  { type: 'alcohol', label: 'Gin', value: 'gin' },
-  { type: 'alcohol', label: 'Whisky', value: 'whisky' },
-  { type: 'alcohol', label: 'Wine', value: 'wine' },
-  { type: 'brand', label: 'Sapporo', value: 'sapporo' },
-  { type: 'brand', label: 'Hendricks', value: 'hendricks' },
-  { type: 'brand', label: 'Roku Gin', value: 'roku-gin' },
-  { type: 'brand', label: 'Monkey Shoulder', value: 'monkey-shoulder' },
+  { type: 'location', label: 'Tanjong Pagar', value: 'tanjong-pagar', icon: <FiMapPin className="h-4 w-4" /> },
+  { type: 'location', label: 'Raffles Place', value: 'raffles-place', icon: <FiMapPin className="h-4 w-4" /> },
+  { type: 'location', label: 'Clarke Quay', value: 'clarke-quay', icon: <FiMapPin className="h-4 w-4" /> },
+  { type: 'location', label: 'Orchard Road', value: 'orchard-road', icon: <FiMapPin className="h-4 w-4" /> },
+  { type: 'alcohol', label: 'Beer', value: 'beer', icon: <FaBeer className="h-4 w-4" /> },
+  { type: 'alcohol', label: 'Gin', value: 'gin', icon: <FiChevronsRight className="h-4 w-4" /> },
+  { type: 'alcohol', label: 'Whisky', value: 'whisky', icon: <FaGlassWhiskey className="h-4 w-4" /> },
+  { type: 'alcohol', label: 'Wine', value: 'wine', icon: <FaWineGlassAlt className="h-4 w-4" /> },
+  { type: 'deal_type', label: '1-for-1', value: 'one-for-one', icon: <FaUsers className="h-4 w-4" /> },
+  { type: 'deal_type', label: 'Big Savings', value: 'high-savings', icon: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+      <path d="M12 18V6"></path>
+    </svg>
+  ) },
+  { type: 'brand', label: 'Sapporo', value: 'sapporo', icon: <FaBeer className="h-4 w-4" /> },
+  { type: 'brand', label: 'Hendricks', value: 'hendricks', icon: <FiChevronsRight className="h-4 w-4" /> },
+  { type: 'brand', label: 'Roku Gin', value: 'roku-gin', icon: <FiChevronsRight className="h-4 w-4" /> },
+  { type: 'brand', label: 'Monkey Shoulder', value: 'whisky', icon: <FaGlassWhiskey className="h-4 w-4" /> },
 ];
 
 export default function LocationBar({ onLocationChange, onOpenFilters }: LocationBarProps) {
@@ -41,10 +51,11 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [placeholderText, setPlaceholderText] = useState<string>("Search by location or drink type");
+  const [selectedFilters, setSelectedFilters] = useState<(typeof SEARCH_SUGGESTIONS[0])[]>([]);
   
   // Rotate placeholder text to show different options
   useEffect(() => {
-    const placeholders = ["Beer", "Tanjong Pagar", "Gin bottle", "Whisky", "Orchard Road"];
+    const placeholders = ["Beer", "Tanjong Pagar", "1-for-1 deals", "Whisky", "Orchard Road"];
     let index = 0;
     
     const intervalId = setInterval(() => {
@@ -136,6 +147,11 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
     setShowSuggestions(false);
     setSearchInput("");
     
+    // Add to selected filters if not already there
+    if (!selectedFilters.some(filter => filter.value === suggestion.value)) {
+      setSelectedFilters([...selectedFilters, suggestion]);
+    }
+    
     if (suggestion.type === 'location') {
       setCurrentLocation(suggestion.label);
       // Use Singapore coordinates with a slight offset for simulation
@@ -144,90 +160,162 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
         lng: 103.8198 + (Math.random() * 0.02 - 0.01)
       });
     } else {
-      // For alcohol/brand, we'd filter by this in a real app
+      // For alcohol/brand/deal type, we'd filter by this in a real app
       console.log(`Selected ${suggestion.type}: ${suggestion.label}`);
     }
+  };
+  
+  const removeFilter = (filterValue: string) => {
+    setSelectedFilters(selectedFilters.filter(filter => filter.value !== filterValue));
   };
 
   return (
     <div className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
-            <PopoverTrigger asChild>
-              <div className="flex items-center flex-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiSearch className="h-5 w-5 text-gray-400" />
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between">
+            <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
+              <PopoverTrigger asChild>
+                <div className="flex items-center flex-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiSearch className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <Input
+                    type="text"
+                    className="w-full py-2 pl-10 pr-20 text-sm"
+                    placeholder={`Search ${placeholderText}...`}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => setShowSuggestions(true)}
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    {isLocating ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                        <span className="ml-1 text-xs text-primary">Locating...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="location-dot w-2 h-2 bg-success rounded-full"></span>
+                        <span className="ml-1 text-xs text-success">Live</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <Input
-                  type="text"
-                  className="w-full py-2 pl-10 pr-20 text-sm"
-                  placeholder={`Search ${placeholderText}...`}
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => setShowSuggestions(true)}
-                />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  {isLocating ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                      <span className="ml-1 text-xs text-primary">Locating...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="location-dot w-2 h-2 bg-success rounded-full"></span>
-                      <span className="ml-1 text-xs text-success">Live</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="p-0 w-[350px]" align="start">
-              <Command>
-                <CommandList>
-                  <CommandEmpty>No results found.</CommandEmpty>
-                  <CommandGroup heading="Locations">
-                    {SEARCH_SUGGESTIONS
-                      .filter(s => s.type === 'location')
-                      .filter(s => !searchInput || s.label.toLowerCase().includes(searchInput.toLowerCase()))
-                      .map(suggestion => (
-                        <CommandItem 
-                          key={suggestion.value}
-                          onSelect={() => handleSuggestionClick(suggestion)}
-                        >
-                          <FiMapPin className="mr-2 h-4 w-4" />
-                          {suggestion.label}
-                        </CommandItem>
-                      ))
-                    }
-                  </CommandGroup>
-                  <CommandGroup heading="Drinks">
-                    {SEARCH_SUGGESTIONS
-                      .filter(s => s.type === 'alcohol' || s.type === 'brand')
-                      .filter(s => !searchInput || s.label.toLowerCase().includes(searchInput.toLowerCase()))
-                      .map(suggestion => (
-                        <CommandItem 
-                          key={suggestion.value}
-                          onSelect={() => handleSuggestionClick(suggestion)}
-                        >
-                          {suggestion.label}
-                        </CommandItem>
-                      ))
-                    }
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm" 
-            className="ml-3 bg-gray-200 hover:bg-gray-300 rounded-lg p-2"
-            onClick={onOpenFilters}
-          >
-            <FiFilter className="h-5 w-5 text-gray-700" />
-          </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0 w-[350px]" align="start">
+                <Command>
+                  <CommandList>
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="Locations">
+                      {SEARCH_SUGGESTIONS
+                        .filter(s => s.type === 'location')
+                        .filter(s => !searchInput || s.label.toLowerCase().includes(searchInput.toLowerCase()))
+                        .map(suggestion => (
+                          <CommandItem 
+                            key={suggestion.value}
+                            onSelect={() => handleSuggestionClick(suggestion)}
+                          >
+                            {suggestion.icon}
+                            <span className="ml-2">{suggestion.label}</span>
+                          </CommandItem>
+                        ))
+                      }
+                    </CommandGroup>
+                    <CommandGroup heading="Drink Types">
+                      {SEARCH_SUGGESTIONS
+                        .filter(s => s.type === 'alcohol')
+                        .filter(s => !searchInput || s.label.toLowerCase().includes(searchInput.toLowerCase()))
+                        .map(suggestion => (
+                          <CommandItem 
+                            key={suggestion.value}
+                            onSelect={() => handleSuggestionClick(suggestion)}
+                          >
+                            {suggestion.icon}
+                            <span className="ml-2">{suggestion.label}</span>
+                          </CommandItem>
+                        ))
+                      }
+                    </CommandGroup>
+                    <CommandGroup heading="Deal Types">
+                      {SEARCH_SUGGESTIONS
+                        .filter(s => s.type === 'deal_type')
+                        .filter(s => !searchInput || s.label.toLowerCase().includes(searchInput.toLowerCase()))
+                        .map(suggestion => (
+                          <CommandItem 
+                            key={suggestion.value}
+                            onSelect={() => handleSuggestionClick(suggestion)}
+                          >
+                            {suggestion.icon}
+                            <span className="ml-2">{suggestion.label}</span>
+                          </CommandItem>
+                        ))
+                      }
+                    </CommandGroup>
+                    <CommandGroup heading="Brands">
+                      {SEARCH_SUGGESTIONS
+                        .filter(s => s.type === 'brand')
+                        .filter(s => !searchInput || s.label.toLowerCase().includes(searchInput.toLowerCase()))
+                        .map(suggestion => (
+                          <CommandItem 
+                            key={suggestion.value}
+                            onSelect={() => handleSuggestionClick(suggestion)}
+                          >
+                            {suggestion.icon}
+                            <span className="ml-2">{suggestion.label}</span>
+                          </CommandItem>
+                        ))
+                      }
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="sm" 
+              className="ml-3 bg-gray-200 hover:bg-gray-300 rounded-lg p-2"
+              onClick={onOpenFilters}
+            >
+              <FiFilter className="h-5 w-5 text-gray-700" />
+            </Button>
+          </div>
+          
+          {/* Selected filters */}
+          {selectedFilters.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {selectedFilters.map(filter => (
+                <Badge 
+                  key={filter.value} 
+                  variant="secondary"
+                  className="flex items-center gap-1 py-1 pl-2 pr-1 bg-gray-100"
+                >
+                  {filter.icon && <span className="mr-1">{filter.icon}</span>}
+                  {filter.label}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-5 w-5 p-0 ml-1 hover:bg-gray-200 rounded-full"
+                    onClick={() => removeFilter(filter.value)}
+                  >
+                    <FiX className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+              
+              {selectedFilters.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-gray-500 h-6 px-2 py-0 hover:bg-gray-100"
+                  onClick={() => setSelectedFilters([])}
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -185,18 +185,7 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
       ${status === 'active' ? 'active-deal border-l-4 border-l-green-500' : 
         status === 'upcoming' ? 'upcoming-deal border-l-4 border-l-amber-500' : 
         'inactive-deal border-l-4 border-l-gray-400'}
-      ${isGrayedOut ? 'relative' : ''}
     `}>
-      {/* Gray overlay for locked premium content */}
-      {isGrayedOut && (
-        <div className="absolute inset-0 bg-gray-200 bg-opacity-50 backdrop-filter backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-          <FiLock className="h-8 w-8 text-gray-600 mb-2" />
-          <p className="text-gray-700 font-medium text-center px-4">
-            {!user ? "Sign in to view this deal" : "Upgrade to Premium"}
-          </p>
-        </div>
-      )}
-      
       <div className="flex flex-col sm:flex-row">
         <div className="sm:w-1/3 h-40 sm:h-auto relative">
           <img 
@@ -204,6 +193,19 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
             alt={deal.title || "Drink special"} 
             className="w-full h-full object-cover" 
           />
+          
+          {/* Blurred restaurant logo overlay for premium content */}
+          {isGrayedOut && (
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-70">
+              <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                <FiLock className="inline-block mr-1 h-4 w-4" />
+                <span className="text-sm font-medium">
+                  {!user ? "Sign in" : "Upgrade"} to view restaurant
+                </span>
+              </div>
+            </div>
+          )}
+          
           <div className={`absolute top-2 right-2 ${
             status === 'active' ? 'bg-green-500' : 
             status === 'upcoming' ? 'bg-amber-500' : 
@@ -222,23 +224,42 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
         </div>
         <div className="p-4 sm:w-2/3 flex flex-col justify-between">
           <div>
-            {/* Only show establishment name if not grayed out */}
-            <div className={`flex justify-between items-start ${isGrayedOut ? 'opacity-0' : ''}`}>
-              <h3 className="font-semibold text-lg">
-                {!isGrayedOut ? deal.establishment.name : '••••••••'}
-              </h3>
-              <div className="flex items-center">
-                <FiStar className="h-4 w-4 text-yellow-500" />
-                <span className="ml-1 text-sm">{deal.establishment.rating || '4.5'}</span>
+            {/* Restaurant name section - conditionally display based on grayed out state */}
+            {isGrayedOut ? (
+              <div className="flex justify-between items-start border border-dashed border-gray-300 p-2 rounded-md bg-gray-50">
+                <div className="flex items-center">
+                  <FiLock className="h-4 w-4 text-gray-400 mr-2" />
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-400">Hidden Restaurant</h3>
+                    <p className="text-sm text-gray-500">
+                      {deal.establishment.type || "Bar & Restaurant"} 
+                      <span className="ml-2 text-primary-500 font-medium">
+                        {!user ? "Sign in" : "Upgrade"} to view
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <FiStar className="h-4 w-4 text-yellow-500" />
+                  <span className="ml-1 text-sm">{deal.establishment.rating || '4.5'}</span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h3 className="font-semibold text-lg">{deal.establishment.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    {deal.establishment.type || "Bar & Restaurant"}
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <FiStar className="h-4 w-4 text-yellow-500" />
+                  <span className="ml-1 text-sm">{deal.establishment.rating || '4.5'}</span>
+                </div>
+              </div>
+            )}
             
-            {/* Always show establishment type even if grayed out */}
-            <p className="text-sm text-gray-600 mt-1">
-              {deal.establishment.type || "Bar & Restaurant"}
-            </p>
-            
-            {/* Deal details - shown for all */}
+            {/* Deal details - always fully visible */}
             <div className={`mt-2 ${
               status === 'active' ? 'bg-green-50' : 
               status === 'upcoming' ? 'bg-amber-50' : 
