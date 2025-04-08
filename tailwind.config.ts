@@ -7,6 +7,8 @@ export default {
     extend: {
       fontFamily: {
         'fredoka': ['Fredoka', 'sans-serif'],
+        'baloo': ['Baloo 2', 'cursive'],
+        'titan': ['Titan One', 'cursive'],
       },
       borderRadius: {
         lg: "var(--radius)",
