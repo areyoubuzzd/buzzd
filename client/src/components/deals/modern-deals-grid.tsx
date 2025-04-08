@@ -183,7 +183,7 @@ export default function ModernDealsGrid() {
       const data = await response.json();
       console.log('Cloudinary test data:', data);
       
-      // Simplified testing for beer and margarita
+      // Hardcoded URLs for beer and margarita only
       const hardcodedBeerImage = "https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/beer/image.png";
       const hardcodedMargaritaImage = "https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/cocktail/image.png";
       const hardcodedBeerBottle = "https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/beer/heineken/bottle.png";
