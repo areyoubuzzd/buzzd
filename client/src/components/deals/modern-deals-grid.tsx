@@ -183,48 +183,36 @@ export default function ModernDealsGrid() {
       const data = await response.json();
       console.log('Cloudinary test data:', data);
       
+      // Simplified testing for beer and margarita
+      const hardcodedBeerImage = "https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/beer/image.png";
+      const hardcodedMargaritaImage = "https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/cocktail/image.png";
+      const hardcodedBeerBottle = "https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/beer/heineken/bottle.png";
+      const hardcodedBeerGlass = "https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/beer/heineken/glass.png";
+      const hardcodedMargaritaGlass = "https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/cocktail/margarita/glass.png";
+      
       // Update the deal's bgImageUrl and brandImageUrl with Cloudinary URLs
       const updatedDeals = deals.map(deal => {
         const category = deal.alcoholCategory.toLowerCase();
         
         // Get background image URL
         let bgImageUrl = '';
-        if (category === 'beer' && data.hardcodedUrls?.backgrounds?.beer) {
-          bgImageUrl = data.hardcodedUrls.backgrounds.beer;
-        } else if (category === 'red_wine' && data.hardcodedUrls?.backgrounds?.red_wine) {
-          bgImageUrl = data.hardcodedUrls.backgrounds.red_wine;
-        } else if (category === 'white_wine' && data.hardcodedUrls?.backgrounds?.white_wine) {
-          bgImageUrl = data.hardcodedUrls.backgrounds.white_wine;
-        } else if (category === 'bubbly' && data.hardcodedUrls?.backgrounds?.bubbly) {
-          bgImageUrl = data.hardcodedUrls.backgrounds.bubbly;
-        } else if (category === 'whisky' && data.hardcodedUrls?.backgrounds?.whisky) {
-          bgImageUrl = data.hardcodedUrls.backgrounds.whisky;
-        } else if (category === 'cocktail' && data.hardcodedUrls?.backgrounds?.cocktail) {
-          bgImageUrl = data.hardcodedUrls.backgrounds.cocktail;
+        if (category === 'beer') {
+          bgImageUrl = hardcodedBeerImage;
+        } else if (category === 'cocktail') {
+          bgImageUrl = hardcodedMargaritaImage;
         } else {
-          bgImageUrl = data.hardcodedUrls?.backgrounds?.default || '';
+          // For all other categories, use the card's default color scheme
+          bgImageUrl = '';
         }
         
         // Get brand image URL
         let brandImageUrl = '';
-        if (category === 'beer' && deal.brandName === 'heineken') {
-          brandImageUrl = data.hardcodedUrls?.brands?.beer?.heineken?.[deal.servingStyle] || '';
-        } else if (category === 'beer' && deal.brandName === 'asahi') {
-          brandImageUrl = data.hardcodedUrls?.brands?.beer?.asahi?.[deal.servingStyle] || '';
-        } else if (category === 'red_wine') {
-          // Use a default red wine image for now
-          brandImageUrl = `https://res.cloudinary.com/${data.cloudName}/image/upload/brands/red_wine/${deal.brandName}/${deal.servingStyle}.png`;
-        } else if (category === 'white_wine') {
-          // Use a default white wine image for now
-          brandImageUrl = `https://res.cloudinary.com/${data.cloudName}/image/upload/brands/white_wine/${deal.brandName}/${deal.servingStyle}.png`;
-        } else if (category === 'bubbly' && deal.brandName === 'prosecco') {
-          brandImageUrl = data.hardcodedUrls?.brands?.bubbly?.prosecco?.[deal.servingStyle] || '';
-        } else if (category === 'whisky' && deal.brandName === 'monkey_shoulder') {
-          brandImageUrl = data.hardcodedUrls?.brands?.whisky?.monkey_shoulder?.[deal.servingStyle] || '';
-        } else if (category === 'whisky' && deal.brandName === 'jack_daniels') {
-          brandImageUrl = data.hardcodedUrls?.brands?.whisky?.jack_daniels?.[deal.servingStyle] || '';
+        if (category === 'beer' && deal.servingStyle === 'bottle') {
+          brandImageUrl = hardcodedBeerBottle;
+        } else if (category === 'beer' && deal.servingStyle === 'glass') {
+          brandImageUrl = hardcodedBeerGlass;
         } else if (category === 'cocktail' && deal.brandName === 'margarita') {
-          brandImageUrl = data.hardcodedUrls?.brands?.cocktail?.margarita?.glass || '';
+          brandImageUrl = hardcodedMargaritaGlass;
         }
         
         return {
