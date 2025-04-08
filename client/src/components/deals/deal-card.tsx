@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { FiClock, FiMapPin, FiStar, FiLock } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
@@ -240,101 +241,221 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
     return 'linear-gradient(to bottom, rgba(20,20,40,0.9) 0%, rgba(40,40,70,0.95) 100%)';
   };
 
+  // State to track if card is flipped
+  const [isFlipped, setIsFlipped] = useState(false);
+  
+  // Handle card click to flip
+  const handleCardFlip = (e: MouseEvent) => {
+    e.stopPropagation();
+    setIsFlipped(!isFlipped);
+  };
+  
   return (
-    <Card className={`h-full overflow-hidden relative rounded-xl ${
-      isGrayedOut ? 'opacity-70' : ''
-    }`} style={{ 
-      background: getCardBackground(),
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      boxShadow: '0 0 15px rgba(255, 105, 180, 0.3)' 
-    }}>
-      {/* Main content with neon style */}
-      <div className="flex flex-col h-full">
-        {/* Top deal information */}
-        <div className="p-4 pb-0 text-center">
-          {deal.isOneForOne ? (
-            <h1 className="text-6xl font-bold mb-1" style={{ 
-              color: '#ff4ddb', 
-              textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
-            }}>
-              1FOR1
-            </h1>
-          ) : (
-            <h1 className="text-6xl font-bold mb-1" style={{ 
-              color: '#ff4ddb', 
-              textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
-            }}>
-              ${deal.dealPrice}
-            </h1>
-          )}
-          
-          <h2 className="uppercase text-2xl font-bold mb-4" style={{ 
-            color: '#ff4ddb', 
-            textShadow: '0 0 5px rgba(255, 77, 219, 0.5)' 
-          }}>
-            {getDrinkTypeName()}
-          </h2>
-        </div>
-        
-        {/* Drink image - centered */}
-        <div className="flex-grow flex items-center justify-center px-4 py-2">
-          <img 
-            src={getDrinkImage()} 
-            alt={deal.title || "Drink special"} 
-            className="max-h-44 object-contain" 
-          />
-        </div>
-        
-        {/* Bottom discount badge */}
-        <div className="mx-4 mb-3 rounded-lg py-2 px-2 text-center font-bold" 
+    <div 
+      className="perspective-1000 w-full h-full cursor-pointer" 
+      onClick={handleCardFlip}
+      style={{ perspective: '1000px' }}
+    >
+      <div 
+        className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
+          isFlipped ? 'rotate-y-180' : ''
+        }`}
+        style={{ 
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+        }}
+      >
+        {/* Front of card */}
+        <Card 
+          className="h-full overflow-hidden relative rounded-xl backface-hidden" 
           style={{ 
-            background: '#ffdd00', 
-            color: '#000000',
-            boxShadow: '0 0 10px rgba(255, 221, 0, 0.6)'
-          }}>
-          {deal.isOneForOne 
-            ? "30% OFF" 
-            : `${deal.savingsPercentage || 30}% OFF`}
-        </div>
-        
-        {/* Restaurant and time info */}
-        <div className="px-4 pb-4 text-center text-white text-xs">
-          {!isGrayedOut ? (
-            <p>UNTIL {format(new Date(deal.endTime), 'h a')} • {distance ? `${(distance * 1000).toFixed(0)}m` : 'nearby'}</p>
-          ) : (
-            <div className="flex items-center justify-center gap-1">
-              <FiLock className="h-3 w-3" />
-              <p>{!user ? "SIGN IN" : "UPGRADE"} TO VIEW</p>
+            background: getCardBackground(),
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 0 15px rgba(255, 105, 180, 0.3)',
+            backfaceVisibility: 'hidden',
+            position: 'absolute',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {/* Main content with neon style */}
+          <div className="flex flex-col h-full">
+            {/* Top deal information */}
+            <div className="p-4 pb-0 text-center">
+              {deal.isOneForOne ? (
+                <h1 className="text-6xl font-bold mb-1 neon-text" style={{ 
+                  color: '#ff4ddb', 
+                  textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
+                }}>
+                  1FOR1
+                </h1>
+              ) : (
+                <h1 className="text-6xl font-bold mb-1 neon-text" style={{ 
+                  color: '#ff4ddb', 
+                  textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
+                }}>
+                  ${deal.dealPrice}
+                </h1>
+              )}
+              
+              <h2 className="uppercase text-2xl font-bold mb-4" style={{ 
+                color: '#ff4ddb', 
+                textShadow: '0 0 5px rgba(255, 77, 219, 0.5)' 
+              }}>
+                {getDrinkTypeName()}
+              </h2>
+            </div>
+            
+            {/* Drink image - centered */}
+            <div className="flex-grow flex items-center justify-center px-4 py-2">
+              <img 
+                src={getDrinkImage()} 
+                alt={deal.title || "Drink special"} 
+                className="max-h-44 object-contain" 
+              />
+            </div>
+            
+            {/* Bottom discount badge */}
+            <div className="mx-4 mb-3 rounded-lg py-2 px-2 text-center font-bold" 
+              style={{ 
+                background: '#ffdd00', 
+                color: '#000000',
+                boxShadow: '0 0 10px rgba(255, 221, 0, 0.6)'
+              }}>
+              {deal.isOneForOne 
+                ? "30% OFF" 
+                : `${deal.savingsPercentage || 30}% OFF`}
+            </div>
+            
+            {/* Restaurant and time info */}
+            <div className="px-4 pb-4 text-center text-white text-xs">
+              <p>UNTIL {format(new Date(deal.endTime), 'h a')} • {distance ? `${(distance * 1000).toFixed(0)}m` : 'nearby'}</p>
+            </div>
+          </div>
+          
+          {/* Status badge for active deals */}
+          {status === 'active' && (
+            <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+              Live
             </div>
           )}
-        </div>
-      </div>
-      
-      {/* Status badge for active deals */}
-      {status === 'active' && (
-        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-          Live
-        </div>
-      )}
-      
-      {/* Premium lock overlay */}
-      {isGrayedOut && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center" 
-          style={{ 
-            background: 'rgba(0,0,0,0.3)',
-            backdropFilter: 'blur(2px)' 
-          }}
-          onClick={handleViewDeal}
-        >
-          <div className="bg-black bg-opacity-70 p-3 rounded-full">
-            <FiLock 
-              className="h-6 w-6 text-white" 
-              style={{ filter: 'drop-shadow(0 0 8px rgba(255, 105, 180, 0.8))' }} 
-            />
+          
+          {/* Flip indicator */}
+          <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+            Tap for details
           </div>
-        </div>
-      )}
-    </Card>
+        </Card>
+        
+        {/* Back of card - shows either restaurant details or upgrade prompt */}
+        <Card 
+          className="h-full overflow-hidden relative rounded-xl backface-hidden rotate-y-180" 
+          style={{ 
+            background: getCardBackground(),
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 0 15px rgba(255, 105, 180, 0.3)',
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            position: 'absolute',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {isGrayedOut ? (
+            // Back for non-premium users - upgrade prompt
+            <div className="flex flex-col h-full items-center justify-center text-center p-6 space-y-4">
+              <div className="bg-black bg-opacity-70 p-5 rounded-full mb-4">
+                <FiLock 
+                  className="h-12 w-12 text-white" 
+                  style={{ filter: 'drop-shadow(0 0 8px rgba(255, 105, 180, 0.8))' }} 
+                />
+              </div>
+              <h3 className="text-white text-2xl font-bold neon-text">
+                {!user ? "Sign In Required" : "Premium Deal"}
+              </h3>
+              <p className="text-white text-sm mb-4">
+                {!user 
+                  ? "Sign in to view this exclusive deal" 
+                  : "Upgrade to premium to unlock all deals and save more"}
+              </p>
+              <Button
+                variant="default"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewDeal();
+                }}
+                className="w-full bg-primary hover:bg-primary/80 text-white"
+                style={{ 
+                  boxShadow: '0 0 10px rgba(255, 77, 219, 0.5)'
+                }}
+              >
+                {!user ? "Sign In Now" : "Upgrade Now"}
+              </Button>
+            </div>
+          ) : (
+            // Back for premium users - restaurant details
+            <div className="flex flex-col h-full p-4">
+              {/* Restaurant header */}
+              <div className="flex items-center mb-4 pb-2 border-b border-white/10">
+                {/* TODO: Replace with actual restaurant logo */}
+                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-2xl mr-4">
+                  🍽️
+                </div>
+                <div>
+                  <h3 className="text-white text-lg font-bold">{deal.establishment.name}</h3>
+                  <p className="text-white/80 text-xs">{deal.establishment.type || "Bar & Restaurant"}</p>
+                </div>
+              </div>
+              
+              {/* Deal details */}
+              <div className="flex-grow space-y-3">
+                <div className="flex items-center text-white text-sm">
+                  <FiClock className="mr-2" />
+                  <p>{getTimeDisplay()}</p>
+                </div>
+                <div className="flex items-center text-white text-sm">
+                  <FiMapPin className="mr-2" />
+                  <p>{distance ? `${(distance * 1000).toFixed(0)}m away • ${getWalkingTime()}` : 'Distance unknown'}</p>
+                </div>
+                <div className="flex items-center text-white text-sm">
+                  <FiStar className="mr-2 text-yellow-400" />
+                  <p>{deal.establishment.rating || '4.5'} rating</p>
+                </div>
+                
+                <div className="bg-black/30 p-3 rounded-lg mt-4">
+                  <p className="text-white text-sm">{deal.description || `Enjoy ${deal.drinkType} specials at this popular venue!`}</p>
+                </div>
+              </div>
+              
+              {/* Actions */}
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSaveOrRemind();
+                  }}
+                  className="text-white border-white/20 hover:bg-white/10"
+                >
+                  Save Deal
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewDeal();
+                  }}
+                  className="bg-primary hover:bg-primary/80 text-white"
+                  style={{ 
+                    boxShadow: '0 0 10px rgba(255, 77, 219, 0.5)'
+                  }}
+                >
+                  View Deal
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
   );
 }
