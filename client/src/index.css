@@ -1,5 +1,10 @@
-/* Import Fredoka font */
+/* Import fonts */
 @import '@fontsource/fredoka';
+@import '@fontsource/luckiest-guy';
+@import '@fontsource/bangers';
+@import '@fontsource/alfa-slab-one';
+@import '@fontsource/rubik-mono-one';
+@import '@fontsource/titan-one';
 
 @tailwind base;
 @tailwind components;

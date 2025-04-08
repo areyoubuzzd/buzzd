@@ -331,9 +331,9 @@ function DealCard({
         </div>
         
         {/* Bottom section with deal name and details */}
-        <div className="p-3 pt-1 bg-black/20 flex flex-col items-center mt-auto">
+        <div className="p-3 pt-1 bg-black/35 flex flex-col items-center mt-auto">
           {/* Deal name */}
-          <h3 className="font-bold text-white text-center text-xl font-fredoka leading-tight tracking-wide">
+          <h3 className="font-black text-white text-center text-2xl font-fredoka uppercase tracking-wide leading-tight">
             {dealName}
           </h3>
           
