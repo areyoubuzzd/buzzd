@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, MouseEvent as ReactMouseEvent } from "react";
 import { useLocation } from "wouter";
 import { FiClock, FiMapPin, FiStar, FiLock } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
@@ -245,7 +245,7 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
   const [isFlipped, setIsFlipped] = useState(false);
   
   // Handle card click to flip
-  const handleCardFlip = (e: MouseEvent) => {
+  const handleCardFlip = (e: ReactMouseEvent) => {
     e.stopPropagation();
     setIsFlipped(!isFlipped);
   };
@@ -379,7 +379,7 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
               </p>
               <Button
                 variant="default"
-                onClick={(e) => {
+                onClick={(e: ReactMouseEvent) => {
                   e.stopPropagation();
                   handleViewDeal();
                 }}
@@ -430,7 +430,7 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"
-                  onClick={(e) => {
+                  onClick={(e: ReactMouseEvent) => {
                     e.stopPropagation();
                     handleSaveOrRemind();
                   }}
@@ -440,7 +440,7 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
                 </Button>
                 <Button
                   variant="default"
-                  onClick={(e) => {
+                  onClick={(e: ReactMouseEvent) => {
                     e.stopPropagation();
                     handleViewDeal();
                   }}
