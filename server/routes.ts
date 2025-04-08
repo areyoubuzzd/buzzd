@@ -462,6 +462,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get deals near a location (from Google Sheets)
+  // Test endpoint for Google Sheets connection
+  app.get("/api/check-sheet-content", async (req, res) => {
+    try {
+      // Get the content of Sheet1
+      const response = await googleSheetsService.sheets.spreadsheets.values.get({
+        spreadsheetId: googleSheetsService.spreadsheetId,
+        range: 'Sheet1!A1:Z10', // Get the first 10 rows
+      });
+      
+      // Return the raw data
+      res.json({
+        success: true,
+        headers: response.data.values?.[0] || [],
+        data: response.data.values?.slice(1, 10) || []
+      });
+    } catch (error) {
+      console.error("Error getting sheet content:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: String(error)
+      });
+    }
+  });
+
+  app.get("/api/test-restaurants", async (req, res) => {
+    try {
+      // Get restaurants with our updated mapping
+      const restaurants = await googleSheetsService.getRestaurants();
+      
+      res.json({
+        success: true,
+        count: restaurants.length,
+        restaurants: restaurants
+      });
+    } catch (error) {
+      console.error("Error testing restaurant data:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: String(error)
+      });
+    }
+  });
+
+  app.get("/api/test-google-sheets", async (req, res) => {
+    try {
+      // First get metadata about the spreadsheet
+      const metadata = await googleSheetsService.sheets.spreadsheets.get({
+        spreadsheetId: googleSheetsService.spreadsheetId
+      });
+      
+      const sheetNames = metadata.data.sheets.map((s: any) => s.properties.title);
+      
+      // Look specifically for a sheet named Restaurant or similar
+      const restaurantSheet = metadata.data.sheets.find((s: any) => 
+        s.properties.title.toLowerCase().includes('restaurant')
+      );
+      
+      let restaurants = [];
+      let sheetData = {};
+      
+      // If we found a restaurant sheet, try to get data from it
+      if (restaurantSheet) {
+        const sheetName = restaurantSheet.properties.title;
+        const response = await googleSheetsService.sheets.spreadsheets.values.get({
+          spreadsheetId: googleSheetsService.spreadsheetId,
+          range: `${sheetName}!A1:Z`,
+        });
+        
+        if (response.data.values && response.data.values.length > 0) {
+          // Get header row to see column names
+          const headers = response.data.values[0];
+          const nameColumnIndex = headers.findIndex((h: string) => 
+            h.toLowerCase().includes('name') || h.toLowerCase().includes('restaurant')
+          );
+          
+          // If we found a name column, get some examples
+          if (nameColumnIndex >= 0) {
+            const examples = response.data.values
+              .slice(1, 6) // Get rows 2-6
+              .map((row: string[]) => row[nameColumnIndex])
+              .filter(Boolean); // Remove empty values
+              
+            sheetData = {
+              sheetName,
+              headers,
+              nameColumnIndex,
+              examples
+            };
+          }
+        }
+      }
+      
+      res.json({ 
+        success: true,
+        sheetNames,
+        restaurantSheetFound: !!restaurantSheet,
+        sheetData
+      });
+    } catch (error) {
+      console.error("Error testing Google Sheets:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: String(error),
+        message: "Failed to connect to Google Sheets" 
+      });
+    }
+  });
+
   app.get("/api/sheets/deals/nearby", async (req, res) => {
     try {
       const latitude = parseFloat(req.query.lat as string);

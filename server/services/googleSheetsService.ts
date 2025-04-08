@@ -48,8 +48,8 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 
 class GoogleSheetsService {
   private auth: JWT;
-  private sheets: any;
-  private spreadsheetId: string;
+  public sheets: any; // Make sheets public so it can be accessed from outside
+  public spreadsheetId: string; // Make spreadsheetId public too
 
   constructor() {
     // Make sure we have the environment variables
@@ -61,7 +61,22 @@ class GoogleSheetsService {
       console.warn('Google Sheets spreadsheet ID not found in environment variables');
     }
 
-    this.spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID || '';
+    // Extract ID from URL if a full URL was provided
+    let spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID || '';
+    
+    console.log('Original spreadsheet ID or URL:', spreadsheetId);
+    
+    // If it's a full URL, extract just the ID
+    if (spreadsheetId.includes('spreadsheets/d/')) {
+      const match = spreadsheetId.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (match && match[1]) {
+        spreadsheetId = match[1];
+        console.log('Extracted spreadsheet ID:', spreadsheetId);
+      }
+    }
+    
+    this.spreadsheetId = spreadsheetId;
+    console.log('Using spreadsheet ID:', this.spreadsheetId);
     
     // Initialize auth
     this.auth = new JWT({
@@ -78,9 +93,12 @@ class GoogleSheetsService {
    */
   async getRestaurants(): Promise<Restaurant[]> {
     try {
+      // Use Sheet1 which contains the restaurant data
+      const sheetName = 'Sheet1';
+      
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: 'Restaurants!A2:M', // Adjust range based on your data
+        range: `${sheetName}!A2:L`, // A to L columns for restaurant data
       });
 
       const rows = response.data.values;
@@ -88,22 +106,28 @@ class GoogleSheetsService {
         return [];
       }
 
-      // Map row data to restaurant objects
-      return rows.map((row: string[]) => ({
-        restaurantId: row[0],
-        name: row[1],
-        address: row[2],
-        postalCode: row[3],
-        phoneNumber: row[4],
-        cuisine: row[5],
-        area: row[6],
-        priority: parseInt(row[7], 10) || 0,
-        latitude: parseFloat(row[8]),
-        longitude: parseFloat(row[9]),
-        website: row[10],
-        openingHours: row[11],
-        logoUrl: row[12]
-      }));
+      // Map row data to restaurant objects based on your actual sheet structure:
+      // [restaurantId, name, address, area, postalCode, phoneNumber, cuisine, latitude, longitude, website, openingHours, logoUrl]
+      return rows.map((row: string[]) => {
+        // Only process rows that have at least a restaurant ID
+        if (!row[0]) return null;
+        
+        return {
+          restaurantId: row[0],
+          name: row[1] || '',
+          address: row[2] || '',
+          area: row[3] || '',
+          postalCode: row[4] || '',
+          phoneNumber: row[5] || '',
+          cuisine: row[6] || '',
+          priority: 0, // Default priority if not specified
+          latitude: row[7] ? parseFloat(row[7]) : null,
+          longitude: row[8] ? parseFloat(row[8]) : null,
+          website: row[9] || '',
+          openingHours: row[10] || '',
+          logoUrl: row[11] || ''
+        };
+      }).filter(Boolean) as Restaurant[]; // Remove null entries
     } catch (error) {
       console.error('Error fetching restaurants:', error);
       throw error;
@@ -115,9 +139,24 @@ class GoogleSheetsService {
    */
   async getDeals(): Promise<Deal[]> {
     try {
+      // Get metadata to see what sheets exist
+      const metadata = await this.sheets.spreadsheets.get({
+        spreadsheetId: this.spreadsheetId
+      });
+      
+      // Find a deals sheet or use the second sheet if available
+      const dealsSheet = metadata.data.sheets.find((s: any) => 
+        s.properties.title.toLowerCase() === 'deals'
+      );
+      
+      const sheetName = dealsSheet?.properties?.title || 
+                        (metadata.data.sheets.length > 1 ? metadata.data.sheets[1].properties.title : 'Deals');
+      
+      console.log('Using sheet for deals:', sheetName);
+      
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: 'Deals!A2:W', // Adjust range based on your data
+        range: `${sheetName}!A2:W`, // Adjust range based on your data
       });
 
       const rows = response.data.values;
