@@ -15,14 +15,14 @@ function getAccentPattern(drinkType: string | undefined, id?: number): string {
   
   // Use ID for deterministic randomness, or fallback to 1
   const seedId = id || 1;
-  const opacity = '0.3'; // 30% opacity as requested
+  const opacity = '0.4'; // 40% opacity as requested (increased from 30%)
   
   // Function to get a random position
   const randomPos = (min: number, max: number, seed: number): number => {
     return min + seededRandom(seed) * (max - min);
   };
   
-  // Function to get a random scale
+  // Function to get a random scale - Increased minimum and maximum scale values
   const randomScale = (min: number, max: number, seed: number): number => {
     return min + seededRandom(seed) * (max - min);
   };
@@ -35,7 +35,7 @@ function getAccentPattern(drinkType: string | undefined, id?: number): string {
       const seed = baseSeed + i * 0.1;
       const x = randomPos(5, 85, seed);
       const y = randomPos(5, 85, seed + 0.1);
-      const scale = randomScale(0.2, 0.6, seed + 0.2);
+      const scale = randomScale(0.4, 0.8, seed + 0.2); // Increased scale range (40% to 80%)
       
       result += `<g transform="translate(${x}, ${y}) scale(${scale})">${pattern}</g>`;
     }
