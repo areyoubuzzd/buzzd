@@ -56,7 +56,7 @@ export function ModernDealCard({
         aspectRatio: '1.586/1',
         borderRadius: '8px', // Slightly smaller radius
         background: backgroundImageUrl ? `url(${backgroundImageUrl})` : undefined,
-        backgroundColor: !backgroundImageUrl ? getBgColorHex(category) : undefined,
+        backgroundColor: !backgroundImageUrl ? getBgColorHex(category, id) : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
@@ -157,17 +157,23 @@ function getBgColorForCategory(category?: string): string {
   return colorMap[category.toLowerCase()] || "bg-emerald-600";
 }
 
-function getBgColorHex(category?: string): string {
+function getBgColorHex(category?: string, id?: number): string {
   // Default to emerald if category is undefined or null
   if (!category) return "#059669";
   
-  // For beer, select one of three colors randomly
+  // For beer, select one of three colors based on the id
   if (category.toLowerCase() === 'beer') {
     const beerColors = ["#E67E30", "#F78E3D", "#14655F"];
-    // Use the id or timestamp or some other value to select a color deterministically
-    // For now, let's just use a random selection as a simple approach
-    const randomIndex = Math.floor(Math.random() * beerColors.length);
-    return beerColors[randomIndex];
+    
+    // Use the id to deterministically select a color
+    // If id is undefined or null, use a fixed color
+    if (id === undefined || id === null) {
+      return beerColors[0]; // Default to first color if no id
+    }
+    
+    // Use modulo to select one of the three colors based on id
+    const colorIndex = id % beerColors.length;
+    return beerColors[colorIndex];
   }
   
   const colorMap: Record<string, string> = {
