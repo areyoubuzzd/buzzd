@@ -48,9 +48,18 @@ class CloudinaryService {
   /**
    * Get direct URL to demo Cloudinary account for fallback
    */
-  getFallbackDemoUrl(path: string): string {
+  getFallbackDemoUrl(path: string, format: 'jpg'|'png'|'auto' = 'auto'): string {
     // Always use the demo account for fallback URLs
-    return `https://res.cloudinary.com/demo/image/upload/f_auto/${path}`;
+    const formatSuffix = format === 'auto' ? '' : `.${format}`;
+    
+    // Check if path already has an extension
+    if (path.includes('.jpg') || path.includes('.jpeg') || path.includes('.png')) {
+      // Path already has extension, don't modify it
+      return `https://res.cloudinary.com/demo/image/upload/${path}`;
+    }
+    
+    // Add proper format suffix
+    return `https://res.cloudinary.com/demo/image/upload/${path}${formatSuffix}`;
   }
   
   /**
@@ -63,7 +72,7 @@ class CloudinaryService {
     try {
       // If we're using the demo account due to missing credentials, use direct URL method
       if (this.useDemoAccount) {
-        return this.getFallbackDemoUrl(`backgrounds/${formattedCategory}/image`);
+        return this.getFallbackDemoUrl(`backgrounds/${formattedCategory}/image`, 'png');
       }
       
       // Simplified path structure: backgrounds/[category]/image
@@ -98,9 +107,9 @@ class CloudinaryService {
       if (this.useDemoAccount) {
         // Special handling for cocktails
         if (formattedCategory === 'cocktail') {
-          return this.getFallbackDemoUrl(`brands/cocktail/${formattedBrand}/glass`);
+          return this.getFallbackDemoUrl(`brands/cocktail/${formattedBrand}/glass`, 'png');
         }
-        return this.getFallbackDemoUrl(`brands/${formattedCategory}/${formattedBrand}/${serving}`);
+        return this.getFallbackDemoUrl(`brands/${formattedCategory}/${formattedBrand}/${serving}`, 'png');
       }
       
       // Special handling for cocktails - they are typically served in glasses
@@ -154,7 +163,7 @@ class CloudinaryService {
       
       // If we're using the demo account due to missing credentials, use direct URL method
       if (this.useDemoAccount) {
-        return this.getFallbackDemoUrl(`restaurants/logos/${restaurantId}`);
+        return this.getFallbackDemoUrl(`restaurants/logos/${restaurantId}`, 'png');
       }
       
       // Use the restaurant ID to fetch the logo from Cloudinary
