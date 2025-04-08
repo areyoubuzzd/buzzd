@@ -120,19 +120,19 @@ function getAccentPattern(drinkType: string | undefined, id?: number): string {
   return patterns[patternIndex];
 }
 
-// Helper function to get gradient background by drink type - SOFTER CONTRAST (center brightness reduced by 20%)
+// Helper function to get gradient background by drink type - SOFTER CONTRAST (center brightness reduced by 30%)
 function getGradientBackground(drinkType: string | undefined, id?: number) {
   // If category is undefined or null, return a default gradient
-  if (!drinkType) return 'radial-gradient(circle at center, #b4e0c1 0%, #22C55E 50%, #14532D 100%)';
+  if (!drinkType) return 'radial-gradient(circle at center, #9bc3a5 0%, #22C55E 50%, #14532D 100%)';
   
   const type = drinkType.toLowerCase();
   
   // For beer, select one of three gradient options based on the id
   if (type.includes("beer")) {
     const beerGradients = [
-      'radial-gradient(circle at center, #cfc2a0 0%, #F59E0B 50%, #B45309 100%)',  // Orange gradient - SOFTENED
-      'radial-gradient(circle at center, #ccc4be 0%, #FB923C 50%, #C2410C 100%)',  // Lighter orange gradient - SOFTENED
-      'radial-gradient(circle at center, #a3c8c0 0%, #14B8A6 50%, #134E4A 100%)',  // Teal gradient - SOFTENED
+      'radial-gradient(circle at center, #b0a589 0%, #F59E0B 50%, #B45309 100%)',  // Orange gradient - FURTHER SOFTENED
+      'radial-gradient(circle at center, #ada8a3 0%, #FB923C 50%, #C2410C 100%)',  // Lighter orange gradient - FURTHER SOFTENED
+      'radial-gradient(circle at center, #8aaca5 0%, #14B8A6 50%, #134E4A 100%)',  // Teal gradient - FURTHER SOFTENED
     ];
     
     // Use the id to deterministically select a gradient
@@ -145,16 +145,16 @@ function getGradientBackground(drinkType: string | undefined, id?: number) {
     return beerGradients[gradientIndex];
   }
   
-  // Define softer radial gradients for each category
-  if (type.includes("wine")) return 'radial-gradient(circle at center, #cbb5b5 0%, #EF4444 50%, #7F1D1D 100%)';
-  if (type.includes("cocktail")) return 'radial-gradient(circle at center, #b4e0c1 0%, #22C55E 50%, #14532D 100%)';
-  if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #c3bacb 0%, #A855F7 50%, #581C87 100%)';
-  if (type.includes("gin")) return 'radial-gradient(circle at center, #a3c8c1 0%, #14B8A6 50%, #0F766E 100%)';
-  if (type.includes("vodka")) return 'radial-gradient(circle at center, #c3bacb 0%, #A855F7 50%, #581C87 100%)';
-  if (type.includes("rum")) return 'radial-gradient(circle at center, #c3bacb 0%, #A855F7 50%, #581C87 100%)';
+  // Define even softer radial gradients for each category (30% reduction from original)
+  if (type.includes("wine")) return 'radial-gradient(circle at center, #ac9999 0%, #EF4444 50%, #7F1D1D 100%)';
+  if (type.includes("cocktail")) return 'radial-gradient(circle at center, #9bc3a5 0%, #22C55E 50%, #14532D 100%)';
+  if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #a79eb0 0%, #A855F7 50%, #581C87 100%)';
+  if (type.includes("gin")) return 'radial-gradient(circle at center, #8aaca6 0%, #14B8A6 50%, #0F766E 100%)';
+  if (type.includes("vodka")) return 'radial-gradient(circle at center, #a79eb0 0%, #A855F7 50%, #581C87 100%)';
+  if (type.includes("rum")) return 'radial-gradient(circle at center, #a79eb0 0%, #A855F7 50%, #581C87 100%)';
   
   // Default gradient if no match
-  return 'radial-gradient(circle at center, #b4e0c1 0%, #22C55E 50%, #14532D 100%)';
+  return 'radial-gradient(circle at center, #9bc3a5 0%, #22C55E 50%, #14532D 100%)';
 }
 
 // Keeping the old function for backward compatibility
