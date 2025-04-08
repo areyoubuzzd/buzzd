@@ -76,24 +76,57 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       return deal.brandImageUrl;
     }
     
-    // Return a placeholder or default image if no brand image available
-    return 'https://placehold.co/200x300/transparent/white?text=+';
+    // Create a specific default based on category and type
+    const category = deal.alcoholCategory?.toLowerCase() || '';
+    const brand = deal.brandName?.toLowerCase() || '';
+    const servingStyle = deal.servingStyle?.toLowerCase() || 'glass';
+    
+    // If this is a known brand/category, build a fallback URL
+    if (category === 'beer' && brand === 'heineken') {
+      return `https://res.cloudinary.com/demo/image/upload/v1312461204/${brand}_${servingStyle}.png`;
+    } else if (category === 'wine' && brand === 'yellowtail') {
+      return `https://res.cloudinary.com/demo/image/upload/v1312461204/${brand}_${servingStyle}.png`;
+    } else if (category === 'cocktail' && brand === 'margarita') {
+      return `https://res.cloudinary.com/demo/image/upload/v1312461204/${brand}_${servingStyle}.png`;
+    } else if (category === 'whisky' && brand === 'johnniewalker') {
+      return `https://res.cloudinary.com/demo/image/upload/v1312461204/johnnie_walker_${servingStyle}.png`;
+    }
+    
+    // Return a placeholder as last resort
+    return 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23FFFFFF22%22%3E%3C%2Frect%3E%3C%2Fsvg%3E';
   };
 
   const cardBackground = getCardBackground();
   
   return (
     <Card 
-      className={`deal-card ${cardBackground} cursor-pointer`} 
+      className={`deal-card cursor-pointer relative overflow-hidden`} 
       style={{
         backgroundImage: getBackgroundImageUrl() ? `url(${getBackgroundImageUrl()})` : undefined,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        backgroundPosition: 'center',
+        backgroundColor: getBackgroundImageUrl() ? undefined : (cardBackground === 'deal-card-beer' ? '#ff5722' : 
+                        cardBackground === 'deal-card-wine' ? '#e91e63' : 
+                        cardBackground === 'deal-card-cocktail' ? '#009688' : 
+                        cardBackground === 'deal-card-spirit' ? '#673ab7' : '#ff5722')
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
     >
+      {/* Semi-transparent overlay to make text more readable over background images */}
+      {getBackgroundImageUrl() && (
+        <div 
+          className="absolute inset-0 z-0" 
+          style={{
+            backgroundColor: cardBackground === 'deal-card-beer' ? 'rgba(255, 87, 34, 0.6)' : 
+                           cardBackground === 'deal-card-wine' ? 'rgba(233, 30, 99, 0.6)' : 
+                           cardBackground === 'deal-card-cocktail' ? 'rgba(0, 150, 136, 0.6)' : 
+                           cardBackground === 'deal-card-spirit' ? 'rgba(103, 58, 183, 0.6)' : 
+                           'rgba(0, 0, 0, 0.4)'
+          }}
+        />
+      )}
       {/* Discount badge */}
       <div className="deal-discount-badge">
         +{deal.discountPercentage || 30}%
