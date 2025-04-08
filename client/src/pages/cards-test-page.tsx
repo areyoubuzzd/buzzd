@@ -128,7 +128,7 @@ export default function CardsTestPage() {
                 <DealCard
                   key={deal.id}
                   {...deal}
-                  backgroundImageUrl={cloudinaryService.getBackgroundImageUrl(deal.category)}
+                  backgroundImageUrl={undefined} /* Removing background images to show gradients */
                   heroImageUrl={cloudinaryService.getHeroImageUrl(deal.category, deal.brand, deal.servingStyle)}
                   isSaved={savedDeals.includes(deal.id)}
                   onSaveToggle={() => toggleSaved(deal.id)}
@@ -146,7 +146,7 @@ export default function CardsTestPage() {
                 <ModernDealCard
                   key={deal.id}
                   {...deal}
-                  backgroundImageUrl={cloudinaryService.getBackgroundImageUrl(deal.category)}
+                  backgroundImageUrl={undefined} /* Removing background images to show gradients */
                   heroImageUrl={cloudinaryService.getHeroImageUrl(deal.category, deal.brand, deal.servingStyle)}
                   isSaved={savedDeals.includes(deal.id)}
                   onSaveToggle={() => toggleSaved(deal.id)}

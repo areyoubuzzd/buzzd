@@ -56,7 +56,7 @@ export function ModernDealCard({
         aspectRatio: '1.586/1',
         borderRadius: '8px', // Slightly smaller radius
         background: backgroundImageUrl 
-          ? `url(${backgroundImageUrl})` 
+          ? `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3)), url(${backgroundImageUrl})` 
           : getGradientBackground(category, id),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -166,15 +166,15 @@ function getBgColorHex(category?: string, id?: number): string {
 function getGradientBackground(category?: string, id?: number): string {
   // Default to emerald if category is undefined or null
   if (!category) {
-    return 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+    return 'linear-gradient(135deg, #059669 0%, #03734d 100%)';
   }
   
   // For beer, select one of three gradient options based on the id
   if (category.toLowerCase() === 'beer') {
     const beerGradients = [
-      'linear-gradient(135deg, #E67E30 0%, #F97316 100%)',  // Orange gradient
-      'linear-gradient(135deg, #F78E3D 0%, #FDBA74 100%)',  // Lighter orange gradient
-      'linear-gradient(135deg, #14655F 0%, #115E59 100%)',  // Teal gradient
+      'linear-gradient(135deg, #E67E30 0%, #D96C29 100%)',  // Orange gradient
+      'linear-gradient(135deg, #F78E3D 0%, #E57A2A 100%)',  // Lighter orange gradient
+      'linear-gradient(135deg, #14655F 0%, #0F5551 100%)',  // Teal gradient
     ];
     
     // Debug info
@@ -193,17 +193,17 @@ function getGradientBackground(category?: string, id?: number): string {
   
   // Define gradients for each category
   const gradientMap: Record<string, string> = {
-    wine: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
-    red_wine: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
-    white_wine: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
-    cocktail: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-    whisky: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)',
-    vodka: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)', 
-    rum: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)',
-    gin: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)',
+    wine: 'linear-gradient(135deg, #e11d48 0%, #a21130 100%)',
+    red_wine: 'linear-gradient(135deg, #e11d48 0%, #a21130 100%)',
+    white_wine: 'linear-gradient(135deg, #e11d48 0%, #a21130 100%)',
+    cocktail: 'linear-gradient(135deg, #059669 0%, #03734d 100%)',
+    whisky: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)',
+    vodka: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)', 
+    rum: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)',
+    gin: 'linear-gradient(135deg, #7e22ce 0%, #5818a5 100%)',
   };
   
-  return gradientMap[category.toLowerCase()] || 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+  return gradientMap[category.toLowerCase()] || 'linear-gradient(135deg, #059669 0%, #03734d 100%)';
 }
 
 export default ModernDealCard;
