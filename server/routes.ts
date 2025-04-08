@@ -7,10 +7,14 @@ import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { googleSheetsService } from "./services/googleSheetsService";
 import { cloudinaryService } from "./services/cloudinaryService";
+import uploadDealImageRouter from "./routes/upload-deal-image";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
+  
+  // Register the deal image upload route
+  app.use(uploadDealImageRouter);
   
   // Test endpoint for Cloudinary image URLs
   app.get("/api/test-cloudinary", async (_req, res) => {
