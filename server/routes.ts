@@ -793,6 +793,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return deg * (Math.PI/180);
   }
 
+  // Set up Cloudinary folder structure and register uploader routes
+  try {
+    // First try to set up the folder structure
+    try {
+      const setupCloudinaryFoldersModule = await import('./utils/setupCloudinaryFolders');
+      const setupCloudinaryFolders = setupCloudinaryFoldersModule.default;
+      console.log('Setting up Cloudinary folder structure...');
+      await setupCloudinaryFolders();
+    } catch (setupError) {
+      console.error('Error setting up Cloudinary folders:', setupError);
+      // Continue even if folder setup fails - the upload might still work
+    }
+
+    // Then register the routes
+    const cloudinaryRoutesModule = await import('./routes/cloudinaryRoutes');
+    app.use(cloudinaryRoutesModule.default);
+    console.log('Cloudinary image uploader routes registered');
+  } catch (error) {
+    console.error('Error registering Cloudinary routes:', error);
+  }
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -85,7 +85,7 @@ export default function CloudinaryTestPage() {
               <h3 className="font-bold mb-2">Beer Background (PNG)</h3>
               <div className="aspect-video mb-2 bg-gray-100 rounded overflow-hidden">
                 <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/beer/image.png" 
+                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/backgrounds/beer/image.png" 
                   alt="Beer background" 
                   className="w-full h-full object-cover"
                   onError={(e) => { 
@@ -99,7 +99,7 @@ export default function CloudinaryTestPage() {
               <h3 className="font-bold mb-2">Heineken Bottle (PNG)</h3>
               <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
                 <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/beer/heineken/bottle.png" 
+                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken/bottle.png" 
                   alt="Heineken bottle" 
                   className="max-h-full max-w-full"
                   onError={(e) => { 
@@ -119,7 +119,7 @@ export default function CloudinaryTestPage() {
               <h3 className="font-bold mb-2">Beer Background (No Extension)</h3>
               <div className="aspect-video mb-2 bg-gray-100 rounded overflow-hidden">
                 <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/backgrounds/beer/image" 
+                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/home/backgrounds/beer/image" 
                   alt="Beer background" 
                   className="w-full h-full object-cover"
                   onError={(e) => { 
@@ -133,7 +133,7 @@ export default function CloudinaryTestPage() {
               <h3 className="font-bold mb-2">Heineken Bottle (No Extension)</h3>
               <div className="h-40 flex items-center justify-center mb-2 bg-gray-100 rounded">
                 <img 
-                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/brands/beer/heineken/bottle" 
+                  src="https://res.cloudinary.com/dp2uoj3ts/image/upload/f_auto/home/brands/beer/heineken/bottle" 
                   alt="Heineken bottle" 
                   className="max-h-full max-w-full"
                   onError={(e) => { 
