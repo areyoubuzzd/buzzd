@@ -8,6 +8,48 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
+    background-color: #0d0d12;
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(255, 77, 219, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+  
+  button, .button {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Neon text effect for special headings */
+  .neon-text {
+    color: #fff;
+    text-shadow: 
+      0 0 5px #fff,
+      0 0 10px #fff,
+      0 0 15px #ff4ddb,
+      0 0 20px #ff4ddb,
+      0 0 25px #ff4ddb;
+  }
+  
+  /* Neon border for cards */
+  .neon-border {
+    box-shadow: 
+      0 0 2px #fff, 
+      0 0 5px #fff, 
+      0 0 15px #ff4ddb;
+  }
+  
+  /* Special styling for filter badges */
+  .filter-badge {
+    @apply px-3 py-1 rounded-full font-medium text-sm;
+    transition: all 0.3s ease;
+  }
+  
+  .filter-badge.active {
+    @apply bg-primary text-white;
+    box-shadow: 0 0 10px rgba(255, 77, 219, 0.7);
   }
 }

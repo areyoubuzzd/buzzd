@@ -207,138 +207,134 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
     if (drinkType.includes('cocktail')) return '🍹';
     return '🥂';
   };
+  
+  // Get the drink type name for the card
+  const getDrinkTypeName = () => {
+    const drinkType = deal.drinkType?.toLowerCase() || '';
+    if (drinkType.includes('beer')) return 'BEER';
+    if (drinkType.includes('wine')) return 'WINE';
+    if (drinkType.includes('whisky') || drinkType.includes('whiskey')) return 'WHISKY';
+    if (drinkType.includes('gin')) return 'GIN';
+    if (drinkType.includes('cocktail')) return 'COCKTAIL';
+    if (drinkType.includes('margarita')) return 'MARGARITA';
+    return 'DRINK';
+  };
+  
+  // Get background color based on drink type
+  const getCardBackground = () => {
+    const drinkType = deal.drinkType?.toLowerCase() || '';
+    
+    if (drinkType.includes('beer')) {
+      return 'linear-gradient(to bottom, rgba(0,30,0,0.9) 0%, rgba(0,50,0,0.95) 100%)';
+    } else if (drinkType.includes('wine')) {
+      return 'linear-gradient(to bottom, rgba(60,0,30,0.9) 0%, rgba(80,0,50,0.95) 100%)';
+    } else if (drinkType.includes('whisky') || drinkType.includes('whiskey')) {
+      return 'linear-gradient(to bottom, rgba(50,25,0,0.9) 0%, rgba(70,40,0,0.95) 100%)';
+    } else if (drinkType.includes('gin')) {
+      return 'linear-gradient(to bottom, rgba(20,0,50,0.9) 0%, rgba(40,0,80,0.95) 100%)';
+    } else if (drinkType.includes('cocktail') || drinkType.includes('margarita')) {
+      return 'linear-gradient(to bottom, rgba(0,40,40,0.9) 0%, rgba(0,60,60,0.95) 100%)';
+    }
+    
+    // Default background
+    return 'linear-gradient(to bottom, rgba(20,20,40,0.9) 0%, rgba(40,40,70,0.95) 100%)';
+  };
 
   return (
-    <Card className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* Top section with image and discount tag */}
-      <div className="relative">
-        <img 
-          src={getDrinkImage()} 
-          alt={deal.title || "Drink special"} 
-          className="w-full h-48 object-cover" 
-        />
-        
-        {/* Drink type icon */}
-        <div className="absolute top-3 left-3 bg-black bg-opacity-60 text-white p-2 rounded-full">
-          <span className="text-xl">{getDrinkTypeIcon()}</span>
-        </div>
-        
-        {/* Discount or deal badge */}
-        <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-primary-dark text-white px-4 py-2 rounded-lg shadow-md">
-          <div className="flex items-center">
-            <span className="mr-1 text-lg">📣</span>
-            <span className="font-bold">
-              {deal.isOneForOne 
-                ? "1-FOR-1" 
-                : `${deal.savingsPercentage || 30}% OFF`}
-            </span>
-          </div>
-        </div>
-        
-        {/* Status badge */}
-        <div className={`absolute bottom-3 left-3 ${
-          status === 'active' ? 'bg-green-500' : 
-          status === 'upcoming' ? 'bg-amber-500' : 
-          'bg-gray-500'
-        } text-white text-xs px-3 py-1 rounded-full shadow`}>
-          {status === 'active' ? 'Active Now' : 
-           status === 'upcoming' ? 'Starts Soon' : 
-           'Inactive'}
-        </div>
-        
-        {/* Blurred overlay for premium content */}
-        {isGrayedOut && (
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black to-transparent opacity-40">
-            <div className="absolute bottom-3 right-3 bg-black bg-opacity-75 text-white px-3 py-1 rounded-full shadow flex items-center">
-              <FiLock className="mr-1 h-4 w-4" />
-              <span className="text-xs font-medium">
-                {!user ? "Sign in" : "Upgrade"} to unlock
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Bottom section with restaurant info and deal details */}
-      <div className="p-4">
-        {/* Restaurant name row */}
-        {isGrayedOut ? (
-          <div className="flex items-center justify-between mb-2 border border-dashed border-gray-300 p-2 rounded-md bg-gray-50">
-            <div className="flex items-center">
-              <span className="text-lg mr-2">🍽️</span>
-              <div>
-                <h3 className="font-semibold text-gray-400">Hidden Restaurant</h3>
-                <p className="text-xs text-gray-500">
-                  {deal.establishment.type || "Bar & Restaurant"}
-                </p>
-              </div>
-            </div>
-            <FiLock className="h-5 w-5 text-gray-400" />
-          </div>
-        ) : (
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center">
-              <span className="text-lg mr-2">🍽️</span>
-              <div>
-                <h3 className="font-semibold">{deal.establishment.name}</h3>
-                <p className="text-xs text-gray-600">
-                  {deal.establishment.type || "Bar & Restaurant"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <FiStar className="h-4 w-4 text-yellow-500" />
-              <span className="ml-1 text-sm">{deal.establishment.rating || '4.5'}</span>
-            </div>
-          </div>
-        )}
-        
-        {/* Time and distance row */}
-        <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
-          <div className="flex items-center">
-            <span className="text-lg mr-1">🕒</span>
-            <span>{format(new Date(deal.endTime), 'h:mm a')}</span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-lg mr-1">📍</span>
-            <span>{distance ? `${(distance * 1000).toFixed(0)}m` : 'Distance unknown'}</span>
-          </div>
-        </div>
-        
-        {/* Price row */}
-        <div className="flex items-center mb-3">
-          <span className="text-lg mr-1">💸</span>
+    <Card className={`h-full overflow-hidden relative rounded-xl ${
+      isGrayedOut ? 'opacity-70' : ''
+    }`} style={{ 
+      background: getCardBackground(),
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      boxShadow: '0 0 15px rgba(255, 105, 180, 0.3)' 
+    }}>
+      {/* Main content with neon style */}
+      <div className="flex flex-col h-full">
+        {/* Top deal information */}
+        <div className="p-4 pb-0 text-center">
           {deal.isOneForOne ? (
-            <div className="flex items-center text-sm">
-              <span className="font-semibold text-primary">Buy 1 Get 1 Free</span>
-              <span className="mx-1">•</span>
-              <span>${deal.regularPrice}</span>
-            </div>
+            <h1 className="text-6xl font-bold mb-1" style={{ 
+              color: '#ff4ddb', 
+              textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
+            }}>
+              1FOR1
+            </h1>
           ) : (
-            <div className="flex items-center text-sm">
-              <span>Was </span>
-              <span className="mx-1 line-through text-gray-500">${deal.regularPrice}</span>
-              <span>Now </span>
-              <span className="ml-1 font-bold text-primary">${deal.dealPrice}</span>
+            <h1 className="text-6xl font-bold mb-1" style={{ 
+              color: '#ff4ddb', 
+              textShadow: '0 0 10px rgba(255, 77, 219, 0.7)' 
+            }}>
+              ${deal.dealPrice}
+            </h1>
+          )}
+          
+          <h2 className="uppercase text-2xl font-bold mb-4" style={{ 
+            color: '#ff4ddb', 
+            textShadow: '0 0 5px rgba(255, 77, 219, 0.5)' 
+          }}>
+            {getDrinkTypeName()}
+          </h2>
+        </div>
+        
+        {/* Drink image - centered */}
+        <div className="flex-grow flex items-center justify-center px-4 py-2">
+          <img 
+            src={getDrinkImage()} 
+            alt={deal.title || "Drink special"} 
+            className="max-h-44 object-contain" 
+          />
+        </div>
+        
+        {/* Bottom discount badge */}
+        <div className="mx-4 mb-3 rounded-lg py-2 px-2 text-center font-bold" 
+          style={{ 
+            background: '#ffdd00', 
+            color: '#000000',
+            boxShadow: '0 0 10px rgba(255, 221, 0, 0.6)'
+          }}>
+          {deal.isOneForOne 
+            ? "30% OFF" 
+            : `${deal.savingsPercentage || 30}% OFF`}
+        </div>
+        
+        {/* Restaurant and time info */}
+        <div className="px-4 pb-4 text-center text-white text-xs">
+          {!isGrayedOut ? (
+            <p>UNTIL {format(new Date(deal.endTime), 'h a')} • {distance ? `${(distance * 1000).toFixed(0)}m` : 'nearby'}</p>
+          ) : (
+            <div className="flex items-center justify-center gap-1">
+              <FiLock className="h-3 w-3" />
+              <p>{!user ? "SIGN IN" : "UPGRADE"} TO VIEW</p>
             </div>
           )}
         </div>
-        
-        {/* Title and view button */}
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-medium truncate max-w-[60%]">
-            {deal.title || `${deal.brand} ${deal.drinkType}`}
-          </h3>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleViewDeal}
-            className="bg-primary hover:bg-primary-dark text-white px-4 py-1 rounded-lg text-sm"
-          >
-            {isGrayedOut ? "Unlock" : "View Deal"}
-          </Button>
-        </div>
       </div>
+      
+      {/* Status badge for active deals */}
+      {status === 'active' && (
+        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+          Live
+        </div>
+      )}
+      
+      {/* Premium lock overlay */}
+      {isGrayedOut && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center" 
+          style={{ 
+            background: 'rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(2px)' 
+          }}
+          onClick={handleViewDeal}
+        >
+          <div className="bg-black bg-opacity-70 p-3 rounded-full">
+            <FiLock 
+              className="h-6 w-6 text-white" 
+              style={{ filter: 'drop-shadow(0 0 8px rgba(255, 105, 180, 0.8))' }} 
+            />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
