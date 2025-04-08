@@ -221,24 +221,27 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
     return 'DRINK';
   };
   
-  // Get background color based on drink type
+  // Get background color based on drink type - with brighter, more visible colors
   const getCardBackground = () => {
     const drinkType = deal.drinkType?.toLowerCase() || '';
     
+    // If card is grayed out, make the background lighter so content is still visible
+    const alpha = isGrayedOut ? 0.8 : 0.95;
+    
     if (drinkType.includes('beer')) {
-      return 'linear-gradient(to bottom, rgba(0,30,0,0.9) 0%, rgba(0,50,0,0.95) 100%)';
+      return `linear-gradient(to bottom, rgba(0,100,0,${alpha}) 0%, rgba(0,150,0,${alpha}) 100%)`;
     } else if (drinkType.includes('wine')) {
-      return 'linear-gradient(to bottom, rgba(60,0,30,0.9) 0%, rgba(80,0,50,0.95) 100%)';
+      return `linear-gradient(to bottom, rgba(120,0,60,${alpha}) 0%, rgba(180,0,90,${alpha}) 100%)`;
     } else if (drinkType.includes('whisky') || drinkType.includes('whiskey')) {
-      return 'linear-gradient(to bottom, rgba(50,25,0,0.9) 0%, rgba(70,40,0,0.95) 100%)';
+      return `linear-gradient(to bottom, rgba(150,75,0,${alpha}) 0%, rgba(200,120,0,${alpha}) 100%)`;
     } else if (drinkType.includes('gin')) {
-      return 'linear-gradient(to bottom, rgba(20,0,50,0.9) 0%, rgba(40,0,80,0.95) 100%)';
+      return `linear-gradient(to bottom, rgba(60,0,150,${alpha}) 0%, rgba(90,0,200,${alpha}) 100%)`;
     } else if (drinkType.includes('cocktail') || drinkType.includes('margarita')) {
-      return 'linear-gradient(to bottom, rgba(0,40,40,0.9) 0%, rgba(0,60,60,0.95) 100%)';
+      return `linear-gradient(to bottom, rgba(0,120,120,${alpha}) 0%, rgba(0,180,180,${alpha}) 100%)`;
     }
     
-    // Default background
-    return 'linear-gradient(to bottom, rgba(20,20,40,0.9) 0%, rgba(40,40,70,0.95) 100%)';
+    // Default background - brighter than before
+    return `linear-gradient(to bottom, rgba(60,60,120,${alpha}) 0%, rgba(90,90,160,${alpha}) 100%)`;
   };
 
   // State to track if card is flipped
@@ -328,8 +331,10 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
             </div>
             
             {/* Restaurant and time info */}
-            <div className="px-4 pb-4 text-center text-white text-xs">
-              <p>UNTIL {format(new Date(deal.endTime), 'h a')} • {distance ? `${(distance * 1000).toFixed(0)}m` : 'nearby'}</p>
+            <div className="px-4 pb-4 text-center text-xs">
+              <p style={{ color: 'white', fontWeight: 'bold', textShadow: '0 0 5px rgba(0,0,0,0.8)' }}>
+                UNTIL {format(new Date(deal.endTime), 'h a')} • {distance ? `${(distance * 1000).toFixed(0)}m` : 'nearby'}
+              </p>
             </div>
           </div>
           

@@ -235,6 +235,9 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
   // Determine how many deals to show fully vs grayed out based on user state
   const fullDealsCount = isSignedIn ? (isPremium ? filteredDeals.active.length : 2) : 0;
   
+  console.log("Filtered deals count:", filteredDeals.active ? filteredDeals.active.length : 0);
+  console.log("Full deals count:", fullDealsCount);
+  
   return (
     <main className="flex-1 bg-gray-50">
       <div className="px-2 sm:px-4 py-2 sm:py-4 pb-24">
@@ -245,6 +248,14 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
             maxDeals={data.subscription.limit || 3} 
           />
         )}
+        
+        {/* Debug message to confirm data */}
+        <div className="mb-4 p-2 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
+          <p className="font-bold">Debug info (remove in production):</p>
+          <p>Total deals: {filteredDeals.active ? filteredDeals.active.length : 0}</p>
+          <p>Full deals: {fullDealsCount}</p>
+          <p>User status: {isSignedIn ? (isPremium ? 'Premium' : 'Free') : 'Not signed in'}</p>
+        </div>
         
         {/* Deals Section - Show deals based on user tier */}
         {filteredDeals.active && filteredDeals.active.length > 0 && (
@@ -273,7 +284,7 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
 
         {/* No deals found message */}
         {(!filteredDeals.active || filteredDeals.active.length === 0) && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 bg-white rounded-lg shadow p-8">
             <h2 className="text-xl font-semibold text-gray-800">No deals found</h2>
             <p className="mt-2 text-gray-600">Try changing your filters or location</p>
           </div>
