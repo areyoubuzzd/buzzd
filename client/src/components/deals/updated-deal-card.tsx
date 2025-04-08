@@ -165,6 +165,9 @@ function getBgColorHex(category?: string, id?: number): string {
   if (category.toLowerCase() === 'beer') {
     const beerColors = ["#E67E30", "#F78E3D", "#14655F"];
     
+    // Debug info
+    console.log(`DealCard: Beer card with ID: ${id}, using color index: ${id ? id % beerColors.length : 'none'}`);
+    
     // Use the id to deterministically select a color
     // If id is undefined or null, use a fixed color
     if (id === undefined || id === null) {
