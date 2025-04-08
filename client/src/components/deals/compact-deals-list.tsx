@@ -37,9 +37,9 @@ export function CompactDealsList({
   return (
     <div className="w-full">
       {/* Full deals (shown normally) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 gap-y-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 gap-y-3">
         {deals.slice(0, realFullDealsCount).map((deal: any) => deal && (
-          <div className="w-full mb-0 pb-0" key={deal.id}>
+          <div className="w-full mb-0 pb-0 px-2" key={deal.id}>
             <DealCard 
               key={deal.id} 
               deal={deal} 
@@ -53,7 +53,7 @@ export function CompactDealsList({
         
         {/* Grayed out deals (the rest - only for non-premium) */}
         {!isPremium && deals.slice(realFullDealsCount).map((deal: any) => deal && (
-          <div className="w-full mb-0 pb-0" key={`gray-${deal.id}`}>
+          <div className="w-full mb-0 pb-0 px-2" key={`gray-${deal.id}`}>
             <DealCard 
               key={deal.id} 
               deal={deal} 

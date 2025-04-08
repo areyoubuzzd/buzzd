@@ -62,7 +62,7 @@ function DealCard({
         maxWidth: '100%', // Ensure it doesn't overflow its container
         height: 0, // This forces the aspect ratio to be respected
         paddingBottom: 'calc(100% / 1.586)', // 1/1.586 ≈ 63% - makes it landscape!
-        marginBottom: '1px', // Absolute minimum margin
+        marginBottom: '4px', // Small but noticeable margin
       }}
     >
       {/* Card Content */}
