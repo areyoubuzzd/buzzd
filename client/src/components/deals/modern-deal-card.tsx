@@ -3,8 +3,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PriceTag } from "./price-tag";
 import { Clock, MapPin } from "lucide-react";
-import { getBackgroundImage } from "@/assets/backgrounds";
-import { getHeroImage } from "@/assets/heroes";
+import { getBackgroundImage, getHeroImage } from "@/lib/imageUtils";
 
 export interface DealCardProps {
   id: number;
