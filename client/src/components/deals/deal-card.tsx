@@ -228,17 +228,19 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
     if (drinkType.includes('beer')) {
       return '#00ff00'; // Neon green for beer
     } else if (drinkType.includes('wine')) {
-      return '#ff3388'; // Neon pink for wine
+      return '#ff36b3'; // Neon pink for wine
     } else if (drinkType.includes('whisky') || drinkType.includes('whiskey')) {
-      return '#ff9900'; // Neon orange for whisky
+      return '#ffaa00'; // Neon orange for whisky
     } else if (drinkType.includes('gin')) {
       return '#aa00ff'; // Neon purple for gin
-    } else if (drinkType.includes('cocktail') || drinkType.includes('margarita')) {
+    } else if (drinkType.includes('margarita')) {
+      return '#00ff99'; // Neon green for margarita
+    } else if (drinkType.includes('cocktail')) {
       return '#00ffff'; // Neon cyan for cocktails
     }
     
     // Default accent color
-    return '#ff3388'; // Neon pink default
+    return '#ff36b3'; // Neon pink default
   };
   
   // Get neon glow effect for the accent color
