@@ -355,7 +355,7 @@ function DealCard({
       {/* Card Content */}
       <div className="absolute inset-0 flex flex-col h-full">
         {/* Top section with discount badge */}
-        <div className="relative p-4 flex-grow flex items-center justify-center">
+        <div className="relative p-4 flex-grow">
           {/* Discount badge */}
           {savingsAmount && (
             <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold">
@@ -376,23 +376,6 @@ function DealCard({
                 )} 
               />
             </button>
-          )}
-          
-          {/* Hero Image (Bottle/Glass) */}
-          {deal.drinkType && (
-            <div className="w-36 h-40 relative flex items-center justify-center">
-              {/* Choose image based on drink type */}
-              <img 
-                src={getHeroImage(deal.drinkType, deal.brand)}
-                alt={deal.brand || deal.drinkType}
-                className="h-full object-contain drop-shadow-lg"
-                style={{ 
-                  transform: 'rotate(-5deg)',
-                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.3))',
-                  maxWidth: '100%'
-                }}
-              />
-            </div>
           )}
         </div>
         
