@@ -180,141 +180,134 @@ export default function DealCard({ deal, userLocation, onViewClick, isGrayedOut 
   };
 
   return (
-    <Card className={`
-      bg-white rounded-lg shadow-md overflow-hidden 
-      ${status === 'active' ? 'active-deal border-l-4 border-l-green-500' : 
-        status === 'upcoming' ? 'upcoming-deal border-l-4 border-l-amber-500' : 
-        'inactive-deal border-l-4 border-l-gray-400'}
-    `}>
-      <div className="flex flex-col sm:flex-row">
-        <div className="sm:w-1/3 h-40 sm:h-auto relative">
-          <img 
-            src={deal.imageUrl || `https://source.unsplash.com/featured/?${deal.drinkType || 'cocktail'}`} 
-            alt={deal.title || "Drink special"} 
-            className="w-full h-full object-cover" 
-          />
-          
-          {/* Blurred restaurant logo overlay for premium content */}
-          {isGrayedOut && (
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-70">
-              <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                <FiLock className="inline-block mr-1 h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {!user ? "Sign in" : "Upgrade"} to view restaurant
-                </span>
-              </div>
-            </div>
-          )}
-          
-          <div className={`absolute top-2 right-2 ${
-            status === 'active' ? 'bg-green-500' : 
-            status === 'upcoming' ? 'bg-amber-500' : 
-            'bg-gray-500'
-          } text-white text-xs px-2 py-1 rounded-full`}>
-            {status === 'active' ? 'Active Now' : 
-             status === 'upcoming' ? 'Starts Soon' : 
-             'Inactive'}
-          </div>
-          
-          {/* Drink type badge */}
-          <div className="absolute bottom-2 left-2 bg-gray-800 bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-            <span className="mr-1">{getDrinkTypeIcon()}</span>
-            {deal.drinkType?.charAt(0).toUpperCase() + deal.drinkType?.slice(1) || 'Drink'}
+    <Card className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* Top section with image and discount tag */}
+      <div className="relative">
+        <img 
+          src={deal.imageUrl || `https://source.unsplash.com/featured/?${deal.drinkType || 'cocktail'}`} 
+          alt={deal.title || "Drink special"} 
+          className="w-full h-48 object-cover" 
+        />
+        
+        {/* Drink type icon */}
+        <div className="absolute top-3 left-3 bg-black bg-opacity-60 text-white p-2 rounded-full">
+          <span className="text-xl">{getDrinkTypeIcon()}</span>
+        </div>
+        
+        {/* Discount or deal badge */}
+        <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-primary-dark text-white px-4 py-2 rounded-lg shadow-md">
+          <div className="flex items-center">
+            <span className="mr-1 text-lg">📣</span>
+            <span className="font-bold">
+              {deal.isOneForOne 
+                ? "1-FOR-1" 
+                : `${deal.savingsPercentage || 30}% OFF`}
+            </span>
           </div>
         </div>
-        <div className="p-4 sm:w-2/3 flex flex-col justify-between">
-          <div>
-            {/* Restaurant name section - conditionally display based on grayed out state */}
-            {isGrayedOut ? (
-              <div className="flex justify-between items-start border border-dashed border-gray-300 p-2 rounded-md bg-gray-50">
-                <div className="flex items-center">
-                  <FiLock className="h-4 w-4 text-gray-400 mr-2" />
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-400">Hidden Restaurant</h3>
-                    <p className="text-sm text-gray-500">
-                      {deal.establishment.type || "Bar & Restaurant"} 
-                      <span className="ml-2 text-primary-500 font-medium">
-                        {!user ? "Sign in" : "Upgrade"} to view
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <FiStar className="h-4 w-4 text-yellow-500" />
-                  <span className="ml-1 text-sm">{deal.establishment.rating || '4.5'}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold text-lg">{deal.establishment.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    {deal.establishment.type || "Bar & Restaurant"}
-                  </p>
-                </div>
-                <div className="flex items-center">
-                  <FiStar className="h-4 w-4 text-yellow-500" />
-                  <span className="ml-1 text-sm">{deal.establishment.rating || '4.5'}</span>
-                </div>
-              </div>
-            )}
-            
-            {/* Deal details - always fully visible */}
-            <div className={`mt-2 ${
-              status === 'active' ? 'bg-green-50' : 
-              status === 'upcoming' ? 'bg-amber-50' : 
-              'bg-gray-50'
-            } p-2 rounded-md`}>
-              <p className="text-sm font-medium flex items-center">
-                <span className="mr-2 text-lg">{getDrinkTypeIcon()}</span>
-                {deal.title || `${deal.savingsPercentage}% off Drinks`}
-              </p>
-              
-              <div className="flex items-center mt-1 text-xs text-gray-600">
-                <FiClock className="h-4 w-4 mr-1" />
-                <span>{getTimeDisplay()}</span>
-              </div>
-              
-              {/* Price information */}
-              {deal.isOneForOne ? (
-                <div className="mt-1 flex items-center text-xs">
-                  <span className="font-semibold text-green-600">Buy 1 Get 1 Free</span>
-                  <span className="mx-1">•</span>
-                  <span>${deal.regularPrice}</span>
-                </div>
-              ) : (
-                <div className="mt-1 flex items-center text-xs">
-                  <span className="font-semibold text-green-600">${deal.dealPrice}</span>
-                  <span className="mx-1">•</span>
-                  <span className="line-through text-gray-500">${deal.regularPrice}</span>
-                </div>
-              )}
+        
+        {/* Status badge */}
+        <div className={`absolute bottom-3 left-3 ${
+          status === 'active' ? 'bg-green-500' : 
+          status === 'upcoming' ? 'bg-amber-500' : 
+          'bg-gray-500'
+        } text-white text-xs px-3 py-1 rounded-full shadow`}>
+          {status === 'active' ? 'Active Now' : 
+           status === 'upcoming' ? 'Starts Soon' : 
+           'Inactive'}
+        </div>
+        
+        {/* Blurred overlay for premium content */}
+        {isGrayedOut && (
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black to-transparent opacity-40">
+            <div className="absolute bottom-3 right-3 bg-black bg-opacity-75 text-white px-3 py-1 rounded-full shadow flex items-center">
+              <FiLock className="mr-1 h-4 w-4" />
+              <span className="text-xs font-medium">
+                {!user ? "Sign in" : "Upgrade"} to unlock
+              </span>
             </div>
           </div>
-          
-          <div className="flex justify-between items-end mt-3">
-            <div className="flex items-center text-xs text-gray-600">
-              <FiMapPin className="h-4 w-4 mr-1" />
-              <span>{distance ? `${distance.toFixed(1)} km away • ${getWalkingTime()}` : 'Distance unknown'}</span>
+        )}
+      </div>
+      
+      {/* Bottom section with restaurant info and deal details */}
+      <div className="p-4">
+        {/* Restaurant name row */}
+        {isGrayedOut ? (
+          <div className="flex items-center justify-between mb-2 border border-dashed border-gray-300 p-2 rounded-md bg-gray-50">
+            <div className="flex items-center">
+              <span className="text-lg mr-2">🍽️</span>
+              <div>
+                <h3 className="font-semibold text-gray-400">Hidden Restaurant</h3>
+                <p className="text-xs text-gray-500">
+                  {deal.establishment.type || "Bar & Restaurant"}
+                </p>
+              </div>
             </div>
+            <FiLock className="h-5 w-5 text-gray-400" />
+          </div>
+        ) : (
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <span className="text-lg mr-2">🍽️</span>
+              <div>
+                <h3 className="font-semibold">{deal.establishment.name}</h3>
+                <p className="text-xs text-gray-600">
+                  {deal.establishment.type || "Bar & Restaurant"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <FiStar className="h-4 w-4 text-yellow-500" />
+              <span className="ml-1 text-sm">{deal.establishment.rating || '4.5'}</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Time and distance row */}
+        <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
+          <div className="flex items-center">
+            <span className="text-lg mr-1">🕒</span>
+            <span>{format(new Date(deal.endTime), 'h:mm a')}</span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-lg mr-1">📍</span>
+            <span>{distance ? `${(distance * 1000).toFixed(0)}m` : 'Distance unknown'}</span>
+          </div>
+        </div>
+        
+        {/* Price row */}
+        <div className="flex items-center mb-3">
+          <span className="text-lg mr-1">💸</span>
+          {deal.isOneForOne ? (
             <div className="flex items-center text-sm">
-              {status === 'active' && (
-                <span className="text-green-600 font-medium mr-2">Save {deal.savingsPercentage || 30}%</span>
-              )}
-              <Button
-                variant={status === 'active' ? 'default' : 'outline'}
-                size="sm"
-                onClick={handleViewDeal}
-                className={`${
-                  status === 'active' 
-                    ? 'bg-primary hover:bg-primary-dark text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-dark'
-                } px-3 py-1 rounded-lg text-sm`}
-              >
-                {isGrayedOut ? "Unlock" : "View Deal"}
-              </Button>
+              <span className="font-semibold text-primary">Buy 1 Get 1 Free</span>
+              <span className="mx-1">•</span>
+              <span>${deal.regularPrice}</span>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center text-sm">
+              <span>Was </span>
+              <span className="mx-1 line-through text-gray-500">${deal.regularPrice}</span>
+              <span>Now </span>
+              <span className="ml-1 font-bold text-primary">${deal.dealPrice}</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Title and view button */}
+        <div className="flex justify-between items-center">
+          <h3 className="text-sm font-medium truncate max-w-[60%]">
+            {deal.title || `${deal.brand} ${deal.drinkType}`}
+          </h3>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleViewDeal}
+            className="bg-primary hover:bg-primary-dark text-white px-4 py-1 rounded-lg text-sm"
+          >
+            {isGrayedOut ? "Unlock" : "View Deal"}
+          </Button>
         </div>
       </div>
     </Card>
