@@ -180,7 +180,9 @@ const cloudinaryUploader = {
         path: 'home/backgrounds/[category]/image.png',
         examples: [
           'home/backgrounds/beer/image.png',
-          'home/backgrounds/wine/image.png',
+          'home/backgrounds/red_wine/image.png',
+          'home/backgrounds/white_wine/image.png',
+          'home/backgrounds/bubbly/image.png',
           'home/backgrounds/cocktail/image.png',
           'home/backgrounds/default/image.png (fallback)'
         ]
@@ -191,6 +193,9 @@ const cloudinaryUploader = {
         examples: [
           'home/brands/beer/heineken/bottle.png',
           'home/brands/beer/heineken/glass.png',
+          'home/brands/red_wine/merlot/bottle.png',
+          'home/brands/white_wine/chardonnay/glass.png',
+          'home/brands/bubbly/champagne/bottle.png',
           'home/brands/whisky/johnnie_walker/bottle.png'
         ]
       },
