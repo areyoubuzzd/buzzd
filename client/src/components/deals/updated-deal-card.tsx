@@ -55,8 +55,9 @@ function DealCard({
         // Credit card aspect ratio (1.586:1) - Width to height ratio
         aspectRatio: '1.586/1',
         borderRadius: '8px', // Slightly smaller radius
-        background: backgroundImageUrl ? `url(${backgroundImageUrl})` : undefined,
-        backgroundColor: !backgroundImageUrl ? getBgColorHex(category, id) : undefined,
+        background: backgroundImageUrl 
+          ? `url(${backgroundImageUrl})` 
+          : getGradientBackground(category, id),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
@@ -158,39 +159,51 @@ function getBgColorForCategory(category?: string): string {
 }
 
 function getBgColorHex(category?: string, id?: number): string {
+  // For gradient backgrounds, we'll return 'none' and use the gradient in the style
+  return 'none';
+}
+
+function getGradientBackground(category?: string, id?: number): string {
   // Default to emerald if category is undefined or null
-  if (!category) return "#059669";
-  
-  // For beer, select one of three colors based on the id
-  if (category.toLowerCase() === 'beer') {
-    const beerColors = ["#E67E30", "#F78E3D", "#14655F"];
-    
-    // Debug info
-    console.log(`DealCard: Beer card with ID: ${id}, using color index: ${id ? id % beerColors.length : 'none'}`);
-    
-    // Use the id to deterministically select a color
-    // If id is undefined or null, use a fixed color
-    if (id === undefined || id === null) {
-      return beerColors[0]; // Default to first color if no id
-    }
-    
-    // Use modulo to select one of the three colors based on id
-    const colorIndex = id % beerColors.length;
-    return beerColors[colorIndex];
+  if (!category) {
+    return 'linear-gradient(135deg, #059669 0%, #047857 100%)';
   }
   
-  const colorMap: Record<string, string> = {
-    wine: "#e11d48",
-    red_wine: "#e11d48",
-    white_wine: "#e11d48",
-    cocktail: "#059669",
-    whisky: "#7e22ce",
-    vodka: "#7e22ce", 
-    rum: "#7e22ce",
-    gin: "#7e22ce",
+  // For beer, select one of three gradient options based on the id
+  if (category.toLowerCase() === 'beer') {
+    const beerGradients = [
+      'linear-gradient(135deg, #E67E30 0%, #F97316 100%)',  // Orange gradient
+      'linear-gradient(135deg, #F78E3D 0%, #FDBA74 100%)',  // Lighter orange gradient
+      'linear-gradient(135deg, #14655F 0%, #115E59 100%)',  // Teal gradient
+    ];
+    
+    // Debug info
+    console.log(`DealCard: Beer card with ID: ${id}, using color index: ${id ? id % beerGradients.length : 'none'}`);
+    
+    // Use the id to deterministically select a gradient
+    // If id is undefined or null, use a fixed gradient
+    if (id === undefined || id === null) {
+      return beerGradients[0]; // Default to first gradient if no id
+    }
+    
+    // Use modulo to select one of the gradients based on id
+    const gradientIndex = id % beerGradients.length;
+    return beerGradients[gradientIndex];
+  }
+  
+  // Define gradients for each category
+  const gradientMap: Record<string, string> = {
+    wine: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
+    red_wine: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
+    white_wine: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
+    cocktail: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    whisky: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)',
+    vodka: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)', 
+    rum: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)',
+    gin: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)',
   };
   
-  return colorMap[category.toLowerCase()] || "#059669";
+  return gradientMap[category.toLowerCase()] || 'linear-gradient(135deg, #059669 0%, #047857 100%)';
 }
 
 export default DealCard;
