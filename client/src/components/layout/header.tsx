@@ -24,14 +24,14 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-black shadow-md">
+    <header className="sticky top-0 z-50 bg-[#f8f7f5] shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">
                 <img 
-                  src={logoDark} 
+                  src={logoLight} 
                   alt="Buzzd Logo" 
                   className="h-12"
                 />
@@ -46,9 +46,8 @@ export default function Header() {
                     variant="ghost" 
                     className="flex items-center"
                     style={{ 
-                      color: '#ff36b3', 
-                      textShadow: '0 0 5px #ff36b3',
-                      border: '1px solid #ff36b330'
+                      color: '#191632', 
+                      border: '1px solid #19163230'
                     }}
                   >
                     <span className="text-sm mr-1">Account</span>
@@ -98,9 +97,8 @@ export default function Header() {
                 onClick={() => navigate("/auth")}
                 className="flex items-center"
                 style={{ 
-                  color: '#ff36b3', 
-                  textShadow: '0 0 5px #ff36b3',
-                  border: '1px solid #ff36b330'
+                  color: '#191632', 
+                  border: '1px solid #19163230'
                 }}
               >
                 <span className="text-sm mr-1">Sign In</span>
