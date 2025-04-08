@@ -1,8 +1,7 @@
-import { ModernDealCard } from "@/components/deals/modern-deal-card";
-import { DealCardProps } from "@/components/deals/modern-deal-card";
+import { ModernDealCard, ModernDealCardProps } from "@/components/deals/modern-deal-card";
 
 interface ModernDealsGridProps {
-  deals: DealCardProps[];
+  deals: ModernDealCardProps[];
   onDealClick?: (dealId: number) => void;
 }
 

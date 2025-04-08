@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Clock, Heart } from "lucide-react";
 
-export interface ModernDealCardProps {
+export interface DealCardProps {
   id: number;
   dealType: string; // e.g., "$6 BEER", "1-FOR-1", "$3 MARGARITA"
   discount: number; // percentage discount, e.g., 30
@@ -20,10 +20,10 @@ export interface ModernDealCardProps {
 }
 
 /**
- * Modern Card component for displaying drink deals with background and hero images
+ * Card component for displaying drink deals with background and hero images
  * Uses exact credit card aspect ratio (1.586:1)
  */
-export function ModernDealCard({
+function DealCard({
   id,
   dealType,
   discount,
@@ -38,7 +38,7 @@ export function ModernDealCard({
   onClick,
   isSaved = false,
   onSaveToggle,
-}: ModernDealCardProps) {
+}: DealCardProps) {
   // Default background colors when no image is available
   const bgColorClass = getBgColorForCategory(category);
   
@@ -169,4 +169,4 @@ function getBgColorHex(category?: string): string {
   return colorMap[category.toLowerCase()] || "#059669";
 }
 
-export default ModernDealCard;
+export default DealCard;

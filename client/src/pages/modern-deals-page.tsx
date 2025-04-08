@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ModernDealsGrid } from "@/components/deals/modern-deals-grid";
-import { DealCardProps } from "@/components/deals/modern-deal-card";
+import { ModernDealCardProps } from "@/components/deals/modern-deal-card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -13,119 +13,66 @@ export default function ModernDealsPage() {
   const [category, setCategory] = useState<string>('beer');
   
   // Sample deals data for demonstration
-  const sampleDeals: DealCardProps[] = [
+  const sampleDeals: ModernDealCardProps[] = [
     {
       id: 1,
-      name: "Half-Price Premium Lager",
-      description: "Enjoy our finest imported lager at half the regular price during weekday happy hours.",
-      originalPrice: 80,
-      dealPrice: 40,
-      dayOfWeek: "Weekdays",
-      timeStart: "16:00",
-      timeEnd: "18:00",
+      dealType: "HALF PRICE LAGER",
+      discount: 50,
       category: "beer",
       brand: "Heineken",
       servingStyle: "bottle",
-      isPremiumDeal: true,
-      establishment: {
-        name: "The Beer House",
-        address: "123 Main St, Cape Town",
-        distance: 0.5,
-        logoUrl: "/images/restaurants/beer-house-logo.png"
-      }
+      endTime: "6:00 PM",
+      distance: 0.5
     },
     {
       id: 2,
-      name: "Two-for-One House Wine",
-      description: "Buy one glass of our house selection and get another one free.",
-      originalPrice: 65,
-      dealPrice: 32.5,
-      dayOfWeek: "Tuesdays",
-      timeStart: "17:00",
-      timeEnd: "19:00",
-      category: "red_wine",
+      dealType: "2 FOR 1 WINE",
+      discount: 50,
+      category: "wine",
+      subcategory: "red_wine",
       servingStyle: "glass",
-      isPremiumDeal: false,
-      establishment: {
-        name: "Wine & Co.",
-        address: "456 Vine St, Stellenbosch",
-        distance: 1.2
-      }
+      endTime: "7:00 PM",
+      distance: 1.2
     },
     {
       id: 3,
-      name: "Margarita Madness",
-      description: "All margaritas 30% off during our Taco Tuesday promotion. Includes strawberry, classic, and spicy variants.",
-      originalPrice: 95,
-      dealPrice: 66.5,
-      dayOfWeek: "Tuesdays",
-      timeStart: "18:00",
-      timeEnd: "21:00",
+      dealType: "$8 MARGARITA",
+      discount: 30,
       category: "cocktail",
-      subcategory: "Margarita",
-      isPremiumDeal: true,
-      establishment: {
-        name: "Salsa Cantina",
-        address: "789 Spicy Ave, Cape Town",
-        distance: 0.8
-      }
+      subcategory: "margarita",
+      servingStyle: "glass",
+      endTime: "9:00 PM",
+      distance: 0.8
     },
     {
       id: 4,
-      name: "Whisky Wednesday",
-      description: "Premium whisky selections at special prices all evening. Try our range of single malts and blends.",
-      originalPrice: 120,
-      dealPrice: 75,
-      dayOfWeek: "Wednesdays",
-      timeStart: "19:00",
-      timeEnd: "23:00",
+      dealType: "$10 WHISKY",
+      discount: 40,
       category: "whisky",
       brand: "Glenfiddich",
       servingStyle: "glass",
-      isPremiumDeal: true,
-      establishment: {
-        name: "Highland Tavern",
-        address: "321 Whisky Lane, Cape Town",
-        distance: 1.5
-      }
+      endTime: "11:00 PM",
+      distance: 1.5
     },
     {
       id: 5,
-      name: "Weekend Gin Special",
-      description: "Craft gin and tonics with premium mixers and fresh garnishes at special weekend prices.",
-      originalPrice: 85,
-      dealPrice: 60,
-      dayOfWeek: "Weekends",
-      timeStart: "14:00",
-      timeEnd: "18:00",
+      dealType: "PREMIUM GIN",
+      discount: 30,
       category: "gin",
-      brand: "Hendrick's",
+      brand: "Hendricks",
       servingStyle: "glass",
-      isPremiumDeal: false,
-      establishment: {
-        name: "The Gin Garden",
-        address: "555 Botanical St, Cape Town",
-        distance: 2.1
-      }
+      endTime: "6:00 PM",
+      distance: 2.1
     },
     {
       id: 6,
-      name: "Craft Beer Flight",
-      description: "Sample our selection of local craft beers with our discounted tasting flight.",
-      originalPrice: 120,
-      dealPrice: 85,
-      dayOfWeek: "Daily",
-      timeStart: "12:00",
-      timeEnd: "16:00",
+      dealType: "CRAFT BEER",
+      discount: 25,
       category: "beer",
-      subcategory: "Craft Beer",
+      subcategory: "craft",
       servingStyle: "glass",
-      isPremiumDeal: true,
-      establishment: {
-        name: "Brewmaster's Den",
-        address: "42 Hop Street, Cape Town",
-        distance: 1.8
-      }
+      endTime: "4:00 PM",
+      distance: 1.8
     }
   ];
   
