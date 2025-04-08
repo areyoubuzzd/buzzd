@@ -34,7 +34,15 @@ export function generateTestUrls() {
         secure: true,
         transformation: [{ width: 800, height: 400, crop: 'fill' }]
       }),
-      wine: cloudinary.url('backgrounds/wine/image', { 
+      red_wine: cloudinary.url('backgrounds/red_wine/image', { 
+        secure: true,
+        transformation: [{ width: 800, height: 400, crop: 'fill' }] 
+      }),
+      white_wine: cloudinary.url('backgrounds/white_wine/image', { 
+        secure: true,
+        transformation: [{ width: 800, height: 400, crop: 'fill' }] 
+      }),
+      bubbly: cloudinary.url('backgrounds/bubbly/image', { 
         secure: true,
         transformation: [{ width: 800, height: 400, crop: 'fill' }] 
       }),
@@ -51,6 +59,34 @@ export function generateTestUrls() {
             transformation: [{ width: 200, crop: 'fill' }]
           }),
           glass: cloudinary.url('brands/beer/heineken/glass', { 
+            secure: true,
+            transformation: [{ width: 200, crop: 'fill' }]
+          })
+        },
+        asahi: {
+          glass: cloudinary.url('brands/beer/asahi/glass', { 
+            secure: true,
+            transformation: [{ width: 200, crop: 'fill' }]
+          })
+        }
+      },
+      bubbly: {
+        prosecco: {
+          glass: cloudinary.url('brands/bubbly/prosecco/glass', { 
+            secure: true,
+            transformation: [{ width: 200, crop: 'fill' }]
+          })
+        }
+      },
+      whisky: {
+        monkey_shoulder: {
+          bottle: cloudinary.url('brands/whisky/monkey_shoulder/bottle', { 
+            secure: true,
+            transformation: [{ width: 200, crop: 'fill' }]
+          })
+        },
+        jack_daniels: {
+          bottle: cloudinary.url('brands/whisky/jack_daniels/bottle', { 
             secure: true,
             transformation: [{ width: 200, crop: 'fill' }]
           })
@@ -72,10 +108,9 @@ export function generateTestUrls() {
   const hardcodedUrls = {
     backgrounds: {
       beer: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.png`,
-      wine: {
-        red: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/image.png`,
-        white: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/wine/white.png`
-      },
+      red_wine: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/red_wine/image.png`,
+      white_wine: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/white_wine/image.png`,
+      bubbly: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/bubbly/image.png`,
       cocktail: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/cocktail/image.png`,
       whisky: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/whisky/image.png`,
       default: `https://res.cloudinary.com/${cloudName}/image/upload/sample` // Sample image
@@ -86,9 +121,25 @@ export function generateTestUrls() {
           bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/bottle.png`,
           glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/glass.png`
         },
+        asahi: {
+          glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/asahi/glass.png`
+        },
         default: {
           bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/default/bottle.png`,
           glass: `https://res.cloudinary.com/${cloudName}/image/upload/bottle` // Generic bottle
+        }
+      },
+      bubbly: {
+        prosecco: {
+          glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/bubbly/prosecco/glass.png`
+        }
+      },
+      whisky: {
+        monkey_shoulder: {
+          bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/whisky/monkey_shoulder/bottle.png`
+        },
+        jack_daniels: {
+          bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/whisky/jack_daniels/bottle.png`
         }
       },
       cocktail: {

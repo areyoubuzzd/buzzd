@@ -250,7 +250,9 @@ export default function CloudinaryTestPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="beer">Beer</SelectItem>
-                    <SelectItem value="wine">Wine</SelectItem>
+                    <SelectItem value="red_wine">Red Wine</SelectItem>
+                    <SelectItem value="white_wine">White Wine</SelectItem>
+                    <SelectItem value="bubbly">Bubbly</SelectItem>
                     <SelectItem value="cocktail">Cocktail</SelectItem>
                     <SelectItem value="whisky">Whisky</SelectItem>
                     <SelectItem value="vodka">Vodka</SelectItem>
@@ -310,7 +312,9 @@ export default function CloudinaryTestPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="beer">Beer</SelectItem>
-                    <SelectItem value="wine">Wine</SelectItem>
+                    <SelectItem value="red_wine">Red Wine</SelectItem>
+                    <SelectItem value="white_wine">White Wine</SelectItem>
+                    <SelectItem value="bubbly">Bubbly</SelectItem>
                     <SelectItem value="whisky">Whisky</SelectItem>
                     <SelectItem value="vodka">Vodka</SelectItem>
                     <SelectItem value="rum">Rum</SelectItem>

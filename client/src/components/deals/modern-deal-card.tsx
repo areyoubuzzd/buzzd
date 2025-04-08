@@ -26,7 +26,7 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     
     // First get the CSS class for color fallback
     let colorClass = 'deal-card-beer';
-    if (category.includes('wine')) {
+    if (category.includes('red_wine') || category.includes('white_wine') || category.includes('bubbly')) {
       colorClass = 'deal-card-wine';
     } else if (category.includes('cocktail') || category.includes('margarita')) {
       colorClass = 'deal-card-cocktail';
@@ -54,8 +54,12 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     
     if (category === 'beer') {
       return `${basePath}/backgrounds/beer/image`;
-    } else if (category === 'wine') {
-      return `${basePath}/backgrounds/wine/image`;
+    } else if (category === 'red_wine') {
+      return `${basePath}/backgrounds/red_wine/image`;
+    } else if (category === 'white_wine') {
+      return `${basePath}/backgrounds/white_wine/image`;
+    } else if (category === 'bubbly') {
+      return `${basePath}/backgrounds/bubbly/image`;
     } else if (category === 'cocktail') {
       return `${basePath}/backgrounds/cocktail/image`;
     } else if (category === 'whisky' || category === 'spirit') {
@@ -107,8 +111,12 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     if (brand && brand !== 'default') {
       if (category === 'beer') {
         return `${basePath}/brands/beer/${brand}/${servingStyle}`;
-      } else if (category === 'wine') {
-        return `${basePath}/brands/wine/${brand}/${servingStyle}`;
+      } else if (category === 'red_wine') {
+        return `${basePath}/brands/red_wine/${brand}/${servingStyle}`;
+      } else if (category === 'white_wine') {
+        return `${basePath}/brands/white_wine/${brand}/${servingStyle}`;
+      } else if (category === 'bubbly') {
+        return `${basePath}/brands/bubbly/${brand}/${servingStyle}`;
       } else if (category === 'cocktail') {
         return `${basePath}/brands/cocktail/${brand}/glass`;
       } else if (category === 'whisky' || category === 'spirit') {
@@ -119,8 +127,12 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     // If no specific brand or the brand image doesn't exist, use category defaults
     if (category === 'beer') {
       return `${basePath}/brands/beer/default/${servingStyle}`;
-    } else if (category === 'wine') {
-      return `${basePath}/brands/wine/default/${servingStyle}`;
+    } else if (category === 'red_wine') {
+      return `${basePath}/brands/red_wine/default/${servingStyle}`;
+    } else if (category === 'white_wine') {
+      return `${basePath}/brands/white_wine/default/${servingStyle}`;
+    } else if (category === 'bubbly') {
+      return `${basePath}/brands/bubbly/default/${servingStyle}`;
     } else if (category === 'cocktail') {
       return `${basePath}/brands/cocktail/default/glass`;
     } else if (category === 'whisky' || category === 'spirit') {
