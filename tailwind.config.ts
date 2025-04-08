@@ -10,6 +10,7 @@ export default {
         'baloo': ['Baloo 2', 'cursive'],
         'titan': ['Titan One', 'cursive'],
         'bangers': ['Bangers', 'cursive'],
+        'luckiest': ['Luckiest Guy', 'cursive'],
       },
       borderRadius: {
         lg: "var(--radius)",
