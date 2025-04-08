@@ -37,6 +37,13 @@ export default function Header() {
                 />
               </div>
             </Link>
+            <div className="ml-6 flex items-center space-x-4">
+              <Link href="/modern-deals">
+                <div className="text-sm font-medium cursor-pointer px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                  New Card Design
+                </div>
+              </Link>
+            </div>
           </div>
           <div className="flex items-center">
             {user ? (

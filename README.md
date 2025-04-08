@@ -88,6 +88,7 @@ Examples:
 - `/backgrounds/beer/image`
 - `/backgrounds/wine/image`
 - `/backgrounds/whisky/image`
+- `/backgrounds/cocktail/image`
 
 Default fallback:
 - `/backgrounds/default/image`
@@ -97,17 +98,23 @@ Default fallback:
 /brands/[alcoholCategory]/[brandName]/[bottle_or_glass]
 ```
 
-Examples:
+Examples for beer, wine, whisky (bottle and glass):
 - `/brands/beer/heineken/bottle`
 - `/brands/beer/heineken/glass`
 - `/brands/wine/yellowtail/bottle`
 - `/brands/wine/yellowtail/glass`
+
+Examples for cocktails (glass only):
+- `/brands/cocktail/margarita/glass`
+- `/brands/cocktail/mojito/glass`
+- `/brands/cocktail/old_fashioned/glass`
 
 Default fallbacks by category and serving style:
 - `/brands/beer/bottle/default`
 - `/brands/beer/glass/default`
 - `/brands/wine/bottle/default`
 - `/brands/wine/glass/default`
+- `/brands/cocktail/glass/default`
 
 #### Restaurant Logos
 ```

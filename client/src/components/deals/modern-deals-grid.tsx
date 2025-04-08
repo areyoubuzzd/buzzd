@@ -1,0 +1,212 @@
+import { useState, useEffect } from 'react';
+import ModernDealCard from './modern-deal-card';
+import { Button } from '@/components/ui/button';
+
+// Sample data for testing
+const sampleDeals = [
+  {
+    id: 1,
+    title: 'Beer Special',
+    alcoholCategory: 'beer',
+    brandName: 'heineken',
+    servingStyle: 'glass',
+    discountedPrice: 6,
+    regularPrice: 9.5,
+    discountPercentage: 30,
+    startTime: '16:00',
+    endTime: '18:00',
+    isOneForOne: false,
+    isPremium: false,
+    bgImageUrl: '',
+    brandImageUrl: '',
+    establishment: {
+      name: 'The Beer House',
+      latitude: 1.3521,
+      longitude: 103.8198,
+    }
+  },
+  {
+    id: 2,
+    title: 'Wine Special',
+    alcoholCategory: 'wine',
+    brandName: 'yellowtail',
+    servingStyle: 'glass',
+    discountedPrice: 7,
+    regularPrice: 12,
+    discountPercentage: 40,
+    startTime: '17:00',
+    endTime: '20:00',
+    isOneForOne: true,
+    isPremium: false,
+    bgImageUrl: '',
+    brandImageUrl: '',
+    establishment: {
+      name: 'Wine & Dine',
+      latitude: 1.3521,
+      longitude: 103.8198,
+    }
+  },
+  {
+    id: 3,
+    title: 'Cocktail Special',
+    alcoholCategory: 'cocktail',
+    brandName: 'margarita',
+    servingStyle: 'glass',
+    discountedPrice: 3,
+    regularPrice: 3.9,
+    discountPercentage: 23,
+    startTime: '18:00',
+    endTime: '22:00',
+    isOneForOne: false,
+    isPremium: false,
+    bgImageUrl: '',
+    brandImageUrl: '',
+    establishment: {
+      name: 'Cocktail Lounge',
+      latitude: 1.3521,
+      longitude: 103.8198,
+    }
+  },
+  {
+    id: 4,
+    title: 'Spirit Special',
+    alcoholCategory: 'whisky',
+    brandName: 'roku',
+    servingStyle: 'bottle',
+    discountedPrice: 12,
+    regularPrice: 17,
+    discountPercentage: 30,
+    startTime: '19:00',
+    endTime: '23:00',
+    isOneForOne: false,
+    isPremium: true,
+    bgImageUrl: '',
+    brandImageUrl: '',
+    establishment: {
+      name: 'Spirits & Co',
+      latitude: 1.3521,
+      longitude: 103.8198,
+    }
+  }
+];
+
+export default function ModernDealsGrid() {
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [deals, setDeals] = useState(sampleDeals);
+  
+  // Simulate user location for testing
+  useEffect(() => {
+    // Default to Singapore location
+    setUserLocation({ lat: 1.3521, lng: 103.8198 });
+    
+    // Or get actual location if available
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.log('Error getting location:', error);
+        }
+      );
+    }
+  }, []);
+  
+  // Calculate distance between two points using Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+  
+  const deg2rad = (deg: number): number => {
+    return deg * (Math.PI/180);
+  };
+  
+  // Get the current location from API test endpoint (for testing only)
+  const loadDealsFromAPI = async () => {
+    try {
+      const response = await fetch(`/api/test-cloudinary`);
+      const data = await response.json();
+      console.log('Cloudinary test data:', data);
+      
+      // Update the deal's bgImageUrl and brandImageUrl with Cloudinary URLs
+      const updatedDeals = deals.map(deal => {
+        const category = deal.alcoholCategory.toLowerCase();
+        
+        // Get background image URL
+        let bgImageUrl = '';
+        if (category === 'beer' && data.testUrls.backgrounds.beer) {
+          bgImageUrl = data.testUrls.backgrounds.beer;
+        } else if (category === 'wine' && data.testUrls.backgrounds.wine.red) {
+          bgImageUrl = data.testUrls.backgrounds.wine.red;
+        } else if (category === 'whisky' && data.testUrls.backgrounds.whisky) {
+          bgImageUrl = data.testUrls.backgrounds.whisky;
+        } else if (category === 'cocktail' && data.testUrls.backgrounds.cocktail) {
+          bgImageUrl = data.testUrls.backgrounds.cocktail;
+        } else {
+          bgImageUrl = data.testUrls.backgrounds.default;
+        }
+        
+        // Get brand image URL
+        let brandImageUrl = '';
+        if (category === 'beer' && deal.brandName === 'heineken') {
+          brandImageUrl = data.testUrls.brands.beer.heineken[deal.servingStyle];
+        } else if (category === 'cocktail' && deal.brandName === 'margarita') {
+          brandImageUrl = data.testUrls.brands.cocktail?.margarita?.glass || '';
+        }
+        
+        return {
+          ...deal,
+          bgImageUrl,
+          brandImageUrl
+        };
+      });
+      
+      setDeals(updatedDeals);
+    } catch (error) {
+      console.error('Error fetching Cloudinary test data:', error);
+    }
+  };
+  
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Happy Hour Deals</h1>
+      
+      <Button onClick={loadDealsFromAPI} className="mb-6">
+        Load Cloudinary Images
+      </Button>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {deals.map((deal) => {
+          // Calculate distance if user location is available
+          const distance = userLocation ? 
+            calculateDistance(
+              userLocation.lat, 
+              userLocation.lng,
+              deal.establishment.latitude,
+              deal.establishment.longitude
+            ) : null;
+            
+          return (
+            <ModernDealCard
+              key={deal.id}
+              deal={deal}
+              distance={distance}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}

@@ -39,11 +39,32 @@ class CloudinaryService {
   
   /**
    * Get a brand image URL based on alcohol category, brand name, and serving style (bottle/glass)
+   * For cocktails, the brandName is treated as the cocktail name (e.g., "margarita", "mojito")
    */
   getBrandImageUrl(alcoholCategory: string, brandName: string, servingStyle?: 'bottle' | 'glass'): string {
-    const serving = servingStyle || 'default';
     const formattedCategory = alcoholCategory.toLowerCase().replace(/\s+/g, '_');
     const formattedBrand = brandName.toLowerCase().replace(/\s+/g, '_');
+    
+    // Special handling for cocktails - they are typically served in glasses
+    if (formattedCategory === 'cocktail') {
+      // For cocktails, we always use 'glass' as the serving style (override any provided value)
+      const serving = 'glass';
+      
+      // Path structure for cocktails: brands/cocktail/[cocktail_name]/glass
+      return cloudinary.url(`brands/${formattedCategory}/${formattedBrand}/${serving}`, {
+        secure: true,
+        transformation: [
+          { width: 200, crop: 'fill' },
+          { quality: 'auto' },
+          { fetch_format: 'auto' }
+        ],
+        // Fallback to a generic cocktail glass if the specific cocktail image doesn't exist
+        default_image: `brands/${formattedCategory}/${serving}/default`
+      });
+    }
+    
+    // Standard handling for other alcohol types (beer, wine, whisky, etc.)
+    const serving = servingStyle || 'default';
     
     // Path structure: brands/[category]/[brand]/[bottle_or_glass]
     return cloudinary.url(`brands/${formattedCategory}/${formattedBrand}/${serving}`, {

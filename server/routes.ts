@@ -11,6 +11,61 @@ import { cloudinaryService } from "./services/cloudinaryService";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
+  
+  // Test endpoint for Cloudinary image URLs
+  app.get("/api/test-cloudinary", (_req, res) => {
+    try {
+      const testUrls = {
+        backgrounds: {
+          beer: "https://res.cloudinary.com/demo/image/upload/v1312461204/beer_background.jpg",
+          wine: {
+            red: "https://res.cloudinary.com/demo/image/upload/v1312461204/red_wine_background.jpg",
+            white: "https://res.cloudinary.com/demo/image/upload/v1312461204/white_wine_background.jpg"
+          },
+          whisky: "https://res.cloudinary.com/demo/image/upload/v1312461204/whisky_background.jpg",
+          cocktail: "https://res.cloudinary.com/demo/image/upload/v1312461204/cocktail_background.jpg",
+          default: "https://res.cloudinary.com/demo/image/upload/v1312461204/default_background.jpg"
+        },
+        brands: {
+          beer: {
+            heineken: {
+              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/heineken_bottle.png",
+              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/heineken_glass.png"
+            },
+            asahi: {
+              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/asahi_bottle.png",
+              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/asahi_glass.png"
+            }
+          },
+          wine: {
+            yellowtail: {
+              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/yellowtail_bottle.png",
+              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/yellowtail_glass.png"
+            }
+          },
+          whisky: {
+            johnniewalker: {
+              bottle: "https://res.cloudinary.com/demo/image/upload/v1312461204/johnnie_walker_bottle.png",
+              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/johnnie_walker_glass.png"
+            }
+          },
+          cocktail: {
+            margarita: {
+              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/margarita_glass.png"
+            },
+            mojito: {
+              glass: "https://res.cloudinary.com/demo/image/upload/v1312461204/mojito_glass.png"
+            }
+          }
+        }
+      };
+      
+      res.json({ testUrls });
+    } catch (error) {
+      console.error("Error in Cloudinary test endpoint:", error);
+      res.status(500).json({ error: "Failed to generate test URLs" });
+    }
+  });
 
   // Error handler for Zod validation errors
   const handleZodError = (error: unknown, res: Response) => {
@@ -494,6 +549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         backgrounds: {
           beer: cloudinaryService.getBackgroundImageUrl('beer'),
           whisky: cloudinaryService.getBackgroundImageUrl('whisky'),
+          cocktail: cloudinaryService.getBackgroundImageUrl('cocktail'),
           wine: {
             red: cloudinaryService.getBackgroundImageUrl('wine'),
             white: cloudinaryService.getBackgroundImageUrl('wine'),
@@ -517,6 +573,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               bottle: cloudinaryService.getBrandImageUrl('whisky', 'johnnie_walker', 'bottle'),
               glass: cloudinaryService.getBrandImageUrl('whisky', 'johnnie_walker', 'glass')
             }
+          },
+          cocktail: {
+            margarita: {
+              glass: cloudinaryService.getBrandImageUrl('cocktail', 'margarita', 'glass')
+            },
+            mojito: {
+              glass: cloudinaryService.getBrandImageUrl('cocktail', 'mojito', 'glass')
+            },
+            oldFashioned: {
+              glass: cloudinaryService.getBrandImageUrl('cocktail', 'old_fashioned', 'glass')
+            }
           }
         },
         // Restaurant logos
@@ -539,11 +606,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "/backgrounds/beer/image", 
           "/backgrounds/wine/image",
           "/backgrounds/whisky/image",
+          "/backgrounds/cocktail/image",
           "/backgrounds/default/image",
           "/brands/beer/heineken/bottle",
           "/brands/beer/heineken/glass",
           "/brands/beer/bottle/default",
           "/brands/beer/glass/default",
+          "/brands/cocktail/margarita/glass",
+          "/brands/cocktail/mojito/glass", 
+          "/brands/cocktail/glass/default",
           "/restaurants/logos/"
         ],
         testUrls

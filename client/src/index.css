@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Fredoka font */
+@import '@fontsource/fredoka';
+
 @layer base {
   * {
     @apply border-border;
@@ -123,5 +126,72 @@
     font-weight: bold;
     padding: 4px 8px;
     border-radius: 4px;
+  }
+  
+  /* New deal card styles */
+  .deal-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    transition: transform 0.3s ease;
+  }
+  
+  .deal-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .deal-card-beer {
+    background-color: #ff5722; /* Orange background for beer */
+  }
+  
+  .deal-card-wine {
+    background-color: #e91e63; /* Pink/red background for wine */
+  }
+  
+  .deal-card-cocktail {
+    background-color: #009688; /* Teal background for cocktails */
+  }
+  
+  .deal-card-spirit {
+    background-color: #673ab7; /* Purple background for spirits */
+  }
+  
+  .deal-price {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+  }
+  
+  .deal-discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(255,255,255,0.25);
+    color: white;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+  
+  .deal-info {
+    display: flex;
+    align-items: center;
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+  }
+  
+  .deal-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
   }
 }
