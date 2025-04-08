@@ -183,36 +183,52 @@ export default function ModernDealsGrid() {
       const data = await response.json();
       console.log('Cloudinary test data:', data);
       
-      // Hardcoded URLs for beer and margarita only
-      const hardcodedBeerImage = "https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/beer/image.png";
-      const hardcodedMargaritaImage = "https://res.cloudinary.com/dp2uoj3ts/image/upload/backgrounds/cocktail/image.png";
-      const hardcodedBeerBottle = "https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/beer/heineken/bottle.png";
-      const hardcodedBeerGlass = "https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/beer/heineken/glass.png";
-      const hardcodedMargaritaGlass = "https://res.cloudinary.com/dp2uoj3ts/image/upload/brands/cocktail/margarita/glass.png";
+      // Use the hardcoded URLs directly from the test-cloudinary response
+      let beerBgUrl, cocktailBgUrl, beerBottleUrl, beerGlassUrl, margaritaGlassUrl;
       
-      // Update the deal's bgImageUrl and brandImageUrl with Cloudinary URLs
+      if (data && data.hardcodedUrls) {
+        beerBgUrl = data.hardcodedUrls.backgrounds.beer;
+        cocktailBgUrl = data.hardcodedUrls.backgrounds.cocktail;
+        beerBottleUrl = data.hardcodedUrls.brands.beer.heineken.bottle;
+        beerGlassUrl = data.hardcodedUrls.brands.beer.heineken.glass;
+        margaritaGlassUrl = data.hardcodedUrls.brands.cocktail.margarita.glass;
+      } else {
+        // Fallback to known format if API doesn't return the expected data
+        const cloudName = "dp2uoj3ts";
+        beerBgUrl = `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.png`;
+        cocktailBgUrl = `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/cocktail/image.png`;
+        beerBottleUrl = `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/bottle.png`;
+        beerGlassUrl = `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/glass.png`;
+        margaritaGlassUrl = `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/margarita/glass.png`;
+      }
+      
+      console.log("Using exact URLs from API for testing...");
+      console.log("Beer background:", beerBgUrl);
+      console.log("Cocktail background:", cocktailBgUrl);
+      console.log("Beer bottle:", beerBottleUrl);
+      console.log("Beer glass:", beerGlassUrl);
+      console.log("Margarita glass:", margaritaGlassUrl);
+      
+      // Update the deal's bgImageUrl and brandImageUrl with hardcoded Cloudinary URLs
       const updatedDeals = deals.map(deal => {
         const category = deal.alcoholCategory.toLowerCase();
         
         // Get background image URL
         let bgImageUrl = '';
         if (category === 'beer') {
-          bgImageUrl = hardcodedBeerImage;
+          bgImageUrl = beerBgUrl;
         } else if (category === 'cocktail') {
-          bgImageUrl = hardcodedMargaritaImage;
-        } else {
-          // For all other categories, use the card's default color scheme
-          bgImageUrl = '';
+          bgImageUrl = cocktailBgUrl;
         }
         
         // Get brand image URL
         let brandImageUrl = '';
         if (category === 'beer' && deal.servingStyle === 'bottle') {
-          brandImageUrl = hardcodedBeerBottle;
+          brandImageUrl = beerBottleUrl;
         } else if (category === 'beer' && deal.servingStyle === 'glass') {
-          brandImageUrl = hardcodedBeerGlass;
+          brandImageUrl = beerGlassUrl;
         } else if (category === 'cocktail' && deal.brandName === 'margarita') {
-          brandImageUrl = hardcodedMargaritaGlass;
+          brandImageUrl = margaritaGlassUrl;
         }
         
         return {
