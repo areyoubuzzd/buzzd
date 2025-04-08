@@ -2,23 +2,47 @@ import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Helper function to get card background color by drink type
-function getCardBackgroundColor(drinkType: string | undefined) {
-  // If category is undefined or null, return a default color
-  if (!drinkType) return "#059669"; // default emerald color
+// Helper function to get gradient background by drink type - HIGH CONTRAST
+function getGradientBackground(drinkType: string | undefined, id?: number) {
+  // If category is undefined or null, return a default gradient
+  if (!drinkType) return 'radial-gradient(circle at center, #DCFCE7 0%, #22C55E 50%, #14532D 100%)';
   
   const type = drinkType.toLowerCase();
   
-  if (type.includes("beer")) return "#f97316"; // orange
-  if (type.includes("wine")) return "#e11d48"; // rose
-  if (type.includes("cocktail")) return "#059669"; // emerald
-  if (type.includes("whisky") || type.includes("whiskey")) return "#7e22ce"; // purple
-  if (type.includes("gin")) return "#0891b2"; // cyan
-  if (type.includes("vodka")) return "#4f46e5"; // indigo
-  if (type.includes("rum")) return "#b45309"; // amber
+  // For beer, select one of three gradient options based on the id
+  if (type.includes("beer")) {
+    const beerGradients = [
+      'radial-gradient(circle at center, #FEF3C7 0%, #F59E0B 50%, #B45309 100%)',  // Orange gradient - HIGH CONTRAST
+      'radial-gradient(circle at center, #FFF7ED 0%, #FB923C 50%, #C2410C 100%)',  // Lighter orange gradient - HIGH CONTRAST
+      'radial-gradient(circle at center, #CCFBF1 0%, #14B8A6 50%, #134E4A 100%)',  // Teal gradient - HIGH CONTRAST
+    ];
+    
+    // Use the id to deterministically select a gradient
+    if (id === undefined || id === null) {
+      return beerGradients[0]; // Default to first gradient if no id
+    }
+    
+    // Use modulo to select one of the gradients based on id
+    const gradientIndex = id % beerGradients.length;
+    return beerGradients[gradientIndex];
+  }
   
-  // Default color if no match
-  return "#059669"; // emerald
+  // Define radial gradients for each category
+  if (type.includes("wine")) return 'radial-gradient(circle at center, #FEE2E2 0%, #EF4444 50%, #7F1D1D 100%)';
+  if (type.includes("cocktail")) return 'radial-gradient(circle at center, #DCFCE7 0%, #22C55E 50%, #14532D 100%)';
+  if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #F3E8FF 0%, #A855F7 50%, #581C87 100%)';
+  if (type.includes("gin")) return 'radial-gradient(circle at center, #CCFBF1 0%, #14B8A6 50%, #0F766E 100%)';
+  if (type.includes("vodka")) return 'radial-gradient(circle at center, #F3E8FF 0%, #A855F7 50%, #581C87 100%)';
+  if (type.includes("rum")) return 'radial-gradient(circle at center, #F3E8FF 0%, #A855F7 50%, #581C87 100%)';
+  
+  // Default gradient if no match
+  return 'radial-gradient(circle at center, #DCFCE7 0%, #22C55E 50%, #14532D 100%)';
+}
+
+// Keeping the old function for backward compatibility
+function getCardBackgroundColor(drinkType: string | undefined) {
+  // Now just returns 'none' since we're using gradients instead
+  return "none";
 }
 
 // Helper to get background color class
@@ -146,8 +170,7 @@ function DealCard({
         // Credit card aspect ratio (1.586:1) - Width to height ratio
         aspectRatio: '1.586/1',
         borderRadius: '8px', // Slightly smaller radius
-        backgroundColor: getCardBackgroundColor(deal.drinkType),
-        backgroundImage: deal.imageUrl ? `url(${deal.imageUrl})` : undefined,
+        background: getGradientBackground(deal.drinkType, deal.id),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
