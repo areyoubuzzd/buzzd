@@ -8,6 +8,7 @@ import ProfilePage from "@/pages/profile-page";
 import SavedDealsPage from "@/pages/saved-deals-page";
 import SearchPage from "@/pages/search-page";
 import ModernDealsPage from "@/pages/modern-deals-page";
+import CloudinaryTestPage from "@/pages/cloudinary-test";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/deal/:id" component={DealDetailsPage} />
       <Route path="/search" component={SearchPage} />
       <Route path="/modern-deals" component={ModernDealsPage} />
+      <Route path="/cloudinary-test" component={CloudinaryTestPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/saved" component={SavedDealsPage} />
       <Route component={NotFound} />

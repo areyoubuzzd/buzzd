@@ -13,13 +13,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   
   // Test endpoint for Cloudinary image URLs
-  app.get("/api/test-cloudinary", (_req, res) => {
+  app.get("/api/test-cloudinary", async (_req, res) => {
     try {
-      // Get the cloud name from env var or use a placeholder for testing
-      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "democloud";
+      const { testCloudinaryConnection, logCloudinaryConfig, generateTestUrls } = await import('./test-cloudinary');
       
-      // Use the actual Cloudinary folder structure as defined in cloudinaryService.ts
-      const testUrls = {
+      // Log Cloudinary config to help debug
+      logCloudinaryConfig();
+      
+      // Test connection
+      let connectionOk = false;
+      try {
+        connectionOk = await testCloudinaryConnection();
+      } catch (error) {
+        console.error("Cloudinary connection test failed:", error);
+      }
+      
+      // Generate URLs using the Cloudinary SDK
+      const testUrls = generateTestUrls();
+      
+      // Add hardcoded URLs as fallback
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "democloud";
+      const hardcodedUrls = {
         backgrounds: {
           beer: `https://res.cloudinary.com/${cloudName}/image/upload/backgrounds/beer/image.jpg`,
           wine: {
@@ -35,36 +49,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             heineken: {
               bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/bottle.png`,
               glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/heineken/glass.png`
-            },
-            asahi: {
-              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/asahi/bottle.png`,
-              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/beer/asahi/glass.png`
-            }
-          },
-          wine: {
-            yellowtail: {
-              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/wine/yellowtail/bottle.png`,
-              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/wine/yellowtail/glass.png`
-            }
-          },
-          whisky: {
-            johnniewalker: {
-              bottle: `https://res.cloudinary.com/${cloudName}/image/upload/brands/whisky/johnniewalker/bottle.png`,
-              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/whisky/johnniewalker/glass.png`
             }
           },
           cocktail: {
             margarita: {
               glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/margarita/glass.png`
-            },
-            mojito: {
-              glass: `https://res.cloudinary.com/${cloudName}/image/upload/brands/cocktail/mojito/glass.png`
             }
           }
         }
       };
       
-      res.json({ testUrls });
+      res.json({ 
+        connectionOk,
+        sdkUrls: testUrls,
+        hardcodedUrls,
+        cloudName
+      });
     } catch (error) {
       console.error("Error in Cloudinary test endpoint:", error);
       res.status(500).json({ error: "Failed to generate test URLs" });
