@@ -138,7 +138,7 @@ function DealCard({
   return (
     <div 
       className={cn(
-        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg h-full",
+        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg h-full w-full",
         isGrayedOut && "opacity-50"
       )}
       onClick={handleCardClick}
@@ -149,6 +149,7 @@ function DealCard({
         backgroundImage: deal.imageUrl ? `url(${deal.imageUrl})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        maxWidth: '100%', // Ensure it doesn't overflow its container
       }}
     >
       {/* Card Content */}

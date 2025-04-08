@@ -122,33 +122,37 @@ export default function CardsTestPage() {
         </TabsList>
         
         <TabsContent value="original">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredDeals.map(deal => (
-              <DealCard
-                key={deal.id}
-                {...deal}
-                backgroundImageUrl={cloudinaryService.getBackgroundImageUrl(deal.category)}
-                heroImageUrl={cloudinaryService.getHeroImageUrl(deal.category, deal.brand, deal.servingStyle)}
-                isSaved={savedDeals.includes(deal.id)}
-                onSaveToggle={() => toggleSaved(deal.id)}
-                onClick={() => console.log(`Clicked deal ${deal.id}`)}
-              />
+              <div className="w-full" key={`orig-${deal.id}`}>
+                <DealCard
+                  key={deal.id}
+                  {...deal}
+                  backgroundImageUrl={cloudinaryService.getBackgroundImageUrl(deal.category)}
+                  heroImageUrl={cloudinaryService.getHeroImageUrl(deal.category, deal.brand, deal.servingStyle)}
+                  isSaved={savedDeals.includes(deal.id)}
+                  onSaveToggle={() => toggleSaved(deal.id)}
+                  onClick={() => console.log(`Clicked deal ${deal.id}`)}
+                />
+              </div>
             ))}
           </div>
         </TabsContent>
         
         <TabsContent value="modern">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredDeals.map(deal => (
-              <ModernDealCard
-                key={deal.id}
-                {...deal}
-                backgroundImageUrl={cloudinaryService.getBackgroundImageUrl(deal.category)}
-                heroImageUrl={cloudinaryService.getHeroImageUrl(deal.category, deal.brand, deal.servingStyle)}
-                isSaved={savedDeals.includes(deal.id)}
-                onSaveToggle={() => toggleSaved(deal.id)}
-                onClick={() => console.log(`Clicked deal ${deal.id}`)}
-              />
+              <div className="w-full" key={`modern-${deal.id}`}>
+                <ModernDealCard
+                  key={deal.id}
+                  {...deal}
+                  backgroundImageUrl={cloudinaryService.getBackgroundImageUrl(deal.category)}
+                  heroImageUrl={cloudinaryService.getHeroImageUrl(deal.category, deal.brand, deal.servingStyle)}
+                  isSaved={savedDeals.includes(deal.id)}
+                  onSaveToggle={() => toggleSaved(deal.id)}
+                  onClick={() => console.log(`Clicked deal ${deal.id}`)}
+                />
+              </div>
             ))}
           </div>
         </TabsContent>
