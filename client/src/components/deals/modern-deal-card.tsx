@@ -34,6 +34,7 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
       colorClass = 'deal-card-spirit';
     }
     
+    console.log("Card bg class:", colorClass, "Category:", category);
     return colorClass;
   };
   
@@ -41,6 +42,7 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
   const getBackgroundImageUrl = () => {
     // If deal has a specific background image, use that
     if (deal.bgImageUrl) {
+      console.log("Using explicit bgImageUrl:", deal.bgImageUrl);
       return deal.bgImageUrl;
     }
     
@@ -48,26 +50,10 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
     const category = deal.alcoholCategory?.toLowerCase() || '';
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo';
     
-    // Construct a base path without file extension to let Cloudinary auto-detect the format
-    // We're also using the f_auto parameter to let Cloudinary optimize the format
-    const basePath = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto`;
+    console.log("No explicit bgImageUrl found for:", category, "Using fallback");
     
-    if (category === 'beer') {
-      return `${basePath}/backgrounds/beer/image`;
-    } else if (category === 'red_wine') {
-      return `${basePath}/backgrounds/red_wine/image`;
-    } else if (category === 'white_wine') {
-      return `${basePath}/backgrounds/white_wine/image`;
-    } else if (category === 'bubbly') {
-      return `${basePath}/backgrounds/bubbly/image`;
-    } else if (category === 'cocktail') {
-      return `${basePath}/backgrounds/cocktail/image`;
-    } else if (category === 'whisky' || category === 'spirit') {
-      return `${basePath}/backgrounds/whisky/image`;
-    }
-    
-    // Default image if none of the categories match
-    return `${basePath}/backgrounds/default/image`;
+    // For testing, use guaranteed existing sample image from Cloudinary demo
+    return "https://res.cloudinary.com/demo/image/upload/sample.jpg";
   };
   
   // Format the deal price text
@@ -95,52 +81,14 @@ export default function ModernDealCard({ deal, distance }: ModernDealCardProps) 
   const getDrinkImageUrl = () => {
     // Use the provided brand image if available
     if (deal.brandImageUrl) {
+      console.log("Using explicit brandImageUrl:", deal.brandImageUrl);
       return deal.brandImageUrl;
     }
     
-    // Use appropriate image based on category
-    const category = deal.alcoholCategory?.toLowerCase() || '';
-    const brand = deal.brandName?.toLowerCase().replace(/\s+/g, '_') || '';
-    const servingStyle = deal.servingStyle?.toLowerCase() || 'glass';
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo';
+    console.log("No explicit brandImageUrl found for deal ID:", deal.id, "Using fallback");
     
-    // Construct a base path with format auto parameter
-    const basePath = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto`;
-    
-    // If we have a brand name, try to get a specific image for this brand
-    if (brand && brand !== 'default') {
-      if (category === 'beer') {
-        return `${basePath}/brands/beer/${brand}/${servingStyle}`;
-      } else if (category === 'red_wine') {
-        return `${basePath}/brands/red_wine/${brand}/${servingStyle}`;
-      } else if (category === 'white_wine') {
-        return `${basePath}/brands/white_wine/${brand}/${servingStyle}`;
-      } else if (category === 'bubbly') {
-        return `${basePath}/brands/bubbly/${brand}/${servingStyle}`;
-      } else if (category === 'cocktail') {
-        return `${basePath}/brands/cocktail/${brand}/glass`;
-      } else if (category === 'whisky' || category === 'spirit') {
-        return `${basePath}/brands/whisky/${brand}/${servingStyle}`;
-      }
-    }
-    
-    // If no specific brand or the brand image doesn't exist, use category defaults
-    if (category === 'beer') {
-      return `${basePath}/brands/beer/default/${servingStyle}`;
-    } else if (category === 'red_wine') {
-      return `${basePath}/brands/red_wine/default/${servingStyle}`;
-    } else if (category === 'white_wine') {
-      return `${basePath}/brands/white_wine/default/${servingStyle}`;
-    } else if (category === 'bubbly') {
-      return `${basePath}/brands/bubbly/default/${servingStyle}`;
-    } else if (category === 'cocktail') {
-      return `${basePath}/brands/cocktail/default/glass`;
-    } else if (category === 'whisky' || category === 'spirit') {
-      return `${basePath}/brands/whisky/default/${servingStyle}`;
-    }
-    
-    // Fallback to sample bottle image from demo account
-    return `${basePath}/sample`;
+    // For testing, use guaranteed existing sample image from Cloudinary demo
+    return "https://res.cloudinary.com/demo/image/upload/sample.png";
   };
 
   const cardBackground = getCardBackground();

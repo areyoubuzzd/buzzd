@@ -183,15 +183,15 @@ export default function ModernDealsGrid() {
       const data = await response.json();
       console.log('Cloudinary test data:', data);
       
-      // Using Cloudinary sample/demo images for testing until we upload our own
+      // Using verified Cloudinary sample/demo images that we know exist
       const cloudName = "demo"; // Use demo account for sample images
       
-      // Sample images from Cloudinary demo account
-      const beerBgUrl = "https://res.cloudinary.com/demo/image/upload/beer_q6pl5z.jpg";
-      const cocktailBgUrl = "https://res.cloudinary.com/demo/image/upload/cocktail_ngvkuf.jpg";
-      const beerBottleUrl = "https://res.cloudinary.com/demo/image/upload/bottle_zx4wae.png";
-      const beerGlassUrl = "https://res.cloudinary.com/demo/image/upload/wine-glass_kfrr9f.png";
-      const margaritaGlassUrl = "https://res.cloudinary.com/demo/image/upload/cocktail-glass_b14htu.png";
+      // Known-to-exist sample images from Cloudinary demo account
+      const beerBgUrl = "https://res.cloudinary.com/demo/image/upload/sample.jpg"; // Use sample image for beer background
+      const cocktailBgUrl = "https://res.cloudinary.com/demo/image/upload/sample.jpg"; // Use sample image for cocktail background
+      const beerBottleUrl = "https://res.cloudinary.com/demo/image/upload/sample.png"; // Use sample image for beer bottle
+      const beerGlassUrl = "https://res.cloudinary.com/demo/image/upload/sample.png"; // Use sample image for beer glass
+      const margaritaGlassUrl = "https://res.cloudinary.com/demo/image/upload/sample.png"; // Use sample image for margarita glass
       
       console.log("Using exact URLs from API for testing...");
       console.log("Beer background:", beerBgUrl);
