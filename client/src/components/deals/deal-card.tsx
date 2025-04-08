@@ -2,96 +2,101 @@ import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// SVG accent patterns for each drink type
+// Abstract SVG accent patterns for cards
 function getAccentPattern(drinkType: string | undefined, id?: number): string {
   // If no drink type, return empty
   if (!drinkType) return '';
   
-  const type = drinkType.toLowerCase();
-  const opacity = '0.12'; // Low opacity to keep it subtle
+  const opacity = '0.3'; // Increased opacity to 30% as requested
   
-  // Different patterns based on drink type
-  if (type.includes("beer")) {
-    const beerPatterns = [
-      // Pattern 1: Bubbles for beer - different sizes in a scattered pattern
-      `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="20%" cy="30%" r="5" fill="white" opacity="${opacity}"/>
-        <circle cx="25%" cy="40%" r="3" fill="white" opacity="${opacity}"/>
-        <circle cx="75%" cy="25%" r="4" fill="white" opacity="${opacity}"/>
-        <circle cx="80%" cy="70%" r="3" fill="white" opacity="${opacity}"/>
-        <circle cx="40%" cy="80%" r="5" fill="white" opacity="${opacity}"/>
-        <circle cx="55%" cy="60%" r="3" fill="white" opacity="${opacity}"/>
-      </svg>`,
-      
-      // Pattern 2: Wheat stalks for beer
-      `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20,70 Q25,65 20,60 Q25,55 20,50 Q25,45 20,40" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-        <path d="M30,80 Q35,75 30,70 Q35,65 30,60 Q35,55 30,50" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-        <path d="M80,40 Q85,35 80,30 Q85,25 80,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      </svg>`,
-      
-      // Pattern 3: Mug outline
-      `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <path d="M30,30 v30 h15 v-30 h-15 m15,5 h5 v20 h-5" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-        <path d="M70,60 v30 h15 v-30 h-15 m15,5 h5 v20 h-5" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      </svg>`
-    ];
+  // Collection of abstract patterns that don't replicate drink types
+  const patterns = [
+    // Pattern 1: Curved lines in corners
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15,30 Q25,15 40,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M85,30 Q75,15 60,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M15,70 Q25,85 40,80" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M85,70 Q75,85 60,80" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`,
     
-    // Select pattern based on ID or default to first
-    const patternIndex = (id !== undefined && id !== null) ? id % beerPatterns.length : 0;
-    return beerPatterns[patternIndex];
+    // Pattern 2: Parallel lines
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <line x1="15" y1="25" x2="85" y2="25" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <line x1="15" y1="30" x2="85" y2="30" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <line x1="15" y1="75" x2="85" y2="75" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <line x1="15" y1="80" x2="85" y2="80" stroke="white" stroke-width="1" opacity="${opacity}"/>
+    </svg>`,
+    
+    // Pattern 3: Concentric circles
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="25" cy="25" r="10" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <circle cx="25" cy="25" r="15" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <circle cx="75" cy="75" r="10" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <circle cx="75" cy="75" r="15" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`,
+    
+    // Pattern 4: Diagonal lines
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <line x1="20" y1="20" x2="40" y2="40" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <line x1="60" y1="60" x2="80" y2="80" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <line x1="80" y1="20" x2="60" y2="40" stroke="white" stroke-width="1" opacity="${opacity}"/>
+      <line x1="40" y1="60" x2="20" y2="80" stroke="white" stroke-width="1" opacity="${opacity}"/>
+    </svg>`,
+    
+    // Pattern 5: Curls and swirls
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20,30 C30,10 40,40 20,30" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M80,30 C70,10 60,40 80,30" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M20,70 C30,90 40,60 20,70" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M80,70 C70,90 60,60 80,70" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`,
+    
+    // Pattern 6: Dots in grid
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="2" fill="white" opacity="${opacity}"/>
+      <circle cx="40" cy="20" r="2" fill="white" opacity="${opacity}"/>
+      <circle cx="60" cy="20" r="2" fill="white" opacity="${opacity}"/>
+      <circle cx="80" cy="20" r="2" fill="white" opacity="${opacity}"/>
+      <circle cx="20" cy="80" r="2" fill="white" opacity="${opacity}"/>
+      <circle cx="40" cy="80" r="2" fill="white" opacity="${opacity}"/>
+      <circle cx="60" cy="80" r="2" fill="white" opacity="${opacity}"/>
+      <circle cx="80" cy="80" r="2" fill="white" opacity="${opacity}"/>
+    </svg>`,
+    
+    // Pattern 7: Corner triangles
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="15,15 30,15 15,30" fill="white" opacity="${opacity}"/>
+      <polygon points="85,15 70,15 85,30" fill="white" opacity="${opacity}"/>
+      <polygon points="15,85 30,85 15,70" fill="white" opacity="${opacity}"/>
+      <polygon points="85,85 70,85 85,70" fill="white" opacity="${opacity}"/>
+    </svg>`,
+    
+    // Pattern 8: Simple waves
+    `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10,25 Q25,15 40,25 Q55,35 70,25 Q85,15 90,25" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+      <path d="M10,75 Q25,65 40,75 Q55,85 70,75 Q85,65 90,75" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
+    </svg>`,
+  ];
+  
+  // Use ID to deterministically select a pattern, or choose based on drink type
+  let patternIndex = 0;
+  
+  if (id !== undefined && id !== null) {
+    patternIndex = id % patterns.length;
+  } else {
+    // As a fallback, choose based on drink type
+    const type = drinkType.toLowerCase();
+    if (type.includes("beer")) patternIndex = 0;
+    else if (type.includes("wine")) patternIndex = 1;
+    else if (type.includes("cocktail")) patternIndex = 2;
+    else if (type.includes("whisky") || type.includes("whiskey")) patternIndex = 3;
+    else if (type.includes("gin")) patternIndex = 4;
+    else if (type.includes("vodka")) patternIndex = 5;
+    else if (type.includes("rum")) patternIndex = 6;
+    else patternIndex = 7;
   }
   
-  if (type.includes("wine")) {
-    // Wine glass patterns
-    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <path d="M25,25 c5,5 5,15 0,20 l5,15 h5 l5,-15 c-5,-5 -5,-15 0,-20 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M75,65 c5,5 5,15 0,20 l5,15 h5 l5,-15 c-5,-5 -5,-15 0,-20 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M60,30 c0,5 5,5 5,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-    </svg>`;
-  }
-  
-  if (type.includes("cocktail")) {
-    // Cocktail glass and swirl patterns
-    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <path d="M30,25 l15,25 v15 h-10 v5 h25 v-5 h-10 v-15 l15,-25 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M70,60 q5,-5 10,0 q5,5 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M80,40 q5,-5 10,0 q5,5 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-    </svg>`;
-  }
-  
-  if (type.includes("whisky") || type.includes("whiskey")) {
-    // Whisky bottle and glass
-    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <rect x="25" y="25" width="15" height="30" rx="2" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M75,50 l5,-10 h10 l5,10 v15 h-20 z" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <line x1="80" y1="25" x2="85" y2="40" stroke="white" stroke-width="1" opacity="${opacity}"/>
-    </svg>`;
-  }
-  
-  if (type.includes("gin")) {
-    // Gin botanical patterns
-    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <path d="M25,40 c0,-10 10,-10 10,0 c0,10 10,10 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M70,60 c0,-10 10,-10 10,0 c0,10 10,10 10,0" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <circle cx="80%" cy="30%" r="8" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-    </svg>`;
-  }
-  
-  if (type.includes("vodka") || type.includes("rum")) {
-    // Abstract curved lines
-    return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20,30 c20,0 0,20 20,20 c20,0 0,20 20,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M70,20 c20,0 0,20 20,20 c20,0 0,-20 20,-20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-      <path d="M60,80 c10,-10 20,0 30,-10" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-    </svg>`;
-  }
-  
-  // Default pattern - some simple curved lines
-  return `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20,20 c30,20 60,-20 80,20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-    <path d="M20,80 c20,-20 40,20 60,-20" stroke="white" stroke-width="1" fill="none" opacity="${opacity}"/>
-  </svg>`;
+  return patterns[patternIndex];
 }
 
 // Helper function to get gradient background by drink type - HIGH CONTRAST
