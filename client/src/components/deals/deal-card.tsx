@@ -138,7 +138,7 @@ function DealCard({
   return (
     <div 
       className={cn(
-        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full",
+        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full mb-0",
         isGrayedOut && "opacity-50"
       )}
       onClick={handleCardClick}

@@ -122,9 +122,9 @@ export default function CardsTestPage() {
         </TabsList>
         
         <TabsContent value="original">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 gap-y-0">
             {filteredDeals.map(deal => (
-              <div className="w-full" key={`orig-${deal.id}`}>
+              <div className="w-full mb-0 pb-0" key={`orig-${deal.id}`}>
                 <DealCard
                   key={deal.id}
                   {...deal}
@@ -140,9 +140,9 @@ export default function CardsTestPage() {
         </TabsContent>
         
         <TabsContent value="modern">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 gap-y-0">
             {filteredDeals.map(deal => (
-              <div className="w-full" key={`modern-${deal.id}`}>
+              <div className="w-full mb-0 pb-0" key={`modern-${deal.id}`}>
                 <ModernDealCard
                   key={deal.id}
                   {...deal}

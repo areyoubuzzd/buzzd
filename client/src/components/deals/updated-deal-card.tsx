@@ -49,7 +49,7 @@ function DealCard({
   
   return (
     <div 
-      className="relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full"
+      className="relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full mb-0"
       onClick={onClick}
       style={{
         // Credit card aspect ratio (1.586:1) - Width to height ratio
