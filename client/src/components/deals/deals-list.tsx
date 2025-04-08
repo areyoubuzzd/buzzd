@@ -240,7 +240,7 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
   
   return (
     <main className="flex-1 bg-gray-50">
-      <div className="px-2 sm:px-4 py-2 sm:py-4 pb-24">
+      <div className="px-0 sm:px-1 py-0 sm:py-0 pb-24">
         {/* Premium Prompt for Free Signed In Users */}
         {isSignedIn && !isPremium && (
           <PremiumPrompt 
@@ -259,10 +259,10 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
         
         {/* Deals Section - Show deals based on user tier */}
         {filteredDeals.active && filteredDeals.active.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 gap-y-0">
             {/* Full view deals (limited by user tier) */}
             {filteredDeals.active.slice(0, fullDealsCount).map((deal: any) => deal && (
-              <div className="h-96 sm:h-[420px]" key={deal.id}>
+              <div className="w-full mb-0 pb-0 px-0" key={deal.id}>
                 <DealCard 
                   key={deal.id} 
                   deal={deal} 
@@ -274,7 +274,7 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
             
             {/* Grayed out deals (the rest) */}
             {filteredDeals.active.slice(fullDealsCount).map((deal: any) => deal && (
-              <div className="h-96 sm:h-[420px]" key={`gray-${deal.id}`}>
+              <div className="w-full mb-0 pb-0 px-0" key={`gray-${deal.id}`}>
                 <DealCard 
                   key={deal.id} 
                   deal={deal} 
