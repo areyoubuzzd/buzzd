@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Spirit background - rich purple gradient -->
+  <rect width="800" height="400" fill="url(#spirit-gradient)"/>
+  
+  <!-- Abstract geometric shapes -->
+  <path d="M100,100 L200,200 L100,300" stroke="white" stroke-opacity="0.2" stroke-width="4"/>
+  <path d="M300,50 L400,150 L300,250" stroke="white" stroke-opacity="0.2" stroke-width="4"/>
+  <path d="M500,100 L600,200 L500,300" stroke="white" stroke-opacity="0.2" stroke-width="4"/>
+  <path d="M700,50 L600,150 L700,250" stroke="white" stroke-opacity="0.2" stroke-width="4"/>
+  
+  <!-- Diagonal lines -->
+  <path d="M0,0 L800,400" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M0,100 L700,400" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M0,200 L600,400" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M0,300 L500,400" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M100,0 L800,300" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M200,0 L800,200" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  <path d="M300,0 L800,100" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  
+  <!-- Spirit bottle silhouette -->
+  <path d="M380,100 L420,100 L430,150 L430,300 L370,300 L370,150 Z" fill="white" fill-opacity="0.1"/>
+  <path d="M385,80 L415,80 L415,100 L385,100 Z" fill="white" fill-opacity="0.1"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="spirit-gradient" x1="0" y1="0" x2="800" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6c5ce7"/>
+      <stop offset="1" stop-color="#4834d4"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="300" viewBox="0 0 200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wine bottle -->
+  <path d="M90,20 L110,20 L110,50 L115,60 L115,250 L85,250 L85,60 L90,50 Z" fill="#2f3542"/>
+  <path d="M93,25 L107,25 L107,50 L112,60 L112,245 L88,245 L88,60 L93,50 Z" fill="#8e0e37"/>
+  
+  <!-- Bottle neck -->
+  <path d="M95,20 L105,20 L105,60 L95,60 Z" fill="#5e0522"/>
+  
+  <!-- Bottle cap -->
+  <rect x="90" y="10" width="20" height="15" rx="2" fill="#a5b1c2"/>
+  
+  <!-- Bottle label -->
+  <rect x="75" y="120" width="50" height="80" rx="2" fill="#f1f2f6"/>
+  <rect x="85" y="130" width="30" height="10" rx="2" fill="#333"/>
+  <rect x="85" y="150" width="30" height="5" rx="2" fill="#333"/>
+  <rect x="85" y="160" width="30" height="5" rx="2" fill="#333"/>
+  <rect x="85" y="170" width="30" height="5" rx="2" fill="#333"/>
+  <rect x="85" y="180" width="20" height="5" rx="2" fill="#333"/>
+  
+  <!-- Bottle shine/reflection -->
+  <path d="M105,60 L108,70 L108,240 L105,240 Z" fill="white" fill-opacity="0.2"/>
+</svg>

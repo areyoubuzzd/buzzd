@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="300" viewBox="0 0 200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Beer bottle -->
+  <path d="M80,20 L120,20 L120,60 L125,70 L125,250 L75,250 L75,70 L80,60 Z" fill="#a85c00"/>
+  <path d="M85,25 L115,25 L115,60 L120,70 L120,245 L80,245 L80,70 L85,60 Z" fill="#ffb142"/>
+  
+  <!-- Bottle cap -->
+  <rect x="80" y="10" width="40" height="15" rx="2" fill="#555"/>
+  
+  <!-- Bottle label -->
+  <rect x="65" y="100" width="70" height="60" rx="5" fill="#f1f2f6"/>
+  <rect x="75" y="110" width="50" height="8" rx="4" fill="#333"/>
+  <rect x="75" y="125" width="50" height="5" rx="2.5" fill="#333"/>
+  <rect x="75" y="135" width="50" height="5" rx="2.5" fill="#333"/>
+  <rect x="75" y="145" width="30" height="5" rx="2.5" fill="#333"/>
+  
+  <!-- Bottle shine/reflection -->
+  <path d="M110,70 L115,80 L115,240 L110,240 Z" fill="white" fill-opacity="0.3"/>
+</svg>

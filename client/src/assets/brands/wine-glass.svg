@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="300" viewBox="0 0 200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wine glass -->
+  <path d="M70,70 C70,30 130,30 130,70 L110,180 L90,180 Z" fill="#f1f2f6" fill-opacity="0.5"/>
+  <path d="M75,70 C75,40 125,40 125,70 L108,175 L92,175 Z" fill="#8e0e37"/>
+  
+  <!-- Glass stem -->
+  <path d="M95,180 L105,180 L105,240 L95,240 Z" fill="#f1f2f6" fill-opacity="0.5"/>
+  
+  <!-- Glass base -->
+  <ellipse cx="100" cy="250" rx="20" ry="10" fill="#f1f2f6" fill-opacity="0.5"/>
+  
+  <!-- Glass shine/reflection -->
+  <path d="M110,60 L100,175 L95,175 L105,60 Z" fill="white" fill-opacity="0.3"/>
+</svg>

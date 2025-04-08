@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cocktail background - tropical gradient -->
+  <rect width="800" height="400" fill="url(#cocktail-gradient)"/>
+  
+  <!-- Tropical palm leaf elements -->
+  <path d="M50,100 C150,50 250,150 300,50" stroke="white" stroke-opacity="0.3" stroke-width="6"/>
+  <path d="M100,200 C200,150 300,250 350,150" stroke="white" stroke-opacity="0.3" stroke-width="6"/>
+  <path d="M150,300 C250,250 350,350 400,250" stroke="white" stroke-opacity="0.3" stroke-width="6"/>
+  
+  <path d="M750,150 C650,100 550,200 500,100" stroke="white" stroke-opacity="0.3" stroke-width="6"/>
+  <path d="M700,250 C600,200 500,300 450,200" stroke="white" stroke-opacity="0.3" stroke-width="6"/>
+  <path d="M650,350 C550,300 450,400 400,300" stroke="white" stroke-opacity="0.3" stroke-width="6"/>
+  
+  <!-- Cocktail glass outline -->
+  <path d="M350,100 L450,100 L420,250 L380,250 Z" fill="white" fill-opacity="0.1"/>
+  <path d="M390,250 L410,250 L400,300 L390,250 Z" fill="white" fill-opacity="0.1"/>
+  <path d="M380,300 L420,300 L400,320 L380,300 Z" fill="white" fill-opacity="0.1"/>
+  
+  <!-- Cocktail umbrella -->
+  <circle cx="425" cy="150" r="15" fill="white" fill-opacity="0.2"/>
+  <path d="M425,130 L425,200" stroke="white" stroke-opacity="0.2" stroke-width="2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="cocktail-gradient" x1="0" y1="0" x2="800" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00b894"/>
+      <stop offset="1" stop-color="#007363"/>
+    </linearGradient>
+  </defs>
+</svg>

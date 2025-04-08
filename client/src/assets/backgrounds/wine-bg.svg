@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wine background - deep red gradient -->
+  <rect width="800" height="400" fill="url(#wine-gradient)"/>
+  
+  <!-- Wine splashes -->
+  <path d="M200,150 C250,100 300,200 350,150 S400,100 450,150 S500,200 550,150" stroke="white" stroke-opacity="0.2" stroke-width="4"/>
+  <path d="M150,250 C200,200 250,300 300,250 S350,200 400,250 S450,300 500,250" stroke="white" stroke-opacity="0.2" stroke-width="4"/>
+  
+  <!-- Wine glass outlines -->
+  <path d="M600,100 C620,150 650,200 680,200 C710,200 740,150 760,100 C730,110 630,110 600,100 Z" fill="white" fill-opacity="0.1"/>
+  <path d="M640,200 L650,280 L670,280 L680,200" fill="white" fill-opacity="0.1"/>
+  <path d="M650,280 L670,280 L660,330 L650,280 Z" fill="white" fill-opacity="0.1"/>
+  
+  <path d="M100,150 C120,200 150,250 180,250 C210,250 240,200 260,150 C230,160 130,160 100,150 Z" fill="white" fill-opacity="0.1"/>
+  <path d="M140,250 L150,330 L170,330 L180,250" fill="white" fill-opacity="0.1"/>
+  <path d="M150,330 L170,330 L160,380 L150,330 Z" fill="white" fill-opacity="0.1"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="wine-gradient" x1="0" y1="0" x2="800" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8e0e37"/>
+      <stop offset="1" stop-color="#5e0522"/>
+    </linearGradient>
+  </defs>
+</svg>
