@@ -166,19 +166,19 @@ function getAccentPattern(drinkType: string | undefined, id?: number): string {
   return patterns[patternIndex];
 }
 
-// Helper function to get gradient background by drink type - SOFTER CONTRAST (center brightness reduced by 30%)
+// Helper function to get gradient background by drink type - EVEN SOFTER CONTRAST (center brightness reduced by 50%)
 function getGradientBackground(drinkType: string | undefined, id?: number) {
   // If category is undefined or null, return a default gradient
-  if (!drinkType) return 'radial-gradient(circle at center, #9bc3a5 0%, #22C55E 50%, #14532D 100%)';
+  if (!drinkType) return 'radial-gradient(circle at center, #aac8b1 0%, #22C55E 65%, #14532D 100%)';
   
   const type = drinkType.toLowerCase();
   
   // For beer, select one of three gradient options based on the id
   if (type.includes("beer")) {
     const beerGradients = [
-      'radial-gradient(circle at center, #b0a589 0%, #F59E0B 50%, #B45309 100%)',  // Orange gradient - FURTHER SOFTENED
-      'radial-gradient(circle at center, #ada8a3 0%, #FB923C 50%, #C2410C 100%)',  // Lighter orange gradient - FURTHER SOFTENED
-      'radial-gradient(circle at center, #8aaca5 0%, #14B8A6 50%, #134E4A 100%)',  // Teal gradient - FURTHER SOFTENED
+      'radial-gradient(circle at center, #c5b99e 0%, #F59E0B 65%, #B45309 100%)',  // Orange gradient - FURTHER SOFTENED
+      'radial-gradient(circle at center, #c2bcb7 0%, #FB923C 65%, #C2410C 100%)',  // Lighter orange gradient - FURTHER SOFTENED
+      'radial-gradient(circle at center, #9ebfb8 0%, #14B8A6 65%, #134E4A 100%)',  // Teal gradient - FURTHER SOFTENED
     ];
     
     // Use the id to deterministically select a gradient
@@ -191,16 +191,16 @@ function getGradientBackground(drinkType: string | undefined, id?: number) {
     return beerGradients[gradientIndex];
   }
   
-  // Define even softer radial gradients for each category (30% reduction from original)
-  if (type.includes("wine")) return 'radial-gradient(circle at center, #ac9999 0%, #EF4444 50%, #7F1D1D 100%)';
-  if (type.includes("cocktail")) return 'radial-gradient(circle at center, #9bc3a5 0%, #22C55E 50%, #14532D 100%)';
-  if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #a79eb0 0%, #A855F7 50%, #581C87 100%)';
-  if (type.includes("gin")) return 'radial-gradient(circle at center, #8aaca6 0%, #14B8A6 50%, #0F766E 100%)';
-  if (type.includes("vodka")) return 'radial-gradient(circle at center, #a79eb0 0%, #A855F7 50%, #581C87 100%)';
-  if (type.includes("rum")) return 'radial-gradient(circle at center, #a79eb0 0%, #A855F7 50%, #581C87 100%)';
+  // Define even softer radial gradients for each category (50% reduction from original)
+  if (type.includes("wine")) return 'radial-gradient(circle at center, #c2adad 0%, #EF4444 65%, #7F1D1D 100%)';
+  if (type.includes("cocktail")) return 'radial-gradient(circle at center, #aac8b1 0%, #22C55E 65%, #14532D 100%)';
+  if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #bbb3c4 0%, #A855F7 65%, #581C87 100%)';
+  if (type.includes("gin")) return 'radial-gradient(circle at center, #9ebfb8 0%, #14B8A6 65%, #0F766E 100%)';
+  if (type.includes("vodka")) return 'radial-gradient(circle at center, #bbb3c4 0%, #A855F7 65%, #581C87 100%)';
+  if (type.includes("rum")) return 'radial-gradient(circle at center, #bbb3c4 0%, #A855F7 65%, #581C87 100%)';
   
   // Default gradient if no match
-  return 'radial-gradient(circle at center, #9bc3a5 0%, #22C55E 50%, #14532D 100%)';
+  return 'radial-gradient(circle at center, #aac8b1 0%, #22C55E 65%, #14532D 100%)';
 }
 
 // Keeping the old function for backward compatibility
@@ -362,10 +362,10 @@ function DealCard({
             <img 
               src={`${getHeroImage(deal.brand || deal.drinkType, 'glass')}?v=${Date.now()}`}
               alt={`${deal.brand || deal.drinkType} hero image`}
-              className="h-[180%] object-contain"
+              className="h-[150%] object-contain"
               style={{ 
-                filter: 'brightness(1.5) contrast(1.3) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5))', 
-                transform: 'translateY(20px) scale(1.1)',
+                filter: 'brightness(1.2) contrast(1.0) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.4))', 
+                transform: 'translateY(30px) scale(0.9)',
                 maxWidth: 'none',
                 opacity: 0.95
               }}
