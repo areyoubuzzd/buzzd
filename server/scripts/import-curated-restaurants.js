@@ -164,6 +164,15 @@ async function searchRestaurant(restaurant) {
       }
     }
 
+    // Determine cuisine type based on place types
+    let cuisine = "restaurant";
+    if (place.types) {
+      if (place.types.includes("bar")) cuisine = "bar";
+      else if (place.types.includes("cafe")) cuisine = "cafe";
+      else if (place.types.includes("restaurant")) cuisine = "restaurant";
+      // Add more specific cuisine types if they exist in place.types
+    }
+    
     return {
       name: place.name,
       address: place.formatted_address || `${place.name}, Singapore`,
@@ -171,10 +180,10 @@ async function searchRestaurant(restaurant) {
       postal_code: postalCode,
       latitude: place.geometry.location.lat,
       longitude: place.geometry.location.lng,
-      rating: place.rating || 4.0,
-      type: place.types ? place.types.find(t => 
-        ["restaurant", "bar", "cafe", "food"].includes(t)
-      ) || "restaurant" : "restaurant",
+      rating: place.rating || null, // Use Google Places rating
+      cuisine: cuisine, // Changed from type to cuisine
+      price: place.price_level || null, // Google's price level (1-4) or null if not available
+      priority: null, // Set to null initially
       description: `Restaurant in ${place.vicinity || 'Singapore'}`,
       image_url: place.photos && place.photos.length > 0 
         ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${apiKey}`
@@ -208,8 +217,9 @@ async function saveRestaurantToDatabase(restaurant) {
       await client.query(
         `UPDATE establishments 
          SET description = $1, address = $2, city = $3, postal_code = $4, 
-             latitude = $5, longitude = $6, image_url = $7, rating = $8, type = $9
-         WHERE id = $10`,
+             latitude = $5, longitude = $6, image_url = $7, rating = $8, cuisine = $9,
+             price = $10, priority = $11
+         WHERE id = $12`,
         [
           restaurant.description,
           restaurant.address,
@@ -219,7 +229,9 @@ async function saveRestaurantToDatabase(restaurant) {
           restaurant.longitude,
           restaurant.image_url,
           restaurant.rating,
-          restaurant.type,
+          restaurant.cuisine,
+          restaurant.price,
+          restaurant.priority,
           id
         ]
       );
@@ -229,8 +241,8 @@ async function saveRestaurantToDatabase(restaurant) {
       
       const result = await client.query(
         `INSERT INTO establishments 
-         (name, description, address, city, postal_code, latitude, longitude, image_url, rating, type)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         (name, description, address, city, postal_code, latitude, longitude, image_url, rating, cuisine, price, priority)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING id`,
         [
           restaurant.name,
@@ -242,7 +254,9 @@ async function saveRestaurantToDatabase(restaurant) {
           restaurant.longitude,
           restaurant.image_url,
           restaurant.rating,
-          restaurant.type
+          restaurant.cuisine,
+          restaurant.price,
+          restaurant.priority
         ]
       );
       

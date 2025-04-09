@@ -54,7 +54,9 @@ export const establishments = pgTable("establishments", {
   longitude: doublePrecision("longitude").notNull(),
   imageUrl: text("image_url"),
   rating: doublePrecision("rating"),
-  type: text("type").notNull(), // e.g. bar, restaurant, cafe
+  cuisine: text("cuisine").notNull(), // Changed from "type" to "cuisine"
+  price: integer("price"), // Added price column (can be null)
+  priority: integer("priority"), // Added priority column (can be null)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
