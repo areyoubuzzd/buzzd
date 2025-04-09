@@ -21,7 +21,8 @@ Chimichanga,Holland Village
 
 ## Step 2: Verify Database Schema
 1. Ensure the establishments table has all necessary columns:
-   - `id` (auto-generated)
+   - `id` (auto-generated numeric ID)
+   - `external_id` (custom ID in format "SG0109", "SG0110", etc.)
    - `name` (restaurant name)
    - `cuisine` (type of establishment - bar, restaurant, etc.)
    - `address` (full address with postal code)
@@ -53,7 +54,7 @@ Chimichanga,Holland Village
    ```
 2. Review the imported data:
    ```sql
-   SELECT id, name, cuisine, address, rating, price, priority FROM establishments;
+   SELECT id, external_id, name, cuisine, address, rating, price, priority FROM establishments;
    ```
 3. Verify that the Google Places API data (address, coordinates, rating) was properly fetched
 
@@ -74,9 +75,11 @@ Chimichanga,Holland Village
    ```
 2. Add restaurant logos:
    - Upload logo images to Cloudinary using the upload tool
-   - Update the imageUrl column:
+   - Update the imageUrl column (you can use either the numeric ID or the external ID):
    ```sql
    UPDATE establishments SET imageUrl = 'cloudinary-url' WHERE id = restaurant_id;
+   -- OR using external_id
+   UPDATE establishments SET imageUrl = 'cloudinary-url' WHERE external_id = 'SG0109';
    ```
 
 ## Step 7: Database Maintenance
@@ -84,10 +87,14 @@ Chimichanga,Holland Village
 2. Update restaurant details as needed:
    ```sql
    UPDATE establishments SET website = 'new-website', phone = 'new-phone' WHERE id = restaurant_id;
+   -- OR using external_id
+   UPDATE establishments SET website = 'new-website', phone = 'new-phone' WHERE external_id = 'SG0109';
    ```
 3. Remove establishments that no longer offer happy hour deals:
    ```sql
    DELETE FROM establishments WHERE id = restaurant_id;
+   -- OR using external_id
+   DELETE FROM establishments WHERE external_id = 'SG0109';
    ```
 
 ## Additional Notes
@@ -95,3 +102,6 @@ Chimichanga,Holland Village
 - Only establishments with confirmed happy hour deals should be included in the CSV
 - The Google Places API provides accurate data including coordinates, address formatting, ratings, etc.
 - Images should be managed through Cloudinary for better performance and organization
+- The `external_id` field follows the format SG0109, SG0110, etc., starting from SG0109 and incrementing sequentially
+- These custom IDs can be useful for customer-facing references, marketing materials, or integration with other systems
+- Both the database `id` and `external_id` can be used to identify restaurants in queries and API requests

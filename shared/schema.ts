@@ -45,6 +45,7 @@ export const users = pgTable("users", {
 // Establishments (restaurants, bars, etc.)
 export const establishments = pgTable("establishments", {
   id: serial("id").primaryKey(),
+  external_id: text("external_id"), // Custom ID in format SG0109, SG0110, etc.
   name: text("name").notNull(),
   description: text("description"),
   address: text("address").notNull(),

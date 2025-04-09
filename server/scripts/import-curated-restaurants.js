@@ -196,6 +196,31 @@ async function searchRestaurant(restaurant) {
 }
 
 /**
+ * Generate a new external ID for a restaurant
+ */
+async function generateExternalId(client) {
+  // Get the highest existing external_id
+  const result = await client.query(
+    `SELECT external_id FROM establishments 
+     WHERE external_id LIKE 'SG0%' 
+     ORDER BY external_id DESC 
+     LIMIT 1`
+  );
+  
+  let nextNumber = 109; // Default starting number
+  
+  if (result.rows.length > 0) {
+    // Extract the numeric part and increment
+    const currentId = result.rows[0].external_id;
+    const numericPart = parseInt(currentId.substring(3), 10);
+    nextNumber = numericPart + 1;
+  }
+  
+  // Format the new ID
+  return `SG0${nextNumber.toString().padStart(3, '0')}`;
+}
+
+/**
  * Save a restaurant to the database
  */
 async function saveRestaurantToDatabase(restaurant) {
@@ -204,22 +229,23 @@ async function saveRestaurantToDatabase(restaurant) {
   try {
     // Check if restaurant already exists
     const checkResult = await client.query(
-      'SELECT id FROM establishments WHERE name = $1',
+      'SELECT id, external_id FROM establishments WHERE name = $1',
       [restaurant.name]
     );
     
-    let id;
+    let id, externalId;
     if (checkResult.rows.length > 0) {
       // Update existing restaurant
       id = checkResult.rows[0].id;
-      console.log(`Updating restaurant: ${restaurant.name} (ID: ${id})`);
+      externalId = checkResult.rows[0].external_id || await generateExternalId(client);
+      console.log(`Updating restaurant: ${restaurant.name} (ID: ${id}, External ID: ${externalId})`);
       
       await client.query(
         `UPDATE establishments 
          SET description = $1, address = $2, city = $3, postal_code = $4, 
              latitude = $5, longitude = $6, image_url = $7, rating = $8, cuisine = $9,
-             price = $10, priority = $11
-         WHERE id = $12`,
+             price = $10, priority = $11, external_id = $12
+         WHERE id = $13`,
         [
           restaurant.description,
           restaurant.address,
@@ -232,17 +258,21 @@ async function saveRestaurantToDatabase(restaurant) {
           restaurant.cuisine,
           restaurant.price,
           restaurant.priority,
+          externalId,
           id
         ]
       );
     } else {
+      // Generate a new external ID
+      externalId = await generateExternalId(client);
+      
       // Insert new restaurant
-      console.log(`Inserting new restaurant: ${restaurant.name}`);
+      console.log(`Inserting new restaurant: ${restaurant.name} (External ID: ${externalId})`);
       
       const result = await client.query(
         `INSERT INTO establishments 
-         (name, description, address, city, postal_code, latitude, longitude, image_url, rating, cuisine, price, priority)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         (name, description, address, city, postal_code, latitude, longitude, image_url, rating, cuisine, price, priority, external_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING id`,
         [
           restaurant.name,
@@ -256,7 +286,8 @@ async function saveRestaurantToDatabase(restaurant) {
           restaurant.rating,
           restaurant.cuisine,
           restaurant.price,
-          restaurant.priority
+          restaurant.priority,
+          externalId
         ]
       );
       
