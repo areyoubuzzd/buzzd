@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.37.0",
     "@fontsource/alfa-slab-one": "^5.2.5",
     "@fontsource/baloo-2": "^5.2.5",
     "@fontsource/bangers": "^5.2.5",
