@@ -63,8 +63,8 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10 MB max file size
   },
   fileFilter: function(req, file, cb) {
-    // Accept only image files
-    const filetypes = /jpeg|jpg|png|webp/;
+    // Accept image files and PDF files
+    const filetypes = /jpeg|jpg|png|webp|pdf/;
     const mimetype = filetypes.test(file.mimetype);
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     
@@ -72,7 +72,7 @@ const upload = multer({
       return cb(null, true);
     }
     
-    cb(new Error('Only image files (jpg, jpeg, png, webp) are allowed'));
+    cb(new Error('Only image files (jpg, jpeg, png, webp) and PDF files are allowed'));
   }
 });
 
@@ -100,17 +100,18 @@ async function analyzeMenu(imagePath) {
     const ext = path.extname(imagePath).toLowerCase();
     
     // Check file type
-    if (!['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
-      throw new Error(`Unsupported file type: ${ext}. Please use JPG, PNG, or WebP images.`);
+    if (!['.jpg', '.jpeg', '.png', '.webp', '.pdf'].includes(ext)) {
+      throw new Error(`Unsupported file type: ${ext}. Please use JPG, PNG, WebP images, or PDF files.`);
     }
     
-    // Convert image to base64
+    // Convert file to base64
     const base64Image = imageToBase64(imagePath);
     
     // Determine media type
     let mediaType = 'image/jpeg';
     if (ext === '.png') mediaType = 'image/png';
     if (ext === '.webp') mediaType = 'image/webp';
+    if (ext === '.pdf') mediaType = 'application/pdf';
     
     console.log("Sending image to Claude for analysis...");
     
@@ -524,9 +525,9 @@ router.get('/uploaded-menus', (req, res) => {
     // Get all files in the directory
     const files = fs.readdirSync(uploadsDir)
       .filter(file => {
-        // Filter only image files
+        // Filter image files and PDF files
         const ext = path.extname(file).toLowerCase();
-        return ['.jpg', '.jpeg', '.png', '.webp'].includes(ext);
+        return ['.jpg', '.jpeg', '.png', '.webp', '.pdf'].includes(ext);
       })
       .map(file => {
         const filePath = path.join(uploadsDir, file);
