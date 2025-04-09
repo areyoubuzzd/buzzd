@@ -192,7 +192,7 @@ function getGradientBackground(drinkType: string | undefined, id?: number) {
   }
   
   // Define even softer radial gradients for each category (50% reduction from original)
-  if (type.includes("wine")) return 'radial-gradient(circle at center, #c2adad 0%, #EF4444 65%, #7F1D1D 100%)';
+  if (type.includes("wine")) return 'radial-gradient(circle at center, #cc0000 0%, #bb0000 65%, #990000 100%)'; // Deep rich red like the provided image
   if (type.includes("cocktail")) return 'radial-gradient(circle at center, #aac8b1 0%, #22C55E 65%, #14532D 100%)';
   if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #bbb3c4 0%, #A855F7 65%, #581C87 100%)';
   if (type.includes("gin")) return 'radial-gradient(circle at center, #9ebfb8 0%, #14B8A6 65%, #0F766E 100%)';
@@ -217,7 +217,7 @@ function getBackgroundClass(drinkType: string | undefined) {
   const type = drinkType.toLowerCase();
   
   if (type.includes("beer")) return "bg-orange-500";
-  if (type.includes("wine")) return "bg-rose-600";
+  if (type.includes("wine")) return "bg-red-700"; // Deeper red to match our gradient
   if (type.includes("cocktail")) return "bg-emerald-600";
   if (type.includes("whisky") || type.includes("whiskey")) return "bg-purple-700";
   if (type.includes("gin")) return "bg-cyan-600";
