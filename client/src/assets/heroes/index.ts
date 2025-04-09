@@ -1,9 +1,9 @@
 // Import actual hero images
-import asahiPint from './Asahi_pint.png';
-import heinekenPint from './Heineken_pint.png';
+import asahiPint from './Asahi_glass.png';
+import heinekenPint from './heineken_glass.png';
 import sapporoPint from './Sapporo_pint.png';
 import margarita from './margarita.png';
-import monkeyShoulder from './MonkeyShoulder.png';
+import monkeyShoulder from './Monkey Shoulder.png';
 
 // Hero images (bottles/glasses) for different alcohol categories
 export const heroes = {
