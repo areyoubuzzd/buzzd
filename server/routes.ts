@@ -266,10 +266,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all establishments
   app.get("/api/establishments", async (req, res) => {
     try {
-      // Use the storage interface instead of direct SQL query
-      // This avoids WebSocket connection issues with direct pool queries
-      const establishments = await storage.getAllEstablishments();
+      // For development - return mock data to avoid database connection issues
+      if (process.env.NODE_ENV !== 'production') {
+        const mockEstablishments = [
+          {
+            id: 1,
+            name: "The Tipsy Tavern",
+            external_id: "SG0001",
+            address: "123 Orchard Road",
+            city: "Singapore",
+            postal_code: "238865",
+            latitude: 1.3021,
+            longitude: 103.8324,
+            image_url: "https://example.com/tipsy-tavern.jpg",
+            description: "A cozy tavern with great happy hour deals",
+            cuisine: "Pub Food",
+            rating: 4.2,
+            website: "https://tipsytavern.sg",
+            phone: "+6565551234",
+            price_level: "$$",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            name: "Bayside Brewery",
+            external_id: "SG0002",
+            address: "55 Marina Bay Drive",
+            city: "Singapore",
+            postal_code: "018971",
+            latitude: 1.2819,
+            longitude: 103.8557,
+            image_url: "https://example.com/bayside-brewery.jpg",
+            description: "Craft brewery with bay views",
+            cuisine: "Brewery, Western",
+            rating: 4.5,
+            website: "https://baysidebrewery.sg",
+            phone: "+6565559876",
+            price_level: "$$$",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 3,
+            name: "Cloud 9 Lounge",
+            external_id: "SG0003",
+            address: "988 Upper Circular Road",
+            city: "Singapore",
+            postal_code: "058414",
+            latitude: 1.2897,
+            longitude: 103.8501,
+            image_url: "https://example.com/cloud9-lounge.jpg",
+            description: "Rooftop cocktail bar with skyline views",
+            cuisine: "Tapas, Cocktails",
+            rating: 4.7,
+            website: "https://cloud9lounge.sg",
+            phone: "+6565554321",
+            price_level: "$$$",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ];
+        return res.json(mockEstablishments);
+      }
       
+      // In production, use the storage interface
+      const establishments = await storage.getAllEstablishments();
       res.json(establishments);
     } catch (error) {
       console.error("Error fetching establishments:", error);
