@@ -191,8 +191,25 @@ function getGradientBackground(drinkType: string | undefined, id?: number) {
     return beerGradients[gradientIndex];
   }
   
-  // Define even softer radial gradients for each category (50% reduction from original)
-  if (type.includes("wine")) return 'radial-gradient(circle at center, #e80000 0%, #cc0000 50%, #990000 100%)'; // Deep rich red with proper gradient like the provided image
+  // Define even softer radial gradients for wine types
+  if (type.includes("red") && type.includes("wine")) {
+    // For red wine, use deep red gradient 50% of the time
+    const useRedGradient = (id || 0) % 2 === 0; // Use ID to deterministically choose 50% of the time
+    
+    if (useRedGradient) {
+      return 'radial-gradient(circle at center, #e80000 0%, #cc0000 50%, #990000 100%)'; // Deep rich red with proper gradient
+    } else {
+      return 'radial-gradient(circle at center, #c2adad 0%, #EF4444 65%, #7F1D1D 100%)'; // Original red gradient
+    }
+  } 
+  else if (type.includes("white") && type.includes("wine")) {
+    // For white wine, use a golden/cream gradient
+    return 'radial-gradient(circle at center, #fff0c0 0%, #f5d78b 55%, #daa520 100%)';
+  }
+  else if (type.includes("wine")) {
+    // Generic wine, use the standard burgundy gradient
+    return 'radial-gradient(circle at center, #e8c0c0 0%, #a02c2c 55%, #7F1D1D 100%)';
+  }
   if (type.includes("cocktail")) return 'radial-gradient(circle at center, #aac8b1 0%, #22C55E 65%, #14532D 100%)';
   if (type.includes("whisky") || type.includes("whiskey")) return 'radial-gradient(circle at center, #bbb3c4 0%, #A855F7 65%, #581C87 100%)';
   if (type.includes("gin")) return 'radial-gradient(circle at center, #9ebfb8 0%, #14B8A6 65%, #0F766E 100%)';
@@ -217,7 +234,9 @@ function getBackgroundClass(drinkType: string | undefined) {
   const type = drinkType.toLowerCase();
   
   if (type.includes("beer")) return "bg-orange-500";
-  if (type.includes("wine")) return "bg-red-700"; // Deeper red to match our gradient
+  if (type.includes("white") && type.includes("wine")) return "bg-amber-500"; // Golden color for white wine
+  if (type.includes("red") && type.includes("wine")) return "bg-red-700"; // Deeper red for red wine
+  if (type.includes("wine")) return "bg-rose-700"; // Standard wine color for generic wine
   if (type.includes("cocktail")) return "bg-emerald-600";
   if (type.includes("whisky") || type.includes("whiskey")) return "bg-purple-700";
   if (type.includes("gin")) return "bg-cyan-600";

@@ -110,14 +110,26 @@ export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' 
   // Fallbacks for category-like strings
   if (lowerCategory.includes('beer')) {
     return heroes.beer.glass;
-  } else if (lowerCategory.includes('red') && lowerCategory.includes('wine')) {
+  } 
+  // Wine categories - prioritize "house pour" variants
+  else if (lowerCategory.includes('house') && lowerCategory.includes('red') && lowerCategory.includes('wine')) {
     return heroes.wine.red;
-  } else if (lowerCategory.includes('white') && lowerCategory.includes('wine')) {
+  } 
+  else if (lowerCategory.includes('house') && lowerCategory.includes('white') && lowerCategory.includes('wine')) {
     return heroes.wine.white;
-  } else if (lowerCategory.includes('house') && lowerCategory.includes('wine')) {
-    return heroes.wine.house;
-  } else if (lowerCategory.includes('wine')) {
-    return heroes.wine.glass;
+  } 
+  else if (lowerCategory.includes('house') && lowerCategory.includes('wine')) {
+    return heroes.wine.house || heroes.wine.red; // Default house pour to red if no specific house image
+  }
+  // Generic wine categories
+  else if (lowerCategory.includes('red') && lowerCategory.includes('wine')) {
+    return heroes.wine.red;
+  } 
+  else if (lowerCategory.includes('white') && lowerCategory.includes('wine')) {
+    return heroes.wine.white;
+  } 
+  else if (lowerCategory.includes('wine')) {
+    return heroes.wine.red; // Default to red wine if not specified
   } else if (lowerCategory.includes('cocktail')) {
     return heroes.cocktail.glass;
   } else if (lowerCategory.includes('whisky') || lowerCategory.includes('whiskey')) {
