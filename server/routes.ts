@@ -9,6 +9,7 @@ import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheet
 import { cloudinaryService } from "./services/cloudinaryService";
 import uploadDealImageRouter from "./routes/upload-deal-image";
 import menuAnalysisRoutes from "./routes/menuAnalysisRoutes_new.js";
+import { db, pool } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -261,6 +262,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Establishment Routes
+  
+  // Get all establishments
+  app.get("/api/establishments", async (req, res) => {
+    try {
+      // Query all establishments from the database
+      const { rows } = await pool.query(`
+        SELECT id, name, external_id, address, city, postal_code, latitude, longitude, image_url 
+        FROM establishments
+        ORDER BY name ASC
+      `);
+      
+      res.json(rows);
+    } catch (error) {
+      console.error("Error fetching establishments:", error);
+      res.status(500).json({ message: "Failed to fetch establishments" });
+    }
+  });
   
   // Get an establishment
   app.get("/api/establishments/:id", async (req, res) => {
