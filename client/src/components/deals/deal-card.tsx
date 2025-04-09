@@ -360,15 +360,14 @@ function DealCard({
           {/* Hero Image - centered bottle/glass image */}
           <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ zIndex: 1 }}>
             <img 
-              src={getHeroImage(deal.brand || deal.drinkType, 'glass')}
+              src={`${getHeroImage(deal.brand || deal.drinkType, 'glass')}?v=${Date.now()}`}
               alt={`${deal.brand || deal.drinkType} hero image`}
-              className="h-[180%] object-contain mix-blend-multiply"
+              className="h-[180%] object-contain"
               style={{ 
-                filter: 'brightness(1.7) contrast(1.2) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5))', 
+                filter: 'brightness(1.5) contrast(1.3) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5))', 
                 transform: 'translateY(20px) scale(1.1)',
                 maxWidth: 'none',
-                opacity: 0.9,
-                backgroundColor: 'transparent'
+                opacity: 0.95
               }}
             />
           </div>

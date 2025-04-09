@@ -54,10 +54,13 @@ export const heroes = {
 };
 
 export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' = 'glass'): any {
+  // For easier debugging, log what's being requested
+  // console.log("Getting hero for:", category, servingStyle);
+  
   // First prioritize specific brands regardless of category
   const lowerCategory = (category || '').toLowerCase();
   
-  // Brand-specific checks
+  // Brand-specific checks - beer brands
   if (lowerCategory.includes('asahi')) {
     return heroes.beer.asahi;
   }
@@ -70,11 +73,13 @@ export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' 
     return heroes.beer.sapporo;
   }
   
+  // Cocktail types
   if (lowerCategory.includes('margarita')) {
     return heroes.cocktail.margarita;
   }
   
-  if (lowerCategory.includes('monkey')) {
+  // Whisky brands
+  if (lowerCategory.includes('monkey') || lowerCategory.includes('shoulder')) {
     return heroes.whisky.monkey_shoulder;
   }
   
