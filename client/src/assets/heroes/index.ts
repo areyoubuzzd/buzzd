@@ -5,6 +5,11 @@ import sapporoPint from './Sapporo_pint.png';
 import margarita from './margarita.png';
 import monkeyShoulder from './Monkey Shoulder.png';
 
+// Wine images
+import redWineGlass from './redwine-glass.png';
+import whiteWineGlass from './white-wine-glass.png';
+import housePourWine from './House-Pour-wine.png';
+
 // Hero images (bottles/glasses) for different alcohol categories
 export const heroes = {
   beer: {
@@ -15,16 +20,19 @@ export const heroes = {
     sapporo: sapporoPint
   },
   wine: {
-    bottle: monkeyShoulder,
-    glass: monkeyShoulder,
+    bottle: housePourWine,
+    glass: redWineGlass,
+    house: housePourWine,
+    red: redWineGlass,
+    white: whiteWineGlass,
   },
   red_wine: {
-    bottle: monkeyShoulder,
-    glass: monkeyShoulder,
+    bottle: housePourWine,
+    glass: redWineGlass,
   },
   white_wine: {
-    bottle: monkeyShoulder,
-    glass: monkeyShoulder,
+    bottle: housePourWine,
+    glass: whiteWineGlass,
   },
   bubbly: {
     bottle: monkeyShoulder,
@@ -102,6 +110,12 @@ export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' 
   // Fallbacks for category-like strings
   if (lowerCategory.includes('beer')) {
     return heroes.beer.glass;
+  } else if (lowerCategory.includes('red') && lowerCategory.includes('wine')) {
+    return heroes.wine.red;
+  } else if (lowerCategory.includes('white') && lowerCategory.includes('wine')) {
+    return heroes.wine.white;
+  } else if (lowerCategory.includes('house') && lowerCategory.includes('wine')) {
+    return heroes.wine.house;
   } else if (lowerCategory.includes('wine')) {
     return heroes.wine.glass;
   } else if (lowerCategory.includes('cocktail')) {
