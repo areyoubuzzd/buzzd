@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getHeroImage } from "@/assets/heroes";
+import { heroes, getHeroImage } from "@/assets/heroes";
 
 // Legacy function (not used anymore, using the imported getHeroImage instead)
 function _getDemoHeroImage(drinkType: string | undefined, brand?: string): string {
@@ -360,14 +360,15 @@ function DealCard({
           {/* Hero Image - centered bottle/glass image */}
           <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ zIndex: 1 }}>
             <img 
-              src={getHeroImage(deal.brand || deal.drinkType, 'glass')} 
+              src={getHeroImage(deal.brand || deal.drinkType, 'glass')}
               alt={`${deal.brand || deal.drinkType} hero image`}
-              className="h-[180%] object-contain mix-blend-lighten"
+              className="h-[180%] object-contain mix-blend-multiply"
               style={{ 
-                filter: 'brightness(1.5) contrast(1.1) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5))', 
+                filter: 'brightness(1.7) contrast(1.2) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5))', 
                 transform: 'translateY(20px) scale(1.1)',
                 maxWidth: 'none',
-                opacity: 0.85
+                opacity: 0.9,
+                backgroundColor: 'transparent'
               }}
             />
           </div>
@@ -399,7 +400,13 @@ function DealCard({
         {/* Bottom section with deal name and details */}
         <div className="p-3 pt-1 bg-black/75 flex flex-col items-center mt-auto relative" style={{ zIndex: 10 }}>
           {/* Deal name */}
-          <h3 className="font-black text-white text-center text-2xl font-luckiest uppercase tracking-wide leading-tight">
+          <h3 className="font-black text-white text-center font-luckiest uppercase tracking-wide leading-none truncate w-full px-1" 
+              style={{ 
+                fontSize: dealName.length > 15 ? '1.25rem' : '1.5rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
             {dealName}
           </h3>
           

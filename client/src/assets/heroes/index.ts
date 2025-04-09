@@ -54,36 +54,38 @@ export const heroes = {
 };
 
 export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' = 'glass'): any {
-  const formattedCategory = category.toLowerCase();
+  // First prioritize specific brands regardless of category
+  const lowerCategory = (category || '').toLowerCase();
   
-  // Check if the category exists
-  if (formattedCategory in heroes) {
-    const categoryHeroes = heroes[formattedCategory as keyof typeof heroes];
+  // Brand-specific checks
+  if (lowerCategory.includes('asahi')) {
+    return heroes.beer.asahi;
+  }
+  
+  if (lowerCategory.includes('heineken')) {
+    return heroes.beer.heineken;
+  }
+  
+  if (lowerCategory.includes('sapporo')) {
+    return heroes.beer.sapporo;
+  }
+  
+  if (lowerCategory.includes('margarita')) {
+    return heroes.cocktail.margarita;
+  }
+  
+  if (lowerCategory.includes('monkey')) {
+    return heroes.whisky.monkey_shoulder;
+  }
+  
+  // Category-based selection
+  // First check if the exact category exists
+  if (lowerCategory in heroes) {
+    const categoryHeroes = heroes[lowerCategory as keyof typeof heroes];
     
     // If the requested serving style exists for this category
     if (servingStyle in categoryHeroes) {
       return categoryHeroes[servingStyle as keyof typeof categoryHeroes];
-    }
-    
-    // Check for special brands
-    if (category.toLowerCase().includes('asahi')) {
-      return heroes.beer.asahi;
-    }
-    
-    if (category.toLowerCase().includes('heineken')) {
-      return heroes.beer.heineken;
-    }
-    
-    if (category.toLowerCase().includes('sapporo')) {
-      return heroes.beer.sapporo;
-    }
-    
-    if (category.toLowerCase().includes('margarita')) {
-      return heroes.cocktail.margarita;
-    }
-    
-    if (category.toLowerCase().includes('monkey')) {
-      return heroes.whisky.monkey_shoulder;
     }
     
     // Default to glass if bottle not available, or the first available style
@@ -92,15 +94,29 @@ export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' 
       : Object.values(categoryHeroes)[0];
   }
   
-  // Fallbacks
-  if (formattedCategory.includes('wine')) {
-    return servingStyle === 'bottle' ? heroes.wine.bottle : heroes.wine.glass;
-  } else if (formattedCategory.includes('cocktail')) {
+  // Fallbacks for category-like strings
+  if (lowerCategory.includes('beer')) {
+    return heroes.beer.glass;
+  } else if (lowerCategory.includes('wine')) {
+    return heroes.wine.glass;
+  } else if (lowerCategory.includes('cocktail')) {
     return heroes.cocktail.glass;
-  } else if (['whisky', 'vodka', 'rum', 'gin'].includes(formattedCategory)) {
-    return servingStyle === 'bottle' ? heroes.whisky.bottle : heroes.whisky.glass;
+  } else if (lowerCategory.includes('whisky') || lowerCategory.includes('whiskey')) {
+    return heroes.whisky.glass;
+  } else if (lowerCategory.includes('vodka')) {
+    return heroes.vodka.glass;
+  } else if (lowerCategory.includes('rum')) {
+    return heroes.rum.glass;
+  } else if (lowerCategory.includes('gin')) {
+    return heroes.gin.glass;
+  }
+  
+  // If we're dealing with a beer, prioritize beer images
+  if (lowerCategory.includes('lager') || lowerCategory.includes('ale') || 
+      lowerCategory.includes('stout') || lowerCategory.includes('ipa')) {
+    return heroes.beer.glass;
   }
   
   // Default fallback to beer
-  return servingStyle === 'bottle' ? heroes.beer.bottle : heroes.beer.glass;
+  return heroes.beer.glass;
 }
