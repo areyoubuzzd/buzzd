@@ -111,25 +111,31 @@ export function getHeroImage(category: string, servingStyle: 'bottle' | 'glass' 
   if (lowerCategory.includes('beer')) {
     return heroes.beer.glass;
   } 
-  // Wine categories - prioritize "house pour" variants
-  else if (lowerCategory.includes('house') && lowerCategory.includes('red') && lowerCategory.includes('wine')) {
-    return heroes.wine.red;
-  } 
-  else if (lowerCategory.includes('house') && lowerCategory.includes('white') && lowerCategory.includes('wine')) {
+  // Wine categories - Simplify to just red, white, or general wine
+  // Check for subcategories that indicate white wine
+  else if (lowerCategory.includes('wine') && 
+          (lowerCategory.includes('white') || 
+           lowerCategory.includes('sauvignon') || 
+           lowerCategory.includes('blanc') || 
+           lowerCategory.includes('pinot gris') || 
+           lowerCategory.includes('chardonnay') || 
+           lowerCategory.includes('riesling'))) {
     return heroes.wine.white;
   } 
-  else if (lowerCategory.includes('house') && lowerCategory.includes('wine')) {
-    return heroes.wine.house || heroes.wine.red; // Default house pour to red if no specific house image
-  }
-  // Generic wine categories
-  else if (lowerCategory.includes('red') && lowerCategory.includes('wine')) {
+  // Check for subcategories that indicate red wine
+  else if (lowerCategory.includes('wine') && 
+          (lowerCategory.includes('red') || 
+           lowerCategory.includes('cabernet') || 
+           lowerCategory.includes('merlot') || 
+           lowerCategory.includes('syrah') || 
+           lowerCategory.includes('shiraz') || 
+           lowerCategory.includes('pinot noir') || 
+           lowerCategory.includes('malbec'))) {
     return heroes.wine.red;
   } 
-  else if (lowerCategory.includes('white') && lowerCategory.includes('wine')) {
-    return heroes.wine.white;
-  } 
+  // Default wine to red wine image
   else if (lowerCategory.includes('wine')) {
-    return heroes.wine.red; // Default to red wine if not specified
+    return heroes.wine.red; // Default wine to red wine glass
   } else if (lowerCategory.includes('cocktail')) {
     return heroes.cocktail.glass;
   } else if (lowerCategory.includes('whisky') || lowerCategory.includes('whiskey')) {
