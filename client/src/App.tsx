@@ -34,7 +34,7 @@ function Router() {
       <Route path="/deal-images" component={DealImageUploader} />
       <Route path="/cards-test" component={CardsTestPage} />
       <Route path="/gradient-test" component={GradientTestPage} />
-      <ProtectedRoute path="/menu-analysis" component={MenuAnalysisPage} />
+      <Route path="/menu-analysis" component={MenuAnalysisPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/saved" component={SavedDealsPage} />
       <Route component={NotFound} />
