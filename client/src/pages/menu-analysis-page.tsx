@@ -330,12 +330,12 @@ const MenuUploadForm: React.FC<{
           <Input 
             id="menuImage" 
             type="file" 
-            accept="image/*" 
+            accept="image/*,.pdf" 
             onChange={handleFileChange}
             disabled={uploading}
           />
           <p className="text-sm text-muted-foreground">
-            Upload a menu image in JPG, PNG, or WebP format
+            Upload a menu image in JPG, PNG, WebP, or PDF format
           </p>
         </div>
 
@@ -517,15 +517,34 @@ const ReanalyzeMenuForm: React.FC<{
     }
   };
 
+  const isPdf = filename.toLowerCase().endsWith('.pdf');
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="mb-4">
-          <img 
-            src={`/api/menu-analysis/view-menu/${filename}`} 
-            alt="Menu" 
-            className="max-h-[400px] object-contain mx-auto border rounded-md"
-          />
+          {isPdf ? (
+            <div className="border rounded-md p-4 bg-muted/20 flex flex-col items-center justify-center h-[400px]">
+              <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-center">
+                PDF Document Preview Not Available
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => window.open(`/api/menu-analysis/view-menu/${filename}`, '_blank')}
+              >
+                Open PDF
+              </Button>
+            </div>
+          ) : (
+            <img 
+              src={`/api/menu-analysis/view-menu/${filename}`} 
+              alt="Menu" 
+              className="max-h-[400px] object-contain mx-auto border rounded-md"
+            />
+          )}
           <p className="text-center text-sm text-muted-foreground mt-2">
             Selected menu: {filename}
           </p>
