@@ -5,7 +5,7 @@ import { setupAuth } from "./auth";
 import { insertDealSchema, insertEstablishmentSchema, insertReviewSchema, insertSavedDealSchema, insertUserDealViewSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { googleSheetsService } from "./services/googleSheetsService";
+import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheets } from "./services/googleSheetsService";
 import { cloudinaryService } from "./services/cloudinaryService";
 import uploadDealImageRouter from "./routes/upload-deal-image";
 
@@ -415,387 +415,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ======================================
-  // Google Sheets API Integration
+  // Google Sheets API Integration for Database Sync
   // ======================================
   
-  // Get all restaurants from Google Sheets
-  app.get("/api/sheets/restaurants", async (req, res) => {
-    try {
-      const restaurants = await googleSheetsService.getRestaurants();
-      
-      // Map through restaurants and add Cloudinary logo URLs
-      const enhancedRestaurants = restaurants.map(restaurant => ({
-        ...restaurant,
-        logoUrl: restaurant.logoUrl || cloudinaryService.getRestaurantLogoUrl(restaurant.restaurantId)
-      }));
-      
-      res.json(enhancedRestaurants);
-    } catch (error) {
-      console.error("Error fetching restaurants from Google Sheets:", error);
-      res.status(500).json({ message: "Failed to fetch restaurants" });
-    }
-  });
+  /* 
+   * NOTE: The previous Google Sheets API endpoints have been replaced
+   * with a new database sync functionality. To load data from Google Sheets
+   * into the database, use the scripts:
+   * 
+   * ./db-sync.sh all        # Sync establishments and deals
+   * ./db-sync.sh establishments # Sync only establishments 
+   * ./db-sync.sh deals      # Sync only deals
+   */
   
-  // Get all deals from Google Sheets
-  app.get("/api/sheets/deals", async (req, res) => {
-    try {
-      const deals = await googleSheetsService.getDeals();
-      
-      // Enhance deals with Cloudinary image URLs
-      const enhancedDeals = deals.map(deal => ({
-        ...deal,
-        bgImageUrl: deal.customBgImageUrl || 
-          cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
-        brandImageUrl: deal.customBrandImageUrl || 
-          cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
-      }));
-      
-      res.json(enhancedDeals);
-    } catch (error) {
-      console.error("Error fetching deals from Google Sheets:", error);
-      res.status(500).json({ message: "Failed to fetch deals" });
-    }
-  });
-  
-  // Get active deals from Google Sheets
-  app.get("/api/sheets/deals/active", async (req, res) => {
-    try {
-      const activeDeals = await googleSheetsService.getActiveDeals();
-      
-      // Enhance deals with Cloudinary image URLs
-      const enhancedDeals = activeDeals.map(deal => ({
-        ...deal,
-        bgImageUrl: deal.customBgImageUrl || 
-          cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
-        brandImageUrl: deal.customBrandImageUrl || 
-          cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
-      }));
-      
-      res.json(enhancedDeals);
-    } catch (error) {
-      console.error("Error fetching active deals from Google Sheets:", error);
-      res.status(500).json({ message: "Failed to fetch active deals" });
-    }
-  });
-  
-  // Get deals for a specific restaurant
-  app.get("/api/sheets/restaurants/:id/deals", async (req, res) => {
-    try {
-      const restaurantId = req.params.id;
-      const deals = await googleSheetsService.getDealsByRestaurantId(restaurantId);
-      
-      // Enhance deals with Cloudinary image URLs
-      const enhancedDeals = deals.map(deal => ({
-        ...deal,
-        bgImageUrl: deal.customBgImageUrl || 
-          cloudinaryService.getBackgroundImageUrl(deal.alcoholCategory, deal.alcoholSubCategory),
-        brandImageUrl: deal.customBrandImageUrl || 
-          cloudinaryService.getBrandImageUrl(deal.alcoholCategory, deal.brandName)
-      }));
-      
-      res.json(enhancedDeals);
-    } catch (error) {
-      console.error(`Error fetching deals for restaurant ${req.params.id}:`, error);
-      res.status(500).json({ message: "Failed to fetch restaurant deals" });
-    }
-  });
-  
-  // Get deals near a location (from Google Sheets)
-  // Test endpoint for Google Sheets connection
-  app.get("/api/check-sheet-content", async (req, res) => {
-    try {
-      // Get the content of Sheet1
-      const response = await googleSheetsService.sheets.spreadsheets.values.get({
-        spreadsheetId: googleSheetsService.spreadsheetId,
-        range: 'Sheet1!A1:Z10', // Get the first 10 rows
-      });
-      
-      // Return the raw data
-      res.json({
-        success: true,
-        headers: response.data.values?.[0] || [],
-        data: response.data.values?.slice(1, 10) || []
-      });
-    } catch (error) {
-      console.error("Error getting sheet content:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: String(error)
-      });
-    }
-  });
-
-  app.get("/api/test-cloudinary", async (req, res) => {
-    try {
-      // Get both SDK-generated and hardcoded URLs
-      const { sdkUrls, hardcodedUrls, cloudName } = generateTestUrls();
-      
-      // Check if we can connect to Cloudinary
-      let connectionOk = false;
-      try {
-        await testCloudinaryConnection();
-        connectionOk = true;
-      } catch (e) {
-        // Connection failed but we can still return test URLs
-        console.error('Cloudinary connection test failed:', e);
-      }
-      
-      // Log the Cloudinary configuration
-      logCloudinaryConfig();
-      
-      // Return a comprehensive response
-      res.json({
-        connectionOk,
-        cloudName,
-        message: "These URLs demonstrate the folder structure for images. If Cloudinary is properly set up with these folders, the images will load. The hardcoded URLs should work regardless of authentication.",
-        recommendedFolderStructure: [
-          "/backgrounds/beer/image", 
-          "/backgrounds/wine/image",
-          "/backgrounds/whisky/image",
-          "/backgrounds/cocktail/image",
-          "/backgrounds/default/image",
-          "/brands/beer/heineken/bottle",
-          "/brands/beer/heineken/glass",
-          "/brands/beer/default/bottle",
-          "/brands/beer/default/glass",
-          "/brands/cocktail/margarita/glass",
-          "/brands/cocktail/mojito/glass", 
-          "/brands/cocktail/default/glass",
-          "/restaurants/logos/"
-        ],
-        sdkUrls,
-        hardcodedUrls
-      });
-    } catch (error) {
-      console.error("Error testing Cloudinary:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: String(error)
-      });
-    }
-  });
-
-  app.get("/api/test-restaurants", async (req, res) => {
-    try {
-      // Get restaurants with our updated mapping
-      const restaurants = await googleSheetsService.getRestaurants();
-      
-      res.json({
-        success: true,
-        count: restaurants.length,
-        restaurants: restaurants
-      });
-    } catch (error) {
-      console.error("Error testing restaurant data:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: String(error)
-      });
-    }
-  });
-
-  app.get("/api/test-google-sheets", async (req, res) => {
-    try {
-      // First get metadata about the spreadsheet
-      const metadata = await googleSheetsService.sheets.spreadsheets.get({
-        spreadsheetId: googleSheetsService.spreadsheetId
-      });
-      
-      const sheetNames = metadata.data.sheets.map((s: any) => s.properties.title);
-      
-      // Look specifically for a sheet named Restaurant or similar
-      const restaurantSheet = metadata.data.sheets.find((s: any) => 
-        s.properties.title.toLowerCase().includes('restaurant')
-      );
-      
-      let restaurants = [];
-      let sheetData = {};
-      
-      // If we found a restaurant sheet, try to get data from it
-      if (restaurantSheet) {
-        const sheetName = restaurantSheet.properties.title;
-        const response = await googleSheetsService.sheets.spreadsheets.values.get({
-          spreadsheetId: googleSheetsService.spreadsheetId,
-          range: `${sheetName}!A1:Z`,
-        });
-        
-        if (response.data.values && response.data.values.length > 0) {
-          // Get header row to see column names
-          const headers = response.data.values[0];
-          const nameColumnIndex = headers.findIndex((h: string) => 
-            h.toLowerCase().includes('name') || h.toLowerCase().includes('restaurant')
-          );
-          
-          // If we found a name column, get some examples
-          if (nameColumnIndex >= 0) {
-            const examples = response.data.values
-              .slice(1, 6) // Get rows 2-6
-              .map((row: string[]) => row[nameColumnIndex])
-              .filter(Boolean); // Remove empty values
-              
-            sheetData = {
-              sheetName,
-              headers,
-              nameColumnIndex,
-              examples
-            };
-          }
-        }
-      }
-      
-      res.json({ 
-        success: true,
-        sheetNames,
-        restaurantSheetFound: !!restaurantSheet,
-        sheetData
-      });
-    } catch (error) {
-      console.error("Error testing Google Sheets:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: String(error),
-        message: "Failed to connect to Google Sheets" 
-      });
-    }
-  });
-
-  app.get("/api/sheets/deals/nearby", async (req, res) => {
-    try {
-      const latitude = parseFloat(req.query.lat as string);
-      const longitude = parseFloat(req.query.lng as string);
-      const radius = parseFloat(req.query.radius as string) || 1; // Default 1km
-      
-      if (isNaN(latitude) || isNaN(longitude)) {
-        return res.status(400).json({ message: "Invalid coordinates" });
-      }
-      
-      // Get all restaurants and deals
-      const restaurants = await googleSheetsService.getRestaurants();
-      const deals = await googleSheetsService.getDeals();
-      
-      // Create a map of restaurants by ID for faster lookups
-      const restaurantMap = restaurants.reduce((map, restaurant) => {
-        map[restaurant.restaurantId] = restaurant;
-        return map;
-      }, {} as Record<string, typeof restaurants[0]>);
-      
-      // Filter restaurants based on location
-      const nearbyRestaurants = restaurants.filter(restaurant => {
-        const distance = calculateDistance(
-          latitude, longitude,
-          restaurant.latitude, restaurant.longitude
-        );
-        return distance <= radius;
-      });
-      
-      // Get restaurant IDs of nearby restaurants
-      const nearbyRestaurantIds = nearbyRestaurants.map(r => r.restaurantId);
-      
-      // Filter deals based on restaurant location and status
-      const nearbyDeals = deals.filter(deal => 
-        nearbyRestaurantIds.includes(deal.restaurantId)
-      );
-      
-      // Group deals by status
-      const activeDeals = nearbyDeals.filter(deal => deal.dealStatus === 'active');
-      const upcomingDeals = nearbyDeals.filter(deal => deal.dealStatus === 'upcoming');
-      
-      // Enhance deals with restaurant info and images
-      const enhanceDealsWithInfo = (dealList: typeof deals) => 
-        dealList.map(deal => {
-          const restaurant = restaurantMap[deal.restaurantId];
-          const distance = calculateDistance(
-            latitude, longitude,
-            restaurant.latitude, restaurant.longitude
-          );
-          
-          return {
-            ...deal,
-            restaurant: {
-              ...restaurant,
-              logoUrl: restaurant.logoUrl || cloudinaryService.getRestaurantLogoUrl(restaurant.restaurantId)
-            },
-            distance,
-            bgImageUrl: deal.customBgImageUrl || 
-              cloudinaryService.getBackgroundImageUrl(
-                deal.alcoholCategory, 
-                deal.alcoholSubCategory, 
-                deal.servingStyle as 'bottle' | 'glass'
-              ),
-            brandImageUrl: deal.customBrandImageUrl || 
-              cloudinaryService.getBrandImageUrl(
-                deal.alcoholCategory, 
-                deal.brandName, 
-                deal.servingStyle as 'bottle' | 'glass'
-              )
-          };
-        });
-      
-      // Sort deals by restaurant priority (higher first) and then by distance
-      const sortDealsByPriorityAndDistance = (deals: ReturnType<typeof enhanceDealsWithInfo>) => 
-        deals.sort((a, b) => {
-          // First sort by priority (higher first)
-          if (b.restaurant.priority !== a.restaurant.priority) {
-            return b.restaurant.priority - a.restaurant.priority;
-          }
-          // Then sort by distance (closer first)
-          return a.distance - b.distance;
-        });
-      
-      const enhancedActiveDeals = sortDealsByPriorityAndDistance(enhanceDealsWithInfo(activeDeals));
-      const enhancedUpcomingDeals = sortDealsByPriorityAndDistance(enhanceDealsWithInfo(upcomingDeals));
-      
-      // For free users, limit the number of deals returned (similar to the existing endpoint)
-      if (req.isAuthenticated() && req.user.subscriptionTier === 'free') {
-        const dealsViewed = req.user.dealsViewed || 0;
-        const maxFreeDeals = 3;
-        const remainingDeals = Math.max(0, maxFreeDeals - dealsViewed);
-        
-        const limitedActiveDeals = enhancedActiveDeals.slice(0, remainingDeals);
-        
-        return res.json({
-          active: limitedActiveDeals,
-          upcoming: enhancedUpcomingDeals,
-          subscription: {
-            tier: 'free',
-            viewed: dealsViewed,
-            limit: maxFreeDeals,
-            remaining: remainingDeals
-          }
-        });
-      }
-      
-      // For premium users or non-authenticated users
-      res.json({
-        active: enhancedActiveDeals,
-        upcoming: enhancedUpcomingDeals,
-        subscription: req.isAuthenticated() 
-          ? { tier: req.user.subscriptionTier }
-          : { tier: 'free', viewed: 0, limit: 3, remaining: 3 }
-      });
-    } catch (error) {
-      console.error("Error fetching nearby deals from Google Sheets:", error);
-      res.status(500).json({ message: "Failed to fetch nearby deals" });
-    }
-  });
-  
-  // Helper function to calculate distance between two points using Haversine formula
-  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c; // Distance in km
-    return distance;
-  }
-  
-  function deg2rad(deg: number): number {
-    return deg * (Math.PI/180);
-  }
+  // Database sync endpoints (Admin only)
 
   // Set up Cloudinary folder structure and register uploader routes
   try {
@@ -817,6 +450,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.error('Error registering Cloudinary routes:', error);
   }
+
+  // Database sync endpoints from Google Sheets
+  app.post("/api/db/sync/all", requireAdmin, async (req, res) => {
+    try {
+      console.log('Starting full database sync from Google Sheets...');
+      
+      console.log('Syncing establishments...');
+      const establishments = await syncEstablishmentsFromSheets();
+      console.log(`Synced ${establishments.length} establishments`);
+      
+      console.log('Syncing deals...');
+      const dealsResult = await syncDealsFromSheets();
+      console.log(`Synced ${dealsResult.length} deals`);
+      
+      res.json({
+        success: true,
+        message: 'Successfully synced data from Google Sheets',
+        establishments: establishments.length,
+        deals: dealsResult.length
+      });
+    } catch (error) {
+      console.error('Error during full sync:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to sync data from Google Sheets',
+        error: (error as Error).message
+      });
+    }
+  });
+  
+  app.post("/api/db/sync/establishments", requireAdmin, async (req, res) => {
+    try {
+      console.log('Syncing establishments from Google Sheets...');
+      const establishments = await syncEstablishmentsFromSheets();
+      console.log(`Synced ${establishments.length} establishments`);
+      
+      res.json({
+        success: true,
+        message: 'Successfully synced establishments from Google Sheets',
+        count: establishments.length
+      });
+    } catch (error) {
+      console.error('Error syncing establishments:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to sync establishments from Google Sheets',
+        error: (error as Error).message
+      });
+    }
+  });
+  
+  app.post("/api/db/sync/deals", requireAdmin, async (req, res) => {
+    try {
+      console.log('Syncing deals from Google Sheets...');
+      const deals = await syncDealsFromSheets();
+      console.log(`Synced ${deals.length} deals`);
+      
+      res.json({
+        success: true,
+        message: 'Successfully synced deals from Google Sheets',
+        count: deals.length
+      });
+    } catch (error) {
+      console.error('Error syncing deals:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to sync deals from Google Sheets',
+        error: (error as Error).message
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

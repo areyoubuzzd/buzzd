@@ -8,6 +8,26 @@ export const userRoleEnum = pgEnum('user_role', ['user', 'admin', 'restaurant'])
 export const subscriptionTierEnum = pgEnum('subscription_tier', ['free', 'premium']);
 export const dealStatusEnum = pgEnum('deal_status', ['active', 'upcoming', 'inactive']);
 export const dealTypeEnum = pgEnum('deal_type', ['drink', 'food', 'both']);
+export const drinkCategoryEnum = pgEnum('drink_category', [
+  'beer', 
+  'wine', 
+  'cocktail', 
+  'spirits', 
+  'non_alcoholic'
+]);
+export const drinkSubcategoryEnum = pgEnum('drink_subcategory', [
+  // Beer subcategories
+  'lager', 'ale', 'stout', 'ipa', 'craft',
+  // Wine subcategories
+  'red_wine', 'white_wine', 'rose_wine', 'sparkling_wine',
+  // Spirit subcategories
+  'whisky', 'gin', 'vodka', 'rum', 'tequila', 'brandy',
+  // Cocktail subcategories
+  'classic', 'signature', 'mocktail'
+]);
+export const servingStyleEnum = pgEnum('serving_style', [
+  'glass', 'bottle', 'pint', 'flight', 'bucket'
+]);
 
 // Users table
 export const users = pgTable("users", {
@@ -47,12 +67,27 @@ export const deals = pgTable("deals", {
   description: text("description").notNull(),
   status: dealStatusEnum("status").notNull().default('inactive'),
   type: dealTypeEnum("type").notNull(),
+  
+  // Drink specific fields
+  drinkCategory: drinkCategoryEnum("drink_category"),
+  drinkSubcategory: drinkSubcategoryEnum("drink_subcategory"),
+  isHousePour: boolean("is_house_pour").default(false),
+  brand: text("brand"),
+  servingStyle: servingStyleEnum("serving_style"),
+  servingSize: text("serving_size"), // e.g. "500ml", "750ml"
+  
+  // Deal pricing
   regularPrice: doublePrecision("regular_price").notNull(),
   dealPrice: doublePrecision("deal_price").notNull(),
   savingsPercentage: doublePrecision("savings_percentage").notNull(),
+  isOneForOne: boolean("is_one_for_one").default(false),
+  
+  // Deal timing
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),
   daysOfWeek: json("days_of_week").notNull(), // Array of days (0-6, Sunday-Saturday)
+  
+  // Media and metadata
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -160,9 +195,18 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  savingsPercentage: true,
+  savingsPercentage: true, // This is calculated based on regular and deal price
 }).extend({
-  daysOfWeek: z.array(z.number().min(0).max(6)),
+  daysOfWeek: z.array(z.number().min(0).max(6)), // Days of the week validation
+  // Optional fields for different deal types
+  drinkCategory: z.enum(['beer', 'wine', 'cocktail', 'spirits', 'non_alcoholic']).optional(),
+  drinkSubcategory: z.enum([
+    'lager', 'ale', 'stout', 'ipa', 'craft',
+    'red_wine', 'white_wine', 'rose_wine', 'sparkling_wine',
+    'whisky', 'gin', 'vodka', 'rum', 'tequila', 'brandy',
+    'classic', 'signature', 'mocktail'
+  ]).optional(),
+  servingStyle: z.enum(['glass', 'bottle', 'pint', 'flight', 'bucket']).optional(),
 });
 
 // Schema for inserting reviews
@@ -207,3 +251,58 @@ export type DealWithEstablishment = Deal & {
 export type DealWithDetails = DealWithEstablishment & {
   reviews: Review[];
 };
+
+// Helper types and constants for working with drink categories
+export type DrinkCategory = 'beer' | 'wine' | 'cocktail' | 'spirits' | 'non_alcoholic';
+export type WineType = 'red_wine' | 'white_wine' | 'rose_wine' | 'sparkling_wine';
+export type SpiritType = 'whisky' | 'gin' | 'vodka' | 'rum' | 'tequila' | 'brandy';
+export type BeerType = 'lager' | 'ale' | 'stout' | 'ipa' | 'craft';
+export type ServingStyle = 'glass' | 'bottle' | 'pint' | 'flight' | 'bucket';
+
+// Constants for categorization
+export const WINE_TYPES: WineType[] = ['red_wine', 'white_wine', 'rose_wine', 'sparkling_wine'];
+export const SPIRIT_TYPES: SpiritType[] = ['whisky', 'gin', 'vodka', 'rum', 'tequila', 'brandy'];
+export const BEER_TYPES: BeerType[] = ['lager', 'ale', 'stout', 'ipa', 'craft'];
+
+// Constants for display names
+export const DRINK_CATEGORY_DISPLAY_NAMES: Record<DrinkCategory, string> = {
+  beer: 'Beer',
+  wine: 'Wine',
+  cocktail: 'Cocktail',
+  spirits: 'Spirits',
+  non_alcoholic: 'Non-Alcoholic'
+};
+
+export const SUBCATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  // Wine types
+  red_wine: 'Red Wine',
+  white_wine: 'White Wine',
+  rose_wine: 'Rosé Wine',
+  sparkling_wine: 'Sparkling Wine',
+  
+  // Spirit types
+  whisky: 'Whisky',
+  gin: 'Gin',
+  vodka: 'Vodka',
+  rum: 'Rum',
+  tequila: 'Tequila',
+  brandy: 'Brandy',
+  
+  // Beer types
+  lager: 'Lager',
+  ale: 'Ale',
+  stout: 'Stout',
+  ipa: 'IPA',
+  craft: 'Craft Beer',
+  
+  // Cocktail types
+  classic: 'Classic Cocktail',
+  signature: 'Signature Cocktail',
+  mocktail: 'Mocktail'
+};
+
+// Helper function to calculate savings percentage for a deal
+export function calculateSavingsPercentage(regularPrice: number, dealPrice: number): number {
+  if (regularPrice <= 0) return 0;
+  return Math.round(((regularPrice - dealPrice) / regularPrice) * 100);
+}

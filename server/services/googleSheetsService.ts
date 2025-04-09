@@ -1,277 +1,353 @@
-import { google } from 'googleapis';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
+import { db } from '../db';
+import { 
+  deals,
+  establishments,
+  DrinkCategory, 
+  WINE_TYPES, 
+  SPIRIT_TYPES, 
+  BEER_TYPES,
+  calculateSavingsPercentage
+} from '../../shared/schema';
+import { eq, and } from 'drizzle-orm';
 
-// Define types for our data
-interface Restaurant {
-  restaurantId: string;
-  name: string;
-  address: string;
-  postalCode: string;
-  phoneNumber: string;
-  cuisine: string;
-  area: string;
-  priority: number;
-  latitude: number;
-  longitude: number;
-  website: string;
-  openingHours: string;
-  logoUrl: string;
+// Environment variables for Google Sheets API
+const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+const CLIENT_EMAIL = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
+const PRIVATE_KEY = process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+if (!SPREADSHEET_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
+  throw new Error('Missing Google Sheets credentials in environment variables');
 }
 
-interface Deal {
-  dealId: string;
-  restaurantId: string;
-  title: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  startDate: string;
-  endDate: string;
-  daysActive: string[];
-  dealStatus: 'active' | 'upcoming' | 'inactive';
-  dealType: 'drink' | 'food' | 'both';
-  alcoholCategory: string;
-  alcoholSubCategory: string;
-  brandName: string;
-  servingStyle: 'bottle' | 'glass' | 'default';
-  originalPrice: number;
-  discountedPrice: number;
-  discountPercentage: number;
-  isFeatured: boolean;
-  isPremium: boolean;
-  isOneForOne: boolean;
-  tags: string[];
-  customBgImageUrl?: string;
-  customBrandImageUrl?: string;
-}
+// JWT auth for Google Sheets API
+const serviceAccountAuth = new JWT({
+  email: CLIENT_EMAIL,
+  key: PRIVATE_KEY,
+  scopes: [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive.file',
+  ],
+});
 
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+// Initialize the spreadsheet
+const doc = new GoogleSpreadsheet(SPREADSHEET_ID, serviceAccountAuth);
 
-class GoogleSheetsService {
-  private auth: JWT;
-  public sheets: any; // Make sheets public so it can be accessed from outside
-  public spreadsheetId: string; // Make spreadsheetId public too
-
-  constructor() {
-    // Make sure we have the environment variables
-    if (!process.env.GOOGLE_SHEETS_CLIENT_EMAIL || !process.env.GOOGLE_SHEETS_PRIVATE_KEY) {
-      console.warn('Google Sheets credentials not found in environment variables');
-    }
-
-    if (!process.env.GOOGLE_SHEETS_SPREADSHEET_ID) {
-      console.warn('Google Sheets spreadsheet ID not found in environment variables');
-    }
-
-    // Extract ID from URL if a full URL was provided
-    let spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID || '';
+/**
+ * Get establishment data from Google Sheets
+ */
+export async function getEstablishmentsFromSheets(): Promise<any[]> {
+  try {
+    await doc.loadInfo();
+    const establishmentsSheet = doc.sheetsByTitle['Restaurants Sheet'] || doc.sheetsByTitle['Sheet1'];
     
-    console.log('Original spreadsheet ID or URL:', spreadsheetId);
-    
-    // If it's a full URL, extract just the ID
-    if (spreadsheetId.includes('spreadsheets/d/')) {
-      const match = spreadsheetId.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (match && match[1]) {
-        spreadsheetId = match[1];
-        console.log('Extracted spreadsheet ID:', spreadsheetId);
-      }
+    if (!establishmentsSheet) {
+      throw new Error("Restaurants sheet not found - please make sure you have a sheet named 'Restaurants Sheet' or 'Sheet1'");
     }
     
-    this.spreadsheetId = spreadsheetId;
-    console.log('Using spreadsheet ID:', this.spreadsheetId);
+    const rows = await establishmentsSheet.getRows();
     
-    // Initialize auth
-    this.auth = new JWT({
-      email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-      key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      scopes: SCOPES,
+    // Adapt to your actual sheet structure - based on README.md schema for "Restaurants Sheet"
+    return rows.map(row => {
+      // Get all available fields, with defaults for required fields
+      return {
+        name: row.get('name') || row.get('restaurantName') || 'Unknown Restaurant',
+        description: row.get('description') || '',
+        address: row.get('address') || '',
+        city: row.get('city') || 'Singapore',
+        postalCode: row.get('postalCode') || '',
+        latitude: parseFloat(row.get('latitude')) || 0,
+        longitude: parseFloat(row.get('longitude')) || 0,
+        imageUrl: row.get('logoUrl') || row.get('imageUrl') || null,
+        rating: row.get('rating') ? parseFloat(row.get('rating')) : null,
+        type: row.get('cuisine') || row.get('type') || 'restaurant'
+      };
     });
-
-    this.sheets = google.sheets({ version: 'v4', auth: this.auth });
+  } catch (error) {
+    console.error('Error getting establishments from Google Sheets:', error);
+    throw error;
   }
+}
 
-  /**
-   * Fetch all restaurants from the Google Sheet
-   */
-  async getRestaurants(): Promise<Restaurant[]> {
-    try {
-      // Use Sheet1 which contains the restaurant data
-      const sheetName = 'Sheet1';
-      
-      const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: this.spreadsheetId,
-        range: `${sheetName}!A2:L`, // A to L columns for restaurant data
-      });
-
-      const rows = response.data.values;
-      if (!rows || rows.length === 0) {
-        return [];
-      }
-
-      // Map row data to restaurant objects based on your actual sheet structure:
-      // [restaurantId, name, address, area, postalCode, phoneNumber, cuisine, latitude, longitude, website, openingHours, logoUrl]
-      return rows.map((row: string[]) => {
-        // Only process rows that have at least a restaurant ID
-        if (!row[0]) return null;
-        
-        return {
-          restaurantId: row[0],
-          name: row[1] || '',
-          address: row[2] || '',
-          area: row[3] || '',
-          postalCode: row[4] || '',
-          phoneNumber: row[5] || '',
-          cuisine: row[6] || '',
-          priority: 0, // Default priority if not specified
-          latitude: row[7] ? parseFloat(row[7]) : null,
-          longitude: row[8] ? parseFloat(row[8]) : null,
-          website: row[9] || '',
-          openingHours: row[10] || '',
-          logoUrl: row[11] || ''
-        };
-      }).filter(Boolean) as Restaurant[]; // Remove null entries
-    } catch (error) {
-      console.error('Error fetching restaurants:', error);
-      throw error;
+/**
+ * Get deals data from Google Sheets
+ */
+export async function getDealsFromSheets(): Promise<any[]> {
+  try {
+    await doc.loadInfo();
+    // Try to find a sheet for deals - it might not exist yet
+    const dealsSheet = doc.sheetsByTitle['Deals'];
+    
+    if (!dealsSheet) {
+      console.log("Deals sheet not found - returning empty array. You need to create a 'Deals' sheet in your Google Sheets document.");
+      return []; // Return empty array instead of throwing an error
     }
-  }
-
-  /**
-   * Fetch all deals from the Google Sheet
-   */
-  async getDeals(): Promise<Deal[]> {
-    try {
-      // Get metadata to see what sheets exist
-      const metadata = await this.sheets.spreadsheets.get({
-        spreadsheetId: this.spreadsheetId
-      });
+    
+    const rows = await dealsSheet.getRows();
+    
+    return rows.map(row => {
+      // Parse deal data from the sheet row
+      const establishmentName = row.get('establishmentName');
+      const type = row.get('type') as 'drink' | 'food' | 'both';
+      const drinkCategory = row.get('drinkCategory') as DrinkCategory;
+      const drinkSubcategory = row.get('drinkSubcategory');
+      const isHousePour = row.get('isHousePour') === 'true';
+      const brand = row.get('brand');
+      const servingStyle = row.get('servingStyle');
+      const servingSize = row.get('servingSize');
+      const regularPrice = parseFloat(row.get('regularPrice'));
+      const dealPrice = parseFloat(row.get('dealPrice'));
+      const isOneForOne = row.get('isOneForOne') === 'true';
       
-      // Find a deals sheet or use the second sheet if available
-      const dealsSheet = metadata.data.sheets.find((s: any) => 
-        s.properties.title.toLowerCase() === 'deals'
-      );
+      // Parse days of week
+      const daysOfWeekString = row.get('daysOfWeek');
+      const daysOfWeek = daysOfWeekString ? 
+        daysOfWeekString.split(',').map((day: string) => parseInt(day.trim())) : 
+        [0, 1, 2, 3, 4, 5, 6]; // Default to all days if not specified
       
-      // If no Deals sheet exists, return an empty array
-      if (!dealsSheet) {
-        console.log('No Deals sheet found in the spreadsheet. Only available sheets:', 
-          metadata.data.sheets.map((s: any) => s.properties.title).join(', '));
-        return [];
+      // Parse start and end times
+      const startTime = row.get('startTime') ? new Date(row.get('startTime')) : new Date();
+      const endTime = row.get('endTime') ? new Date(row.get('endTime')) : new Date();
+      
+      // Set end time to 23:59:59 if only date is provided
+      if (endTime.getHours() === 0 && endTime.getMinutes() === 0 && endTime.getSeconds() === 0) {
+        endTime.setHours(23, 59, 59);
       }
       
-      const sheetName = dealsSheet.properties.title;
-      console.log('Using sheet for deals:', sheetName);
-      
-      let rows: any[] = [];
-      try {
-        const response = await this.sheets.spreadsheets.values.get({
-          spreadsheetId: this.spreadsheetId,
-          range: `${sheetName}!A2:X`, // Extended range to include serving style
-        });
+      return {
+        establishmentName,
+        title: row.get('title'),
+        description: row.get('description'),
+        status: row.get('status') || 'active',
+        type,
+        drinkCategory: type === 'drink' ? drinkCategory : undefined,
+        drinkSubcategory: type === 'drink' ? drinkSubcategory : undefined,
+        isHousePour: type === 'drink' ? isHousePour : undefined,
+        brand: type === 'drink' ? brand : undefined,
+        servingStyle: type === 'drink' ? servingStyle : undefined,
+        servingSize: type === 'drink' ? servingSize : undefined,
+        regularPrice,
+        dealPrice,
+        isOneForOne,
+        startTime,
+        endTime,
+        daysOfWeek,
+        imageUrl: row.get('imageUrl')
+      };
+    });
+  } catch (error) {
+    console.error('Error getting deals from Google Sheets:', error);
+    throw error;
+  }
+}
+
+/**
+ * Determine the appropriate drink subcategory based on other fields
+ */
+function determineSubcategory(deal: any): string | undefined {
+  if (deal.type !== 'drink' || !deal.drinkCategory) {
+    return undefined;
+  }
   
-        rows = response.data.values || [];
-      } catch (error) {
-        console.error(`Error fetching data from sheet "${sheetName}":`, error);
-        return [];
-      }
-      
-      if (rows.length === 0) {
-        console.log(`No deal data found in sheet "${sheetName}"`);
-        return [];
-      }
+  // Return existing subcategory if it's already defined
+  if (deal.drinkSubcategory) {
+    return deal.drinkSubcategory;
+  }
+  
+  const category = deal.drinkCategory.toLowerCase();
+  const title = (deal.title || '').toLowerCase();
+  const description = (deal.description || '').toLowerCase();
+  const brand = (deal.brand || '').toLowerCase();
+  
+  // Combine text for better detection
+  const combinedText = `${title} ${description} ${brand}`;
+  
+  if (category === 'wine') {
+    if (combinedText.includes('red')) return 'red_wine';
+    if (combinedText.includes('white')) return 'white_wine';
+    if (combinedText.includes('rosé') || combinedText.includes('rose')) return 'rose_wine';
+    if (combinedText.includes('sparkling') || combinedText.includes('champagne')) return 'sparkling_wine';
+    return 'red_wine'; // Default to red wine
+  }
+  
+  if (category === 'spirits') {
+    if (combinedText.includes('whisky') || combinedText.includes('whiskey')) return 'whisky';
+    if (combinedText.includes('gin')) return 'gin';
+    if (combinedText.includes('vodka')) return 'vodka';
+    if (combinedText.includes('rum')) return 'rum';
+    if (combinedText.includes('tequila')) return 'tequila';
+    if (combinedText.includes('brandy')) return 'brandy';
+    return 'whisky'; // Default to whisky
+  }
+  
+  if (category === 'beer') {
+    if (combinedText.includes('ipa')) return 'ipa';
+    if (combinedText.includes('stout')) return 'stout';
+    if (combinedText.includes('ale') && !combinedText.includes('lager')) return 'ale';
+    if (combinedText.includes('craft')) return 'craft';
+    return 'lager'; // Default to lager
+  }
+  
+  if (category === 'cocktail') {
+    if (combinedText.includes('signature') || combinedText.includes('house')) return 'signature';
+    if (combinedText.includes('mocktail') || combinedText.includes('non-alcoholic')) return 'mocktail';
+    return 'classic'; // Default to classic
+  }
+  
+  return undefined;
+}
 
-      // Map row data to deal objects 
-      return rows.map((row: string[]) => {
-        // Default values
-        const servingStyleValue = row[14] ? row[14].toLowerCase().trim() : 'default';
+/**
+ * Sync establishments from Google Sheets to database
+ */
+export async function syncEstablishmentsFromSheets(): Promise<any[]> {
+  try {
+    const establishmentsData = await getEstablishmentsFromSheets();
+    const results = [];
+    
+    for (const establishmentData of establishmentsData) {
+      // Check if establishment already exists (by name)
+      const existingEstablishment = await db.select().from(establishments)
+        .where(eq(establishments.name, establishmentData.name));
+      
+      if (existingEstablishment.length > 0) {
+        // Update existing establishment
+        const result = await db.update(establishments)
+          .set(establishmentData)
+          .where(eq(establishments.name, establishmentData.name))
+          .returning();
         
-        // Ensure the serving style is one of the allowed values
-        let servingStyle: 'bottle' | 'glass' | 'default' = 'default';
-        if (servingStyleValue === 'bottle' || servingStyleValue === 'glass') {
-          servingStyle = servingStyleValue as 'bottle' | 'glass';
-        }
+        results.push(result[0]);
+      } else {
+        // Insert new establishment
+        const result = await db.insert(establishments)
+          .values(establishmentData)
+          .returning();
         
-        return {
-          dealId: row[0] || '',
-          restaurantId: row[1] || '',
-          title: row[2] || '',
-          description: row[3] || '',
-          startTime: row[4] || '',
-          endTime: row[5] || '',
-          startDate: row[6] || '',
-          endDate: row[7] || '',
-          daysActive: row[8] ? row[8].split(',').map((day: string) => day.trim()) : [],
-          dealStatus: (row[9] || 'inactive') as 'active' | 'upcoming' | 'inactive',
-          dealType: (row[10] || 'drink') as 'drink' | 'food' | 'both',
-          alcoholCategory: row[11] || '',
-          alcoholSubCategory: row[12] || '',
-          brandName: row[13] || '',
-          servingStyle, // New field for bottle/glass
-          originalPrice: parseFloat(row[15]) || 0,
-          discountedPrice: parseFloat(row[16]) || 0,
-          discountPercentage: parseFloat(row[17]) || 0,
-          isFeatured: row[18] === 'TRUE',
-          isPremium: row[19] === 'TRUE',
-          isOneForOne: row[20] === 'TRUE',
-          tags: row[21] ? row[21].split(',').map((tag: string) => tag.trim()) : [],
-          customBgImageUrl: row[22] || '',
-          customBrandImageUrl: row[23] || ''
-        };
-      });
-    } catch (error) {
-      console.error('Error fetching deals:', error);
-      throw error;
+        results.push(result[0]);
+      }
     }
-  }
-
-  /**
-   * Get a specific restaurant by ID
-   */
-  async getRestaurantById(restaurantId: string): Promise<Restaurant | null> {
-    const restaurants = await this.getRestaurants();
-    return restaurants.find(restaurant => restaurant.restaurantId === restaurantId) || null;
-  }
-
-  /**
-   * Get a specific deal by ID
-   */
-  async getDealById(dealId: string): Promise<Deal | null> {
-    const deals = await this.getDeals();
-    return deals.find(deal => deal.dealId === dealId) || null;
-  }
-
-  /**
-   * Get deals from a specific restaurant
-   */
-  async getDealsByRestaurantId(restaurantId: string): Promise<Deal[]> {
-    const deals = await this.getDeals();
-    return deals.filter(deal => deal.restaurantId === restaurantId);
-  }
-
-  /**
-   * Get active deals (deals currently in progress)
-   */
-  async getActiveDeals(): Promise<Deal[]> {
-    const deals = await this.getDeals();
-    const now = new Date();
-    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
-
-    return deals.filter(deal => {
-      // Check deal status
-      if (deal.dealStatus !== 'active') return false;
-      
-      // Check date range if specified
-      if (deal.startDate && deal.startDate > today) return false;
-      if (deal.endDate && deal.endDate < today) return false;
-      
-      // Check if deal is active on this day of the week
-      if (deal.daysActive.length > 0 && !deal.daysActive.includes(weekday)) return false;
-      
-      // Check time if needed (would require additional parsing of time strings)
-      
-      return true;
-    });
+    
+    return results;
+  } catch (error) {
+    console.error('Error syncing establishments from Google Sheets:', error);
+    throw error;
   }
 }
 
-// Create and export a singleton instance
-export const googleSheetsService = new GoogleSheetsService();
+/**
+ * Sync deals from Google Sheets to database
+ */
+export async function syncDealsFromSheets(): Promise<any[]> {
+  try {
+    const dealsData = await getDealsFromSheets();
+    const results = [];
+    
+    // Get all establishments for mapping
+    const allEstablishments = await db.select().from(establishments);
+    const establishmentMap = new Map(
+      allEstablishments.map(e => [e.name.toLowerCase(), e.id])
+    );
+    
+    for (const dealData of dealsData) {
+      // Map establishment name to ID
+      const establishmentName = dealData.establishmentName;
+      const establishmentId = establishmentMap.get(establishmentName.toLowerCase());
+      
+      if (!establishmentId) {
+        console.warn(`Establishment "${establishmentName}" not found, skipping deal "${dealData.title}"`);
+        continue;
+      }
+      
+      // Determine subcategory if not provided
+      if (dealData.type === 'drink' && !dealData.drinkSubcategory) {
+        dealData.drinkSubcategory = determineSubcategory(dealData);
+      }
+      
+      // Calculate savings percentage
+      const savingsPercentage = dealData.isOneForOne
+        ? 50
+        : calculateSavingsPercentage(dealData.regularPrice, dealData.dealPrice);
+      
+      // Prepare deal data for insertion
+      const dealToInsert = {
+        establishmentId,
+        title: dealData.title,
+        description: dealData.description,
+        status: dealData.status,
+        type: dealData.type,
+        drinkCategory: dealData.drinkCategory,
+        drinkSubcategory: dealData.drinkSubcategory,
+        isHousePour: dealData.isHousePour,
+        brand: dealData.brand,
+        servingStyle: dealData.servingStyle,
+        servingSize: dealData.servingSize,
+        regularPrice: dealData.regularPrice,
+        dealPrice: dealData.dealPrice,
+        savingsPercentage,
+        isOneForOne: dealData.isOneForOne,
+        startTime: dealData.startTime,
+        endTime: dealData.endTime,
+        daysOfWeek: dealData.daysOfWeek,
+        imageUrl: dealData.imageUrl
+      };
+      
+      // Check if the deal already exists (by title and establishment)
+      const existingDeals = await db.select().from(deals)
+        .where(
+          and(
+            eq(deals.title, dealData.title),
+            eq(deals.establishmentId, establishmentId)
+          )
+        );
+      
+      if (existingDeals.length > 0) {
+        // Update existing deal
+        const result = await db.update(deals)
+          .set(dealToInsert)
+          .where(eq(deals.id, existingDeals[0].id))
+          .returning();
+        
+        results.push(result[0]);
+      } else {
+        // Insert new deal
+        const result = await db.insert(deals)
+          .values(dealToInsert)
+          .returning();
+        
+        results.push(result[0]);
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('Error syncing deals from Google Sheets:', error);
+    throw error;
+  }
+}
+
+/**
+ * Sync both establishments and deals from Google Sheets to database
+ */
+export async function syncAllDataFromSheets() {
+  try {
+    console.log('Starting full database sync from Google Sheets...');
+    
+    console.log('Syncing establishments...');
+    const establishments = await syncEstablishmentsFromSheets();
+    console.log(`Synced ${establishments.length} establishments`);
+    
+    console.log('Syncing deals...');
+    const dealsResult = await syncDealsFromSheets();
+    console.log(`Synced ${dealsResult.length} deals`);
+    
+    return {
+      establishments: establishments.length,
+      deals: dealsResult.length
+    };
+  } catch (error) {
+    console.error('Error during full sync:', error);
+    throw error;
+  }
+}
