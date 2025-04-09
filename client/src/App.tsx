@@ -15,6 +15,7 @@ import DrinkCardsTest from "@/pages/drink-cards-test";
 import DealImageUploader from "@/pages/deal-image-uploader";
 import CardsTestPage from "@/pages/cards-test-page";
 import GradientTestPage from "@/pages/gradient-test-page";
+import MenuAnalysisPage from "@/pages/menu-analysis-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/deal-images" component={DealImageUploader} />
       <Route path="/cards-test" component={CardsTestPage} />
       <Route path="/gradient-test" component={GradientTestPage} />
+      <ProtectedRoute path="/menu-analysis" component={MenuAnalysisPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/saved" component={SavedDealsPage} />
       <Route component={NotFound} />

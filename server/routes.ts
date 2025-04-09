@@ -8,6 +8,7 @@ import { fromZodError } from "zod-validation-error";
 import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheets } from "./services/googleSheetsService";
 import { cloudinaryService } from "./services/cloudinaryService";
 import uploadDealImageRouter from "./routes/upload-deal-image";
+import menuAnalysisRoutes from "./routes/menuAnalysisRoutes_new.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -15,6 +16,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register the deal image upload route
   app.use(uploadDealImageRouter);
+  
+  // Register menu analysis routes
+  app.use('/api/menu-analysis', menuAnalysisRoutes);
   
   // Test endpoint for Cloudinary image URLs
   app.get("/api/test-cloudinary", async (_req, res) => {
