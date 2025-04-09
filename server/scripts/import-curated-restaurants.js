@@ -1,11 +1,15 @@
 /**
  * Script to import a curated list of restaurants with happy hour deals
  * 
- * This script takes restaurant names from a list and looks up their details
+ * This script takes restaurant names and areas from a CSV file and looks up their details
  * using the Google Places API before importing them into the database.
  * 
  * Usage:
- * - Create a file called 'happy-hour-restaurants.txt', one restaurant name per line
+ * - Create a file called 'happy-hour-restaurants.csv' with this format:
+ *   restaurant_name,area
+ *   For example:
+ *   "Harry's Bar,Holland Village"
+ *   "Brewerkz,Clarke Quay"
  * - Run: node import-curated-restaurants.js
  */
 
@@ -34,15 +38,16 @@ const pool = new pg.Pool({
 const googleMapsClient = new Client({});
 
 // File path for the list of restaurants
-const restaurantListPath = path.join(process.cwd(), 'happy-hour-restaurants.txt');
+const restaurantListPath = path.join(process.cwd(), 'happy-hour-restaurants.csv');
 
 /**
- * Read restaurant names from the input file
+ * Read restaurant data from the input CSV file
+ * @returns {Array<{name: string, area: string}>} Array of restaurant data objects
  */
-async function readRestaurantNames() {
+async function readRestaurantData() {
   if (!fs.existsSync(restaurantListPath)) {
     console.error(`Error: File ${restaurantListPath} not found.`);
-    console.error('Please create a file called "happy-hour-restaurants.txt" with one restaurant name per line.');
+    console.error('Please create a file called "happy-hour-restaurants.csv" with format: restaurant_name,area');
     process.exit(1);
   }
 
@@ -52,29 +57,65 @@ async function readRestaurantNames() {
     crlfDelay: Infinity
   });
 
-  const restaurantNames = [];
+  const restaurants = [];
+  let isFirstLine = true;
+  
   for await (const line of rl) {
-    // Skip empty lines and lines starting with #
+    // Skip empty lines, lines starting with #, and the header row
     if (line.trim() && !line.trim().startsWith('#')) {
-      restaurantNames.push(line.trim());
+      if (isFirstLine) {
+        // Skip header row if it exists (check if it looks like a header)
+        if (line.toLowerCase().includes('restaurant') && line.toLowerCase().includes('area')) {
+          isFirstLine = false;
+          continue;
+        }
+      }
+      
+      isFirstLine = false;
+      
+      // Parse CSV line (handle quoted values)
+      let parts;
+      if (line.includes('"')) {
+        // Use regex to handle quoted values with commas inside
+        const regex = /(?:^|,)("(?:[^"]*(?:""[^"]*)*)"|[^,]*)/g;
+        parts = [];
+        let match;
+        while ((match = regex.exec(line + ',')) !== null) {
+          let value = match[1];
+          if (value.startsWith('"') && value.endsWith('"')) {
+            value = value.substring(1, value.length - 1).replace(/""/g, '"');
+          }
+          parts.push(value);
+        }
+      } else {
+        // Simple split for unquoted values
+        parts = line.split(',');
+      }
+      
+      if (parts.length >= 2) {
+        restaurants.push({
+          name: parts[0].trim(),
+          area: parts[1].trim()
+        });
+      } else {
+        console.warn(`Warning: Skipping invalid line: ${line}`);
+      }
     }
   }
 
-  return restaurantNames;
+  return restaurants;
 }
 
 /**
  * Search for a restaurant using Google Places API
  */
-async function searchRestaurant(name) {
+async function searchRestaurant(restaurant) {
   try {
-    console.log(`Searching for restaurant: ${name}`);
+    const { name, area } = restaurant;
+    console.log(`Searching for restaurant: ${name} in ${area}`);
 
-    // Add "Singapore" to search query if not already included
-    let searchQuery = name;
-    if (!name.toLowerCase().includes('singapore')) {
-      searchQuery = `${name}, Singapore`;
-    }
+    // Construct search query with name and area
+    let searchQuery = `${name}, ${area}, Singapore`;
 
     // Search for the restaurant
     const placesResponse = await googleMapsClient.textSearch({
@@ -85,13 +126,34 @@ async function searchRestaurant(name) {
       }
     });
 
+    let place;
+    
     if (placesResponse.data.results.length === 0) {
-      console.warn(`Warning: No results found for "${name}"`);
-      return null;
+      console.warn(`Warning: No results found for "${name}" in ${area}`);
+      
+      // Try again without area as fallback
+      console.log(`Trying again with just restaurant name: ${name}`);
+      const fallbackResponse = await googleMapsClient.textSearch({
+        params: {
+          query: `${name}, Singapore`,
+          type: "restaurant",
+          key: apiKey,
+        }
+      });
+      
+      if (fallbackResponse.data.results.length === 0) {
+        console.warn(`Warning: No results found for "${name}" in Singapore`);
+        return null;
+      }
+      
+      // Get the first result from fallback search
+      place = fallbackResponse.data.results[0];
+    } else {
+      // Get the first result (most relevant)
+      place = placesResponse.data.results[0];
     }
-
-    // Get the first result (most relevant)
-    const place = placesResponse.data.results[0];
+    
+    console.log(`Found ${place.name} at ${place.formatted_address}`);
     
     // Extract postal code if available
     let postalCode = "238839"; // Default to Orchard Road postal code
@@ -119,7 +181,7 @@ async function searchRestaurant(name) {
         : null
     };
   } catch (error) {
-    console.error(`Error searching for "${name}":`, error.response?.data?.error_message || error.message);
+    console.error(`Error searching for "${restaurant.name}" in ${restaurant.area}:`, error.response?.data?.error_message || error.message);
     return null;
   }
 }
@@ -197,21 +259,52 @@ async function saveRestaurantToDatabase(restaurant) {
 }
 
 /**
+ * Create a sample CSV file
+ */
+function createSampleCsvFile() {
+  const sampleContent = `restaurant_name,area
+"Harry's Bar,Holland Village"
+"Wala Wala Cafe Bar,Holland Village"
+"Brewerkz,Clarke Quay"
+"Muddy Murphy's Irish Pub,Orchard Road"
+"The Penny Black,Boat Quay"
+"Hard Rock Cafe,Orchard Road"`;
+
+  fs.writeFileSync(restaurantListPath, sampleContent, 'utf8');
+  console.log(`Created sample file at ${restaurantListPath}`);
+  console.log('You can now edit this file to include your restaurants with happy hour deals');
+}
+
+/**
  * Main function
  */
 async function main() {
+  // Check command line arguments
+  const args = process.argv.slice(2);
+  if (args.includes('--create-sample')) {
+    createSampleCsvFile();
+    return;
+  }
+
   try {
-    // Read restaurant names from file
-    const restaurantNames = await readRestaurantNames();
-    console.log(`Found ${restaurantNames.length} restaurant names in input file`);
+    // Check if the file exists
+    if (!fs.existsSync(restaurantListPath)) {
+      console.error(`Error: File ${restaurantListPath} not found.`);
+      console.error('Run with --create-sample to create a sample file, or create it manually.');
+      process.exit(1);
+    }
+
+    // Read restaurant data from file
+    const restaurants = await readRestaurantData();
+    console.log(`Found ${restaurants.length} restaurants in input file`);
     
     let successCount = 0;
     let failureCount = 0;
     
     // Process each restaurant
-    for (const name of restaurantNames) {
+    for (const restaurantData of restaurants) {
       // Search for restaurant details
-      const restaurant = await searchRestaurant(name);
+      const restaurant = await searchRestaurant(restaurantData);
       
       if (restaurant) {
         // Save to database
@@ -226,7 +319,7 @@ async function main() {
     }
     
     console.log(`\nImport summary:`);
-    console.log(`- Total restaurants processed: ${restaurantNames.length}`);
+    console.log(`- Total restaurants processed: ${restaurants.length}`);
     console.log(`- Successfully imported: ${successCount}`);
     console.log(`- Failed to import: ${failureCount}`);
     
