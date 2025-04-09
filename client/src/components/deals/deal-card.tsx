@@ -358,18 +358,23 @@ function DealCard({
         {/* Top section with discount badge */}
         <div className="relative p-4 flex-grow flex justify-center items-center">
           {/* Hero Image - centered bottle/glass image */}
-          <div className="h-[75%] flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ zIndex: 1 }}>
             <img 
               src={getHeroImage(deal.brand || deal.drinkType, 'glass')} 
               alt={`${deal.brand || deal.drinkType} hero image`}
-              className="h-full object-contain mix-blend-overlay"
-              style={{ filter: 'brightness(1.5) contrast(1.2)' }}
+              className="h-[180%] object-contain mix-blend-lighten"
+              style={{ 
+                filter: 'brightness(1.5) contrast(1.1) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5))', 
+                transform: 'translateY(20px) scale(1.1)',
+                maxWidth: 'none',
+                opacity: 0.85
+              }}
             />
           </div>
           
           {/* Discount badge */}
           {savingsAmount && (
-            <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold">
+            <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold" style={{ zIndex: 20 }}>
               {savingsAmount}
             </div>
           )}
@@ -378,7 +383,8 @@ function DealCard({
           {onToggleSave && (
             <button 
               onClick={handleSaveClick}
-              className="absolute top-3 right-3 p-1 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
+              className="absolute top-3 right-3 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+              style={{ zIndex: 20 }}
             >
               <Heart 
                 className={cn(
@@ -391,7 +397,7 @@ function DealCard({
         </div>
         
         {/* Bottom section with deal name and details */}
-        <div className="p-3 pt-1 bg-black/35 flex flex-col items-center mt-auto">
+        <div className="p-3 pt-1 bg-black/75 flex flex-col items-center mt-auto relative" style={{ zIndex: 10 }}>
           {/* Deal name */}
           <h3 className="font-black text-white text-center text-2xl font-luckiest uppercase tracking-wide leading-tight">
             {dealName}
