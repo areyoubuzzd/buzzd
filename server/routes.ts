@@ -266,14 +266,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all establishments
   app.get("/api/establishments", async (req, res) => {
     try {
-      // Query all establishments from the database
-      const { rows } = await pool.query(`
-        SELECT id, name, external_id, address, city, postal_code, latitude, longitude, image_url 
-        FROM establishments
-        ORDER BY name ASC
-      `);
+      // Use the storage interface instead of direct SQL query
+      // This avoids WebSocket connection issues with direct pool queries
+      const establishments = await storage.getAllEstablishments();
       
-      res.json(rows);
+      res.json(establishments);
     } catch (error) {
       console.error("Error fetching establishments:", error);
       res.status(500).json({ message: "Failed to fetch establishments" });

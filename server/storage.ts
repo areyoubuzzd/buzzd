@@ -30,6 +30,7 @@ export interface IStorage {
   incrementUserDealViews(userId: number): Promise<User>;
   
   // Establishments
+  getAllEstablishments(): Promise<Establishment[]>;
   getEstablishment(id: number): Promise<Establishment | undefined>;
   createEstablishment(establishment: InsertEstablishment): Promise<Establishment>;
   updateEstablishment(id: number, data: Partial<InsertEstablishment>): Promise<Establishment>;
@@ -134,6 +135,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Establishment methods
+  async getAllEstablishments(): Promise<Establishment[]> {
+    return db.select().from(establishments).orderBy(asc(establishments.name));
+  }
+
   async getEstablishment(id: number): Promise<Establishment | undefined> {
     const [establishment] = await db.select().from(establishments).where(eq(establishments.id, id));
     return establishment;
@@ -610,6 +615,11 @@ export class MemStorage implements IStorage {
   }
 
   // Establishment methods
+  async getAllEstablishments(): Promise<Establishment[]> {
+    return Array.from(this.establishments.values())
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   async getEstablishment(id: number): Promise<Establishment | undefined> {
     return this.establishments.get(id);
   }
