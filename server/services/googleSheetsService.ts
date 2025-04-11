@@ -129,61 +129,7 @@ export async function getDealsFromSheets(): Promise<any[]> {
   }
 }
 
-/**
- * Determine the appropriate drink subcategory based on other fields
- */
-function determineSubcategory(deal: any): string | undefined {
-  if (deal.type !== 'drink' || !deal.drinkCategory) {
-    return undefined;
-  }
-  
-  // Return existing subcategory if it's already defined
-  if (deal.drinkSubcategory) {
-    return deal.drinkSubcategory;
-  }
-  
-  const category = deal.drinkCategory.toLowerCase();
-  const title = (deal.title || '').toLowerCase();
-  const description = (deal.description || '').toLowerCase();
-  const brand = (deal.brand || '').toLowerCase();
-  
-  // Combine text for better detection
-  const combinedText = `${title} ${description} ${brand}`;
-  
-  if (category === 'wine') {
-    if (combinedText.includes('red')) return 'red_wine';
-    if (combinedText.includes('white')) return 'white_wine';
-    if (combinedText.includes('rosé') || combinedText.includes('rose')) return 'rose_wine';
-    if (combinedText.includes('sparkling') || combinedText.includes('champagne')) return 'sparkling_wine';
-    return 'red_wine'; // Default to red wine
-  }
-  
-  if (category === 'spirits') {
-    if (combinedText.includes('whisky') || combinedText.includes('whiskey')) return 'whisky';
-    if (combinedText.includes('gin')) return 'gin';
-    if (combinedText.includes('vodka')) return 'vodka';
-    if (combinedText.includes('rum')) return 'rum';
-    if (combinedText.includes('tequila')) return 'tequila';
-    if (combinedText.includes('brandy')) return 'brandy';
-    return 'whisky'; // Default to whisky
-  }
-  
-  if (category === 'beer') {
-    if (combinedText.includes('ipa')) return 'ipa';
-    if (combinedText.includes('stout')) return 'stout';
-    if (combinedText.includes('ale') && !combinedText.includes('lager')) return 'ale';
-    if (combinedText.includes('craft')) return 'craft';
-    return 'lager'; // Default to lager
-  }
-  
-  if (category === 'cocktail') {
-    if (combinedText.includes('signature') || combinedText.includes('house')) return 'signature';
-    if (combinedText.includes('mocktail') || combinedText.includes('non-alcoholic')) return 'mocktail';
-    return 'classic'; // Default to classic
-  }
-  
-  return undefined;
-}
+// This function is no longer needed with our simplified schema
 
 /**
  * Sync establishments from Google Sheets to database
@@ -224,68 +170,40 @@ export async function syncEstablishmentsFromSheets(): Promise<any[]> {
 }
 
 /**
- * Sync deals from Google Sheets to database
+ * Sync deals from Google Sheets to database using simplified schema
  */
 export async function syncDealsFromSheets(): Promise<any[]> {
   try {
     const dealsData = await getDealsFromSheets();
     const results = [];
     
-    // Get all establishments for mapping
-    const allEstablishments = await db.select().from(establishments);
-    const establishmentMap = new Map(
-      allEstablishments.map(e => [e.name.toLowerCase(), e.id])
-    );
-    
     for (const dealData of dealsData) {
-      // Map establishment name to ID
-      const establishmentName = dealData.establishmentName;
-      const establishmentId = establishmentMap.get(establishmentName.toLowerCase());
-      
-      if (!establishmentId) {
-        console.warn(`Establishment "${establishmentName}" not found, skipping deal "${dealData.title}"`);
-        continue;
-      }
-      
-      // Determine subcategory if not provided
-      if (dealData.type === 'drink' && !dealData.drinkSubcategory) {
-        dealData.drinkSubcategory = determineSubcategory(dealData);
-      }
-      
       // Calculate savings percentage
-      const savingsPercentage = dealData.isOneForOne
-        ? 50
-        : calculateSavingsPercentage(dealData.regularPrice, dealData.dealPrice);
+      const savings_percentage = calculateSavingsPercentage(dealData.standard_price, dealData.happy_hour_price);
       
-      // Prepare deal data for insertion
+      // Prepare deal data for insertion with new schema
       const dealToInsert = {
-        establishmentId,
-        title: dealData.title,
-        description: dealData.description,
-        status: dealData.status,
-        type: dealData.type,
-        drinkCategory: dealData.drinkCategory,
-        drinkSubcategory: dealData.drinkSubcategory,
-        isHousePour: dealData.isHousePour,
-        brand: dealData.brand,
-        servingStyle: dealData.servingStyle,
-        servingSize: dealData.servingSize,
-        regularPrice: dealData.regularPrice,
-        dealPrice: dealData.dealPrice,
-        savingsPercentage,
-        isOneForOne: dealData.isOneForOne,
-        startTime: dealData.startTime,
-        endTime: dealData.endTime,
-        daysOfWeek: dealData.daysOfWeek,
+        establishmentId: dealData.establishmentId,
+        alcohol_category: dealData.alcohol_category,
+        alcohol_subcategory: dealData.alcohol_subcategory,
+        alcohol_subcategory2: dealData.alcohol_subcategory2,
+        drink_name: dealData.drink_name,
+        standard_price: dealData.standard_price,
+        happy_hour_price: dealData.happy_hour_price,
+        savings: dealData.savings,
+        savings_percentage,
+        valid_days: dealData.valid_days,
+        hh_start_time: dealData.hh_start_time,
+        hh_end_time: dealData.hh_end_time,
         imageUrl: dealData.imageUrl
       };
       
-      // Check if the deal already exists (by title and establishment)
+      // Check if the deal already exists (by drink_name and establishment)
       const existingDeals = await db.select().from(deals)
         .where(
           and(
-            eq(deals.title, dealData.title),
-            eq(deals.establishmentId, establishmentId)
+            eq(deals.drink_name, dealData.drink_name || ''),
+            eq(deals.establishmentId, dealData.establishmentId)
           )
         );
       
@@ -297,6 +215,7 @@ export async function syncDealsFromSheets(): Promise<any[]> {
           .returning();
         
         results.push(result[0]);
+        console.log(`Updated deal: ${dealData.drink_name} at establishment #${dealData.establishmentId}`);
       } else {
         // Insert new deal
         const result = await db.insert(deals)
@@ -304,6 +223,7 @@ export async function syncDealsFromSheets(): Promise<any[]> {
           .returning();
         
         results.push(result[0]);
+        console.log(`Inserted new deal: ${dealData.drink_name} at establishment #${dealData.establishmentId}`);
       }
     }
     
