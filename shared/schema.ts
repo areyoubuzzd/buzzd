@@ -62,33 +62,27 @@ export const establishments = pgTable("establishments", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// Deals
+// Simplified Deals table
 export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   establishmentId: integer("establishment_id").notNull().references(() => establishments.id),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  status: dealStatusEnum("status").notNull().default('inactive'),
-  type: dealTypeEnum("type").notNull(),
   
-  // Drink specific fields
-  drinkCategory: drinkCategoryEnum("drink_category"),
-  drinkSubcategory: drinkSubcategoryEnum("drink_subcategory"),
-  isHousePour: boolean("is_house_pour").default(false),
-  brand: text("brand"),
-  servingStyle: servingStyleEnum("serving_style"),
-  servingSize: text("serving_size"), // e.g. "500ml", "750ml"
+  // Alcohol categories
+  alcohol_category: text("alcohol_category").notNull(), // e.g. Beer, Wine, Spirits
+  alcohol_subcategory: text("alcohol_subcategory"), // e.g. Red wine, Whisky
+  alcohol_subcategory2: text("alcohol_subcategory2"), // Optional additional subcategory
+  drink_name: text("drink_name"), // e.g. Heineken, Sapporo, Monkey Shoulder
   
-  // Deal pricing
-  regularPrice: doublePrecision("regular_price").notNull(),
-  dealPrice: doublePrecision("deal_price").notNull(),
-  savingsPercentage: doublePrecision("savings_percentage").notNull(),
-  isOneForOne: boolean("is_one_for_one").default(false),
+  // Pricing
+  standard_price: doublePrecision("standard_price").notNull(),
+  happy_hour_price: doublePrecision("happy_hour_price").notNull(),
+  savings: doublePrecision("savings").notNull(),
+  savings_percentage: integer("savings_percentage").notNull(),
   
-  // Deal timing
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time").notNull(),
-  daysOfWeek: json("days_of_week").notNull(), // Array of days (0-6, Sunday-Saturday)
+  // Timing
+  valid_days: text("valid_days").notNull(), // e.g. "Mon, Tue, Wed" or "Weekdays"
+  hh_start_time: text("hh_start_time").notNull(), // Time in 24h format "17:00"
+  hh_end_time: text("hh_end_time").notNull(), // Time in 24h format "19:00"
   
   // Media and metadata
   imageUrl: text("image_url"),
@@ -198,18 +192,8 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  savingsPercentage: true, // This is calculated based on regular and deal price
-}).extend({
-  daysOfWeek: z.array(z.number().min(0).max(6)), // Days of the week validation
-  // Optional fields for different deal types
-  drinkCategory: z.enum(['beer', 'wine', 'cocktail', 'spirits', 'non_alcoholic']).optional(),
-  drinkSubcategory: z.enum([
-    'lager', 'ale', 'stout', 'ipa', 'craft',
-    'red_wine', 'white_wine', 'rose_wine', 'sparkling_wine',
-    'whisky', 'gin', 'vodka', 'rum', 'tequila', 'brandy',
-    'classic', 'signature', 'mocktail'
-  ]).optional(),
-  servingStyle: z.enum(['glass', 'bottle', 'pint', 'flight', 'bucket']).optional(),
+  savings_percentage: true, // This is calculated based on standard and happy hour price
+  savings: true, // This is calculated based on standard and happy hour price
 });
 
 // Schema for inserting reviews

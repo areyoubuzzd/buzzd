@@ -71,13 +71,13 @@ export async function getEstablishmentsFromSheets(): Promise<any[]> {
 }
 
 /**
- * Get deals data from Google Sheets
+ * Get deals data from Google Sheets with simplified schema
  */
 export async function getDealsFromSheets(): Promise<any[]> {
   try {
     await doc.loadInfo();
     // Try to find a sheet for deals - it might not exist yet
-    const dealsSheet = doc.sheetsByTitle['Deals'];
+    const dealsSheet = doc.sheetsByTitle['Deals'] || doc.sheetsByTitle['Sheet1'];
     
     if (!dealsSheet) {
       console.log("Deals sheet not found - returning empty array. You need to create a 'Deals' sheet in your Google Sheets document.");
@@ -87,52 +87,39 @@ export async function getDealsFromSheets(): Promise<any[]> {
     const rows = await dealsSheet.getRows();
     
     return rows.map(row => {
-      // Parse deal data from the sheet row
-      const establishmentName = row.get('establishmentName');
-      const type = row.get('type') as 'drink' | 'food' | 'both';
-      const drinkCategory = row.get('drinkCategory') as DrinkCategory;
-      const drinkSubcategory = row.get('drinkSubcategory');
-      const isHousePour = row.get('isHousePour') === 'true';
-      const brand = row.get('brand');
-      const servingStyle = row.get('servingStyle');
-      const servingSize = row.get('servingSize');
-      const regularPrice = parseFloat(row.get('regularPrice'));
-      const dealPrice = parseFloat(row.get('dealPrice'));
-      const isOneForOne = row.get('isOneForOne') === 'true';
+      // Parse deal data from the sheet row with the new simplified structure
+      const establishmentId = parseInt(row.get('establishment_id') || '0', 10);
       
-      // Parse days of week
-      const daysOfWeekString = row.get('daysOfWeek');
-      const daysOfWeek = daysOfWeekString ? 
-        daysOfWeekString.split(',').map((day: string) => parseInt(day.trim())) : 
-        [0, 1, 2, 3, 4, 5, 6]; // Default to all days if not specified
+      // Alcohol categories
+      const alcohol_category = row.get('alcohol_category');
+      const alcohol_subcategory = row.get('alcohol_subcategory');
+      const alcohol_subcategory2 = row.get('alcohol_subcategory2');
+      const drink_name = row.get('drink_name');
       
-      // Parse start and end times
-      const startTime = row.get('startTime') ? new Date(row.get('startTime')) : new Date();
-      const endTime = row.get('endTime') ? new Date(row.get('endTime')) : new Date();
+      // Pricing
+      const standard_price = parseFloat(row.get('standard_price') || '0');
+      const happy_hour_price = parseFloat(row.get('happy_hour_price') || '0');
       
-      // Set end time to 23:59:59 if only date is provided
-      if (endTime.getHours() === 0 && endTime.getMinutes() === 0 && endTime.getSeconds() === 0) {
-        endTime.setHours(23, 59, 59);
-      }
+      // Calculate savings
+      const savings = standard_price - happy_hour_price;
+      
+      // Timing
+      const valid_days = row.get('valid_days') || '';
+      const hh_start_time = row.get('hh_start_time') || '';
+      const hh_end_time = row.get('hh_end_time') || '';
       
       return {
-        establishmentName,
-        title: row.get('title'),
-        description: row.get('description'),
-        status: row.get('status') || 'active',
-        type,
-        drinkCategory: type === 'drink' ? drinkCategory : undefined,
-        drinkSubcategory: type === 'drink' ? drinkSubcategory : undefined,
-        isHousePour: type === 'drink' ? isHousePour : undefined,
-        brand: type === 'drink' ? brand : undefined,
-        servingStyle: type === 'drink' ? servingStyle : undefined,
-        servingSize: type === 'drink' ? servingSize : undefined,
-        regularPrice,
-        dealPrice,
-        isOneForOne,
-        startTime,
-        endTime,
-        daysOfWeek,
+        establishmentId,
+        alcohol_category,
+        alcohol_subcategory,
+        alcohol_subcategory2,
+        drink_name,
+        standard_price,
+        happy_hour_price,
+        savings,
+        valid_days,
+        hh_start_time,
+        hh_end_time,
         imageUrl: row.get('imageUrl')
       };
     });
