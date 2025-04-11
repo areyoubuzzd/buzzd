@@ -84,29 +84,43 @@ export async function getDealsFromSheets(): Promise<any[]> {
       return []; // Return empty array instead of throwing an error
     }
     
+    // Log the sheet information to help with debugging
+    console.log(`Found sheet: ${dealsSheet.title} with ${dealsSheet.rowCount} rows and ${dealsSheet.columnCount} columns`);
+    
+    // Load the rows from the sheet
     const rows = await dealsSheet.getRows();
     
-    return rows.map(row => {
+    // Log the header row to see what columns we have
+    if (rows.length > 0) {
+      const firstRow = rows[0];
+      console.log("Available columns:", firstRow.toObject());
+    }
+    
+    return rows.map((row, index) => {
+      // Convert the row to an object for easier access
+      const rowData = row.toObject();
+      console.log(`Row ${index + 1} data:`, rowData);
+      
       // Parse deal data from the sheet row with the new simplified structure
-      const establishmentId = parseInt(row.get('establishment_id') || '0', 10);
+      const establishmentId = parseInt(rowData.establishment_id || '0', 10);
       
       // Alcohol categories
-      const alcohol_category = row.get('alcohol_category');
-      const alcohol_subcategory = row.get('alcohol_subcategory');
-      const alcohol_subcategory2 = row.get('alcohol_subcategory2');
-      const drink_name = row.get('drink_name');
+      const alcohol_category = rowData.alcohol_category || '';
+      const alcohol_subcategory = rowData.alcohol_subcategory || '';
+      const alcohol_subcategory2 = rowData.alcohol_subcategory2 || '';
+      const drink_name = rowData.drink_name || '';
       
       // Pricing
-      const standard_price = parseFloat(row.get('standard_price') || '0');
-      const happy_hour_price = parseFloat(row.get('happy_hour_price') || '0');
+      const standard_price = parseFloat(rowData.standard_price || '0');
+      const happy_hour_price = parseFloat(rowData.happy_hour_price || '0');
       
       // Calculate savings
       const savings = standard_price - happy_hour_price;
       
       // Timing
-      const valid_days = row.get('valid_days') || '';
-      const hh_start_time = row.get('hh_start_time') || '';
-      const hh_end_time = row.get('hh_end_time') || '';
+      const valid_days = rowData.valid_days || '';
+      const hh_start_time = rowData.hh_start_time || '';
+      const hh_end_time = rowData.hh_end_time || '';
       
       return {
         establishmentId,
@@ -120,7 +134,7 @@ export async function getDealsFromSheets(): Promise<any[]> {
         valid_days,
         hh_start_time,
         hh_end_time,
-        imageUrl: row.get('imageUrl')
+        imageUrl: rowData.imageUrl || ''
       };
     });
   } catch (error) {
