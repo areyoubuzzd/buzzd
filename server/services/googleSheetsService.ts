@@ -286,8 +286,44 @@ export async function syncDealsFromSheets(): Promise<any[]> {
       // Calculate savings percentage
       const savings_percentage = calculateSavingsPercentage(dealData.standard_price, dealData.happy_hour_price);
       
-      // Prepare deal data for insertion with new schema
+      // Prepare start_time and end_time as timestamps for legacy fields
+      const now = new Date();
+      const [hhStartHour, hhStartMinute] = dealData.hh_start_time.split(':').map(Number);
+      const [hhEndHour, hhEndMinute] = dealData.hh_end_time.split(':').map(Number);
+      
+      const start_time = new Date(now);
+      start_time.setHours(hhStartHour || 0, hhStartMinute || 0, 0, 0);
+      
+      const end_time = new Date(now);
+      end_time.setHours(hhEndHour || 0, hhEndMinute || 0, 0, 0);
+      
+      // Parse and structure days_of_week for legacy field
+      const days_json = { 
+        monday: dealData.valid_days.toLowerCase().includes('mon'), 
+        tuesday: dealData.valid_days.toLowerCase().includes('tue'), 
+        wednesday: dealData.valid_days.toLowerCase().includes('wed'), 
+        thursday: dealData.valid_days.toLowerCase().includes('thu'), 
+        friday: dealData.valid_days.toLowerCase().includes('fri'), 
+        saturday: dealData.valid_days.toLowerCase().includes('sat'), 
+        sunday: dealData.valid_days.toLowerCase().includes('sun'),
+        all: dealData.valid_days.toLowerCase().includes('all')
+      };
+      
+      // Prepare deal data for insertion with both legacy and new schema fields
       const dealToInsert = {
+        // Legacy required fields
+        title: dealData.drink_name || `${dealData.alcohol_category} Deal`,
+        description: `${dealData.alcohol_category} ${dealData.alcohol_subcategory} - ${dealData.drink_name}`,
+        status: 'active', // dealStatusEnum
+        type: 'drink', // dealTypeEnum
+        regular_price: dealData.standard_price,
+        deal_price: dealData.happy_hour_price,
+        savings_percentage: savings_percentage,
+        start_time: start_time,
+        end_time: end_time,
+        days_of_week: days_json,
+        
+        // New schema fields
         establishmentId: dealData.establishmentId,
         alcohol_category: dealData.alcohol_category,
         alcohol_subcategory: dealData.alcohol_subcategory,
@@ -296,7 +332,6 @@ export async function syncDealsFromSheets(): Promise<any[]> {
         standard_price: dealData.standard_price,
         happy_hour_price: dealData.happy_hour_price,
         savings: dealData.savings,
-        savings_percentage,
         valid_days: dealData.valid_days,
         hh_start_time: dealData.hh_start_time,
         hh_end_time: dealData.hh_end_time,
