@@ -117,6 +117,20 @@ export async function getDealsFromSheets(): Promise<any[]> {
     // Log the sheet information to help with debugging
     console.log(`Using sheet: ${dealsSheet.title} with ${dealsSheet.rowCount} rows and ${dealsSheet.columnCount} columns`);
     
+    // First, fetch all establishments to find matching external_ids
+    const establishmentsMap = new Map();
+    try {
+      const establishmentsData = await db.select().from(establishments);
+      for (const establishment of establishmentsData) {
+        if (establishment.external_id) {
+          establishmentsMap.set(establishment.external_id, establishment.id);
+        }
+      }
+      console.log(`Loaded ${establishmentsMap.size} establishments for ID mapping`);
+    } catch (error) {
+      console.error("Error fetching establishments:", error);
+    }
+    
     // Load the rows from the sheet
     const rows = await dealsSheet.getRows();
     
@@ -138,17 +152,20 @@ export async function getDealsFromSheets(): Promise<any[]> {
       
       // Try to get the establishment ID, checking multiple possible field names
       // First get the ID as a string
-      const establishmentIdStr = 
+      const establishmentExternalId = 
         rowData.establishment_id || 
         rowData.establishmentId || 
         rowData.restaurantId ||
         '0';
       
-      // Try to extract the numeric part if it's in the format "SG0123"
-      const numericMatch = establishmentIdStr.match(/(\d+)/);
-      const establishmentId = numericMatch 
-        ? parseInt(numericMatch[0], 10) 
-        : parseInt(establishmentIdStr, 10);
+      // Look up the actual database ID from the external ID
+      let establishmentId = 0;
+      if (establishmentsMap.has(establishmentExternalId)) {
+        establishmentId = establishmentsMap.get(establishmentExternalId);
+        console.log(`Mapped external ID ${establishmentExternalId} to database ID ${establishmentId}`);
+      } else {
+        console.log(`Warning: No matching establishment found for external ID ${establishmentExternalId}`);
+      }
       
       // Alcohol categories - flexible field mapping
       const alcohol_category = 
