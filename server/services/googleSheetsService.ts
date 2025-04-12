@@ -76,16 +76,46 @@ export async function getEstablishmentsFromSheets(): Promise<any[]> {
 export async function getDealsFromSheets(): Promise<any[]> {
   try {
     await doc.loadInfo();
-    // Try to find a sheet for deals - it might not exist yet
-    const dealsSheet = doc.sheetsByTitle['Deals'] || doc.sheetsByTitle['Sheet1'];
+    
+    // Try to find the appropriate sheet for deals in order of preference:
+    // 1. A sheet named "Deals"
+    // 2. A sheet named "Sheet2" (if it has headers)
+    // 3. Sheet1 as fallback
+    let dealsSheet = doc.sheetsByTitle['Deals'];
     
     if (!dealsSheet) {
-      console.log("Deals sheet not found - returning empty array. You need to create a 'Deals' sheet in your Google Sheets document.");
+      console.log('No sheet named "Deals" found, checking if Sheet2 is available...');
+      try {
+        const sheet2 = doc.sheetsByTitle['Sheet2']; 
+        if (sheet2) {
+          // We need to check if Sheet2 has headers, which we do by seeing if it throws an error
+          try {
+            // This will throw an error if there are no headers
+            await sheet2.getRows({ limit: 1 });
+            dealsSheet = sheet2;
+            console.log('Using Sheet2 for deals data.');
+          } catch (err) {
+            console.log('Sheet2 exists but has no headers.');
+          }
+        }
+      } catch (err) {
+        console.log('Error checking Sheet2:', err);
+      }
+    }
+    
+    // Fall back to Sheet1 if no other sheet is usable
+    if (!dealsSheet) {
+      console.log('Falling back to Sheet1 for deals data.');
+      dealsSheet = doc.sheetsByTitle['Sheet1'];
+    }
+    
+    if (!dealsSheet) {
+      console.log("No usable sheet found - returning empty array. You need to create a sheet with headers in your Google Sheets document.");
       return []; // Return empty array instead of throwing an error
     }
     
     // Log the sheet information to help with debugging
-    console.log(`Found sheet: ${dealsSheet.title} with ${dealsSheet.rowCount} rows and ${dealsSheet.columnCount} columns`);
+    console.log(`Using sheet: ${dealsSheet.title} with ${dealsSheet.rowCount} rows and ${dealsSheet.columnCount} columns`);
     
     // Load the rows from the sheet
     const rows = await dealsSheet.getRows();
@@ -94,33 +124,94 @@ export async function getDealsFromSheets(): Promise<any[]> {
     if (rows.length > 0) {
       const firstRow = rows[0];
       console.log("Available columns:", firstRow.toObject());
+    } else {
+      console.log("No data rows found in the sheet.");
+      return [];
     }
     
+    // Map the data from the sheet to the deals structure
+    // The field mapping is more flexible to handle variations in column naming
     return rows.map((row, index) => {
       // Convert the row to an object for easier access
       const rowData = row.toObject();
       console.log(`Row ${index + 1} data:`, rowData);
       
-      // Parse deal data from the sheet row with the new simplified structure
-      const establishmentId = parseInt(rowData.establishment_id || '0', 10);
+      // Try to get the establishment ID, checking multiple possible field names
+      // First get the ID as a string
+      const establishmentIdStr = 
+        rowData.establishment_id || 
+        rowData.establishmentId || 
+        rowData.restaurantId ||
+        '0';
       
-      // Alcohol categories
-      const alcohol_category = rowData.alcohol_category || '';
-      const alcohol_subcategory = rowData.alcohol_subcategory || '';
-      const alcohol_subcategory2 = rowData.alcohol_subcategory2 || '';
-      const drink_name = rowData.drink_name || '';
+      // Try to extract the numeric part if it's in the format "SG0123"
+      const numericMatch = establishmentIdStr.match(/(\d+)/);
+      const establishmentId = numericMatch 
+        ? parseInt(numericMatch[0], 10) 
+        : parseInt(establishmentIdStr, 10);
       
-      // Pricing
-      const standard_price = parseFloat(rowData.standard_price || '0');
-      const happy_hour_price = parseFloat(rowData.happy_hour_price || '0');
+      // Alcohol categories - flexible field mapping
+      const alcohol_category = 
+        rowData.alcohol_category || 
+        rowData.alcoholCategory || 
+        rowData.category || 
+        '';
+        
+      const alcohol_subcategory = 
+        rowData.alcohol_subcategory || 
+        rowData.alcoholSubcategory || 
+        rowData.subcategory || 
+        '';
+        
+      const alcohol_subcategory2 = 
+        rowData.alcohol_subcategory2 || 
+        rowData.alcoholSubcategory2 || 
+        rowData.subcategory2 || 
+        '';
+        
+      const drink_name = 
+        rowData.drink_name || 
+        rowData.drinkName || 
+        rowData.name || 
+        '';
+      
+      // Pricing - flexible field mapping
+      const standard_price = parseFloat(
+        rowData.standard_price || 
+        rowData.standardPrice || 
+        rowData.regularPrice || 
+        rowData.price || 
+        '0'
+      );
+      
+      const happy_hour_price = parseFloat(
+        rowData.happy_hour_price || 
+        rowData.happyHourPrice || 
+        rowData.dealPrice || 
+        '0'
+      );
       
       // Calculate savings
       const savings = standard_price - happy_hour_price;
       
-      // Timing
-      const valid_days = rowData.valid_days || '';
-      const hh_start_time = rowData.hh_start_time || '';
-      const hh_end_time = rowData.hh_end_time || '';
+      // Timing - flexible field mapping
+      const valid_days = 
+        rowData.valid_days || 
+        rowData.validDays || 
+        rowData.days || 
+        '';
+        
+      const hh_start_time = 
+        rowData.hh_start_time || 
+        rowData.startTime || 
+        rowData.hhStart || 
+        '';
+        
+      const hh_end_time = 
+        rowData.hh_end_time || 
+        rowData.endTime || 
+        rowData.hhEnd || 
+        '';
       
       return {
         establishmentId,
@@ -134,7 +225,7 @@ export async function getDealsFromSheets(): Promise<any[]> {
         valid_days,
         hh_start_time,
         hh_end_time,
-        imageUrl: rowData.imageUrl || ''
+        imageUrl: rowData.imageUrl || rowData.image || ''
       };
     });
   } catch (error) {
