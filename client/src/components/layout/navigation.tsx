@@ -1,5 +1,6 @@
 import { useLocation, Link } from "wouter";
-import { FiHome, FiSearch, FiBookmark, FiUser } from "react-icons/fi";
+import { FiHome, FiUser, FiGift } from "react-icons/fi";
+import { GiBeerBottle, GiWineBottle } from "react-icons/gi";
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -17,16 +18,22 @@ export default function Navigation() {
             <span className="text-xs mt-1">Home</span>
           </div>
         </Link>
-        <Link href="/search">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/search") ? "text-primary" : "text-gray-500"}`}>
-            <FiSearch className="h-6 w-6" />
-            <span className="text-xs mt-1">Search</span>
+        <Link href="/beer">
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/beer") ? "text-primary" : "text-gray-500"}`}>
+            <GiBeerBottle className="h-6 w-6" />
+            <span className="text-xs mt-1">Beer</span>
           </div>
         </Link>
-        <Link href="/saved">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/saved") ? "text-primary" : "text-gray-500"}`}>
-            <FiBookmark className="h-6 w-6" />
-            <span className="text-xs mt-1">Saved</span>
+        <Link href="/wine-spirits">
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/wine-spirits") ? "text-primary" : "text-gray-500"}`}>
+            <GiWineBottle className="h-6 w-6" />
+            <span className="text-xs mt-1">Wine / Spirits</span>
+          </div>
+        </Link>
+        <Link href="/offers">
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/offers") ? "text-primary" : "text-gray-500"}`}>
+            <FiGift className="h-6 w-6" />
+            <span className="text-xs mt-1">Offers</span>
           </div>
         </Link>
         <Link href="/profile">
