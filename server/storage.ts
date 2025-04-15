@@ -258,7 +258,7 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
     // Convert to Singapore time (GMT+8)
-    const now = new Date();
+    const now = getSingaporeTime();
     // Add the timezone offset to get to UTC, then add 8 hours for Singapore time
     const singaporeTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 60 * 60000));
     const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
@@ -340,7 +340,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUpcomingDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
     // Convert to Singapore time (GMT+8)
-    const now = new Date();
+    const now = getSingaporeTime();
     // Add the timezone offset to get to UTC, then add 8 hours for Singapore time
     const singaporeTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 60 * 60000));
     const nowTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
@@ -403,7 +403,7 @@ export class DatabaseStorage implements IStorage {
 
   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
     // Get tomorrow's day in Singapore time (GMT+8)
-    const now = new Date();
+    const now = getSingaporeTime();
     // Add the timezone offset to get to UTC, then add 8 hours for Singapore time
     const singaporeTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 60 * 60000));
     const tomorrow = new Date(singaporeTime);
@@ -550,9 +550,9 @@ export class DatabaseStorage implements IStorage {
     
     // Add status filter if provided (active/inactive based on time)
     if (filters.status === 'active') {
-      const now = new Date();
-      const currentDay = now.getDay(); // 0-6, where 0 is Sunday
-      const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+      const singaporeTime = getSingaporeTime();
+      const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
+      const currentTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
       
       // Get the current day of the week in the format used in the valid_days field
       const dayMap: Record<number, string> = {
@@ -777,7 +777,7 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const now = new Date();
+    const now = getSingaporeTime();
     const user: User = { 
       ...insertUser, 
       id, 
@@ -830,7 +830,7 @@ export class MemStorage implements IStorage {
 
   async createEstablishment(establishment: InsertEstablishment): Promise<Establishment> {
     const id = this.establishmentIdCounter++;
-    const now = new Date();
+    const now = getSingaporeTime();
     const newEstablishment: Establishment = { 
       ...establishment, 
       id, 
@@ -895,7 +895,7 @@ export class MemStorage implements IStorage {
 
   async createDeal(deal: InsertDeal): Promise<Deal> {
     const id = this.dealIdCounter++;
-    const now = new Date();
+    const now = getSingaporeTime();
     
     // Calculate savings percentage
     const savingsPercentage = 
@@ -937,7 +937,7 @@ export class MemStorage implements IStorage {
   }
 
   async getActiveDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
-    const now = new Date();
+    const now = getSingaporeTime();
     const currentDay = now.getDay(); // 0-6, where 0 is Sunday
     
     const activeDeals = Array.from(this.deals.values())
@@ -969,7 +969,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUpcomingDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
-    const now = new Date();
+    const now = getSingaporeTime();
     const oneHourLater = new Date(now.getTime() + 3600000); // 1 hour later
     const currentDay = now.getDay(); // 0-6, where 0 is Sunday
     
@@ -1002,7 +1002,7 @@ export class MemStorage implements IStorage {
   }
 
   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
-    const now = new Date();
+    const now = getSingaporeTime();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
@@ -1034,9 +1034,9 @@ export class MemStorage implements IStorage {
    * This method is used in the deal-to-restaurant workflow
    */
   async getActiveDealsForEstablishment(establishmentId: number): Promise<Deal[]> {
-    const now = new Date();
-    const currentDay = now.getDay(); // 0-6, where 0 is Sunday
-    const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+    const singaporeTime = getSingaporeTime();
+    const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
+    const currentTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
     
     // Get the current day of the week in the format used in the valid_days field
     const dayMap: Record<number, string> = {
@@ -1094,7 +1094,7 @@ export class MemStorage implements IStorage {
   }
 
   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
-    const now = new Date();
+    const now = getSingaporeTime();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
@@ -1182,7 +1182,7 @@ export class MemStorage implements IStorage {
 
   async createReview(review: InsertReview): Promise<Review> {
     const id = this.reviewIdCounter++;
-    const now = new Date();
+    const now = getSingaporeTime();
     
     const newReview: Review = {
       ...review,
@@ -1222,7 +1222,7 @@ export class MemStorage implements IStorage {
     }
     
     const id = this.savedDealIdCounter++;
-    const now = new Date();
+    const now = getSingaporeTime();
     
     const newSavedDeal: SavedDeal = {
       ...data,
@@ -1249,7 +1249,7 @@ export class MemStorage implements IStorage {
   // User Deal Views methods
   async recordDealView(data: InsertUserDealView): Promise<UserDealView> {
     const id = this.userDealViewIdCounter++;
-    const now = new Date();
+    const now = getSingaporeTime();
     
     const newDealView: UserDealView = {
       ...data,
