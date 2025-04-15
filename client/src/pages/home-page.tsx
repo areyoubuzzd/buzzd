@@ -16,6 +16,7 @@ export default function HomePage() {
   const [location, setLocation] = useState<{ lat: number; lng: number }>({ lat: 1.3521, lng: 103.8198 });
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
+  const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
 
   useEffect(() => {
     // Try to get user's location on mount
@@ -26,6 +27,9 @@ export default function HomePage() {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
+          
+          // Try to get a postal code based on reverse geocoding will be handled by LocationBar
+          // which will send us an event with the postal code
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -33,6 +37,21 @@ export default function HomePage() {
         }
       );
     }
+    
+    // Listen for postal code updates from LocationBar
+    const handlePostalCodeUpdate = (event: CustomEvent) => {
+      if (event.detail && event.detail.postalCode) {
+        setUserPostalCode(event.detail.postalCode);
+      }
+    };
+    
+    // Add event listener
+    window.addEventListener('postalCodeUpdated', handlePostalCodeUpdate as EventListener);
+    
+    // Clean up event listener on component unmount
+    return () => {
+      window.removeEventListener('postalCodeUpdated', handlePostalCodeUpdate as EventListener);
+    };
   }, []);
 
   const handleLocationChange = (newLocation: { lat: number; lng: number }) => {
@@ -65,7 +84,7 @@ export default function HomePage() {
         onOpenFilters={handleOpenFilters} 
       />
       
-      <FilterBar onFilterChange={handleFilterChange} />
+      <FilterBar activeFilter={activeFilter} onFilterChange={handleFilterChange} />
       
       {/* Location and deal count indicator */}
       <div className="bg-gray-50 px-4 py-2">
@@ -73,7 +92,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center text-sm text-gray-600">
               <FiMapPin className="mr-1 h-4 w-4" />
-              <span>Singapore</span>
+              <span>{userPostalCode || "Singapore"}</span>
             </div>
             <div className="text-sm font-medium">
               {totalDealsFound} deals found

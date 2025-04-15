@@ -37,16 +37,9 @@ export default function Header() {
                 />
               </div>
             </Link>
-            <div className="ml-6 flex items-center space-x-4">
-              <Link href="/modern-deals">
-                <div className="text-sm font-medium cursor-pointer px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                  New Card Design
-                </div>
-              </Link>
-            </div>
           </div>
           <div className="flex items-center">
-            {user ? (
+            {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -98,19 +91,6 @@ export default function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/auth")}
-                className="flex items-center"
-                style={{ 
-                  color: '#191632', 
-                  border: '1px solid #19163230'
-                }}
-              >
-                <span className="text-sm mr-1">Sign In</span>
-                <FiUser className="h-5 w-5" />
-              </Button>
             )}
           </div>
         </div>

@@ -105,7 +105,18 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
     try {
       // This is a placeholder for actual reverse geocoding
       // In a real app, you'd use Google Maps Geocoding API or similar
-      setCurrentLocation("Singapore");
+      
+      // For development, we'll use a hardcoded postal code
+      const postalCode = "138634"; // This would come from API in production
+      setCurrentLocation(postalCode);
+      
+      // Pass this information up to parent component
+      if (typeof window !== 'undefined') {
+        // Let home page know about the postal code
+        window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+          detail: { postalCode } 
+        }));
+      }
     } catch (error) {
       console.error("Reverse geocoding error:", error);
       setCurrentLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
