@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { generateDrinkImage } from '../services/openaiImageService';
+import { updateDealImagesByCategory, getDealsWithoutImages } from '../services/dealImageService';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({
@@ -25,54 +26,117 @@ if (!fs.existsSync(UPLOAD_DIR)) {
  */
 router.post('/api/images/generate-sample', async (req: Request, res: Response) => {
   try {
-    // Type can be 'beer', 'wine', or 'whisky'
+    // Type can be 'beer', 'wine', 'whisky', 'cocktail', 'gin', 'vodka', 'rum' or any alcohol category
     const { type } = req.body;
     
-    if (!type || !['beer', 'wine', 'whisky'].includes(type)) {
+    if (!type) {
       return res.status(400).json({ 
-        error: 'Invalid type. Must be one of: beer, wine, whisky' 
+        error: 'Missing drink type. Please provide "type" parameter.' 
       });
-    }
-    
-    // Build the prompt based on the drink type
-    let prompt = '';
-    switch (type) {
-      case 'beer':
-        prompt = 'A cold glass of beer on a restaurant table, high-resolution, professional photography, warm lighting, appetizing, restaurant atmosphere';
-        break;
-      case 'wine':
-        prompt = 'A glass of red wine on a restaurant table, high-resolution, professional photography, warm lighting, appetizing, restaurant atmosphere';
-        break;
-      case 'whisky':
-        prompt = 'A bottle of whisky with a glass on a restaurant table, high-resolution, professional photography, warm lighting, appetizing, restaurant atmosphere';
-        break;
     }
     
     console.log(`Generating ${type} image with OpenAI...`);
     
-    // Generate the image with OpenAI
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-    });
+    // Use our service to generate and save the image
+    const imagePath = await generateDrinkImage(type);
     
-    const imageUrl = response.data[0].url;
-    
-    // Return the generated image URL directly
-    // In a production app, you might download and save the image
+    // Return the generated image path for client-side use
     return res.json({ 
       success: true, 
       type,
-      imageUrl
+      imagePath,
+      imageUrl: imagePath // For backward compatibility
     });
     
   } catch (error: any) {
     console.error('Error generating image:', error);
     return res.status(500).json({ 
       error: 'Failed to generate image',
+      details: error.message || 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Generate multiple sample drink images and assign them to deals
+ * This can be used to populate the database with images for deals that don't have them
+ */
+router.post('/api/images/generate-batch', async (req: Request, res: Response) => {
+  try {
+    const { batchSize = 3 } = req.body;
+    
+    // List of drink categories to generate images for
+    const drinkCategories = [
+      'beer', 'wine', 'whisky', 'cocktail', 'gin', 'vodka', 'rum'
+    ];
+    
+    const results = [];
+    const categoryToImageMap: Record<string, string> = {};
+    
+    // Generate one image for each category, up to batchSize
+    const categoriesToGenerate = drinkCategories.slice(0, batchSize);
+    
+    for (const category of categoriesToGenerate) {
+      try {
+        console.log(`Generating image for ${category}...`);
+        const imagePath = await generateDrinkImage(category);
+        
+        categoryToImageMap[category] = imagePath;
+        results.push({
+          category,
+          success: true,
+          imagePath
+        });
+      } catch (error: any) {
+        console.error(`Failed to generate image for ${category}:`, error);
+        results.push({
+          category,
+          success: false,
+          error: error.message || 'Unknown error'
+        });
+      }
+    }
+    
+    // Update deals in the database with the generated images
+    const { updatedDealIds, totalUpdated } = await updateDealImagesByCategory(categoryToImageMap);
+    
+    return res.json({
+      success: true,
+      results,
+      categoryToImageMap,
+      updatedDeals: {
+        count: totalUpdated,
+        ids: updatedDealIds
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('Error in batch image generation:', error);
+    return res.status(500).json({
+      error: 'Failed to generate batch images',
+      details: error.message || 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Get a list of deals without images
+ * This endpoint can be used to identify which deals need images
+ */
+router.get('/api/images/deals-without-images', async (_req: Request, res: Response) => {
+  try {
+    const limit = parseInt(_req.query.limit as string) || 50;
+    const dealsWithoutImages = await getDealsWithoutImages(limit);
+    
+    return res.json({
+      success: true,
+      count: dealsWithoutImages.length,
+      deals: dealsWithoutImages
+    });
+  } catch (error: any) {
+    console.error('Error getting deals without images:', error);
+    return res.status(500).json({
+      error: 'Failed to get deals without images',
       details: error.message || 'Unknown error'
     });
   }

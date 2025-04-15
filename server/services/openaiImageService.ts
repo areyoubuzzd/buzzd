@@ -21,6 +21,10 @@ if (!fs.existsSync(UPLOAD_DIR)) {
  * Download an image from a URL and save it to the local filesystem
  */
 async function downloadImage(url: string, filename: string): Promise<string> {
+  if (!url) {
+    throw new Error('URL is required for downloading the image');
+  }
+  
   return new Promise((resolve, reject) => {
     const fullPath = path.join(UPLOAD_DIR, filename);
     const file = fs.createWriteStream(fullPath);
@@ -90,6 +94,9 @@ export async function generateDrinkImage(type: string): Promise<string> {
     });
     
     const imageUrl = response.data[0].url;
+    if (!imageUrl) {
+      throw new Error('No image URL was returned from OpenAI');
+    }
     
     // Download the image and save it
     const filename = `${type.toLowerCase()}-${uuidv4()}.png`;
