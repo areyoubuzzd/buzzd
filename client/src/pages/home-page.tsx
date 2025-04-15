@@ -3,7 +3,7 @@ import Header from "@/components/layout/header";
 import LocationBar from "@/components/layout/location-bar";
 import FilterBar from "@/components/layout/filter-bar";
 import DealsList from "@/components/deals/deals-list";
-import SavingsCalculator from "@/components/savings/savings-calculator";
+import WhatsAppContact from "@/components/contact/whatsapp-contact";
 import Navigation from "@/components/layout/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FiMapPin } from "react-icons/fi";
@@ -112,7 +112,7 @@ export default function HomePage() {
         activeFilter={activeFilter}
       />
       
-      <SavingsCalculator />
+      <WhatsAppContact />
       
       <Navigation />
     </div>

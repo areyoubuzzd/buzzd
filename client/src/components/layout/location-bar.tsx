@@ -106,10 +106,11 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
       // This is a placeholder for actual reverse geocoding
       // In a real app, you'd use Google Maps Geocoding API or similar
       
-      // For development, we'll use hardcoded values
-      const postalCode = "138634"; // This would come from API in production
-      const roadName = "Bukit Timah Road"; // This would come from geocoding API in production
-      setCurrentLocation(`${roadName}`);
+      // Use hardcoded values for now - this would use Google Maps API in production
+      const postalCode = "138634"; 
+      const roadName = "Bukit Timah Road";
+      console.log("Setting current location to:", roadName);
+      setCurrentLocation(roadName);
       
       // Pass this information up to parent component
       if (typeof window !== 'undefined') {
