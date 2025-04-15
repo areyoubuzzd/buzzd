@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { generateDrinkImage } from '../services/openaiImageService';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
 const openai = new OpenAI({
