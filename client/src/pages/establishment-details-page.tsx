@@ -214,21 +214,85 @@ export default function EstablishmentDetailsPage() {
           </div>
         )}
         
+        <h2 className="text-xl font-bold mt-6 mb-4">Contact & Location</h2>
+        <div className="grid gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-primary h-5 w-5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Address</p>
+                    <p className="text-sm text-gray-600">{establishment.address}</p>
+                    <p className="text-sm text-gray-600">{establishment.city} {establishment.postalCode}</p>
+                  </div>
+                </div>
+                
+                {establishment.phone && (
+                  <div className="flex items-center gap-2">
+                    <FaPhone className="text-primary h-5 w-5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">Phone</p>
+                      <a 
+                        href={`tel:${establishment.phone}`}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {establishment.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                {establishment.website && (
+                  <div className="flex items-center gap-2">
+                    <FaGlobe className="text-primary h-5 w-5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">Website</p>
+                      <a 
+                        href={establishment.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline break-all"
+                      >
+                        {establishment.website}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                {establishment.latitude && establishment.longitude && (
+                  <div className="flex items-center gap-2">
+                    <FaMapMarkedAlt className="text-primary h-5 w-5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">Directions</p>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Open in Google Maps
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {establishment.latitude && establishment.longitude && (
-          <>
-            <h2 className="text-xl font-bold mt-6 mb-4">Location</h2>
-            <div className="rounded-lg overflow-hidden h-48 bg-gray-100">
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full h-full bg-center bg-cover"
-                style={{
-                  backgroundImage: `url(https://maps.googleapis.com/maps/api/staticmap?center=${establishment.latitude},${establishment.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${establishment.latitude},${establishment.longitude}&key=${process.env.GOOGLE_MAPS_API_KEY})`
-                }}
-              />
-            </div>
-          </>
+          <div className="rounded-lg overflow-hidden h-48 bg-gray-100 mb-6">
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full h-full bg-center bg-cover"
+              style={{
+                backgroundImage: `url(https://maps.googleapis.com/maps/api/staticmap?center=${establishment.latitude},${establishment.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${establishment.latitude},${establishment.longitude}&key=${process.env.GOOGLE_MAPS_API_KEY})`
+              }}
+            />
+          </div>
         )}
       </div>
       
