@@ -28,11 +28,22 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   
   // Calculate the savings percentage or special offer type
   const savingsInfo = useMemo(() => {
-    if (deal.isOneForOne) return "1-for-1";
-    if (deal.regularPrice && deal.dealPrice) {
+    // Check for collections that indicate 1-for-1
+    if (deal.collections && deal.collections.includes('one_for_one_deals')) {
+      return "1-for-1";
+    }
+    
+    // Use savings_percentage directly if available
+    if (deal.savings_percentage) {
+      return `${Math.round(deal.savings_percentage)}% off`;
+    }
+    
+    // Calculate from regularPrice and dealPrice as fallback
+    if (deal.regularPrice && deal.dealPrice && deal.regularPrice > deal.dealPrice) {
       const savings = Math.round(((deal.regularPrice - deal.dealPrice) / deal.regularPrice) * 100);
       return `${savings}% off`;
     }
+    
     return "Special Offer";
   }, [deal]);
 
