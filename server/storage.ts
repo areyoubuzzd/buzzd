@@ -250,6 +250,16 @@ export class DatabaseStorage implements IStorage {
   async getActiveDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
     const now = new Date();
     const currentDay = now.getDay(); // 0-6, where 0 is Sunday
+    const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+    
+    // Get the current day of the week in the format used in the valid_days field
+    const dayMap: Record<number, string> = {
+      0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+    };
+    const currentDayStr = dayMap[currentDay];
+    
+    // If valid_days contains "Weekdays", we need to check if today is a weekday
+    const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
 
     // Using the Haversine formula to calculate distance
     const haversine = sql`
@@ -271,9 +281,41 @@ export class DatabaseStorage implements IStorage {
       .from(deals)
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
       .where(and(
-        lte(deals.startTime, now),
-        gte(deals.endTime, now),
-        sql`${deals.daysOfWeek}::jsonb ? ${currentDay.toString()}`
+        or(
+          and(
+            // Happy hour time window (normal case, start time before end time)
+            lte(deals.hh_start_time, currentTime),
+            gte(deals.hh_end_time, currentTime),
+            or(
+              // Day validation: Valid for current day, weekday, or everyday
+              sql`${deals.valid_days} LIKE '%${currentDayStr}%'`,
+              and(
+                sql`${deals.valid_days} LIKE '%Weekdays%'`,
+                eq(sql`1`, isWeekday ? 1 : 0)
+              ),
+              sql`${deals.valid_days} LIKE '%Everyday%'`
+            )
+          ),
+          // Special case for happy hours that span midnight
+          and(
+            gte(deals.hh_start_time, deals.hh_end_time),
+            or(
+              gte(currentTime, deals.hh_start_time),
+              lte(currentTime, deals.hh_end_time)
+            ),
+            or(
+              // Day validation: Valid for current day, weekday, or everyday
+              sql`${deals.valid_days} LIKE '%${currentDayStr}%'`,
+              and(
+                sql`${deals.valid_days} LIKE '%Weekdays%'`,
+                eq(sql`1`, isWeekday ? 1 : 0)
+              ),
+              sql`${deals.valid_days} LIKE '%Everyday%'`
+            )
+          )
+        ),
+        // Only include deals within the specified radius
+        lte(haversine, radiusKm)
       ))
       .orderBy(asc(haversine))
       .limit(50);
@@ -286,8 +328,19 @@ export class DatabaseStorage implements IStorage {
 
   async getUpcomingDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
     const now = new Date();
+    const nowTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
     const oneHourLater = new Date(now.getTime() + 3600000); // 1 hour later
+    const oneHourLaterTime = oneHourLater.toTimeString().substring(0, 5);
     const currentDay = now.getDay(); // 0-6, where 0 is Sunday
+    
+    // Get the current day of the week in the format used in the valid_days field
+    const dayMap: Record<number, string> = {
+      0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+    };
+    const currentDayStr = dayMap[currentDay];
+    
+    // If valid_days contains "Weekdays", we need to check if today is a weekday
+    const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
 
     // Using the Haversine formula to calculate distance
     const haversine = sql`
@@ -309,29 +362,45 @@ export class DatabaseStorage implements IStorage {
       .from(deals)
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
       .where(and(
-        gt(deals.startTime, now),
-        lte(deals.startTime, oneHourLater),
-        sql`${deals.daysOfWeek}::jsonb ? ${currentDay.toString()}`
+        // Deal starting in the next hour
+        sql`${deals.hh_start_time} > ${nowTime}`,
+        sql`${deals.hh_start_time} <= ${oneHourLaterTime}`,
+        // Valid for today
+        or(
+          sql`${deals.valid_days} LIKE ${'%' + currentDayStr + '%'}`,
+          and(
+            sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
+            sql`${isWeekday}`
+          ),
+          sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+        ),
+        // Only include deals within the specified radius
+        sql`${haversine} <= ${radiusKm}`
       ))
       .orderBy(asc(haversine))
       .limit(50);
 
-    return result.filter(item => item.distance <= radiusKm).map(item => ({
+    return result.map(item => ({
       ...item.deal,
       establishment: item.establishment
     }));
   }
 
   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
+    // Get tomorrow's day
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    
-    const dayAfterTomorrow = new Date(tomorrow);
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
-    
     const tomorrowDay = tomorrow.getDay(); // 0-6, where 0 is Sunday
+    
+    // Get the day of the week in the format used in the valid_days field
+    const dayMap: Record<number, string> = {
+      0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+    };
+    const tomorrowDayStr = dayMap[tomorrowDay];
+    
+    // If valid_days contains "Weekdays", we need to check if tomorrow is a weekday
+    const isTomorrowWeekday = tomorrowDay >= 1 && tomorrowDay <= 5; // Monday to Friday
 
     // Using the Haversine formula to calculate distance
     const haversine = sql`
@@ -353,9 +422,17 @@ export class DatabaseStorage implements IStorage {
       .from(deals)
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
       .where(and(
-        gte(deals.startTime, tomorrow),
-        lt(deals.startTime, dayAfterTomorrow),
-        sql`${deals.daysOfWeek}::jsonb ? ${tomorrowDay.toString()}`
+        // Valid for tomorrow
+        or(
+          sql`${deals.valid_days} LIKE ${'%' + tomorrowDayStr + '%'}`,
+          and(
+            sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
+            sql`${isTomorrowWeekday}`
+          ),
+          sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+        ),
+        // Only include deals within the specified radius
+        sql`${haversine} <= ${radiusKm}`
       ))
       .orderBy(asc(haversine))
       .limit(50);
@@ -435,8 +512,9 @@ export class DatabaseStorage implements IStorage {
       const searchTerm = `%${query}%`;
       searchConditions.push(
         or(
-          sql`${deals.title} ILIKE ${searchTerm}`,
-          sql`${deals.description} ILIKE ${searchTerm}`,
+          sql`${deals.drink_name} ILIKE ${searchTerm}`,
+          sql`${deals.alcohol_category} ILIKE ${searchTerm}`,
+          sql`${deals.alcohol_subcategory} ILIKE ${searchTerm}`,
           sql`${establishments.name} ILIKE ${searchTerm}`,
           sql`${establishments.address} ILIKE ${searchTerm}`,
           sql`${establishments.city} ILIKE ${searchTerm}`,
@@ -445,14 +523,58 @@ export class DatabaseStorage implements IStorage {
       );
     }
     
-    // Add type filter if provided
+    // Add type filter if provided (alcohol category)
     if (filters.type) {
-      searchConditions.push(eq(deals.type, filters.type));
+      searchConditions.push(eq(deals.alcohol_category, filters.type));
     }
     
-    // Add status filter if provided
-    if (filters.status) {
-      searchConditions.push(eq(deals.status, filters.status));
+    // Add status filter if provided (active/inactive based on time)
+    if (filters.status === 'active') {
+      const now = new Date();
+      const currentDay = now.getDay(); // 0-6, where 0 is Sunday
+      const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+      
+      // Get the current day of the week in the format used in the valid_days field
+      const dayMap: Record<number, string> = {
+        0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+      };
+      const currentDayStr = dayMap[currentDay];
+      
+      // If valid_days contains "Weekdays", we need to check if today is a weekday
+      const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
+      
+      searchConditions.push(
+        or(
+          and(
+            lte(deals.hh_start_time, currentTime),
+            gte(deals.hh_end_time, currentTime),
+            or(
+              sql`${deals.valid_days} LIKE ${'%' + currentDayStr + '%'}`,
+              and(
+                sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
+                sql`${isWeekday}`
+              ),
+              sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+            )
+          ),
+          // Special case for happy hours that span midnight
+          and(
+            gte(deals.hh_start_time, deals.hh_end_time),
+            or(
+              gte(currentTime, deals.hh_start_time),
+              lte(currentTime, deals.hh_end_time)
+            ),
+            or(
+              sql`${deals.valid_days} LIKE ${'%' + currentDayStr + '%'}`,
+              and(
+                sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
+                sql`${isWeekday}`
+              ),
+              sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+            )
+          )
+        )
+      );
     }
     
     const result = await db
@@ -463,7 +585,7 @@ export class DatabaseStorage implements IStorage {
       .from(deals)
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
       .where(and(...searchConditions))
-      .orderBy(asc(deals.startTime))
+      .orderBy(asc(deals.alcohol_category), asc(deals.happy_hour_price))
       .limit(100);
     
     return result.map(item => ({
@@ -564,15 +686,15 @@ export class DatabaseStorage implements IStorage {
     
     const dealPrices = await db
       .select({
-        regularPrice: deals.regularPrice,
-        dealPrice: deals.dealPrice
+        standard_price: deals.standard_price,
+        happy_hour_price: deals.happy_hour_price
       })
       .from(deals)
       .where(inArray(deals.id, dealIds));
 
     // Calculate total savings
     const totalSavings = dealPrices.reduce(
-      (sum, deal) => sum + (deal.regularPrice - deal.dealPrice),
+      (sum, deal) => sum + (deal.standard_price - deal.happy_hour_price),
       0
     );
 
