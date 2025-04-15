@@ -6,20 +6,20 @@ import Navigation from '@/components/layout/navigation';
 import { SimpleDealCard } from '@/components/deals/simple-deal-card';
 import { Loader2 } from 'lucide-react';
 
-export default function BeerPage() {
+export default function WineSpiritsPage() {
   const { toast } = useToast();
-  const [filter, setFilter] = useState<FilterType>('beer');
+  const [filter, setFilter] = useState<FilterType>('wine');
   
-  // Fetch beer deals
+  // Fetch deals with wine, cocktail, whisky, or spirits category
   const { data: deals, isLoading, error } = useQuery({
-    queryKey: ['/api/deals/search', { categories: ['beer'], status: 'active' }],
+    queryKey: ['/api/deals/search', { categories: ['wine', 'cocktail', 'whisky', 'vodka', 'gin', 'rum'], status: 'active' }],
   });
   
   useEffect(() => {
     if (error) {
       toast({
         title: 'Error',
-        description: 'Failed to load beer deals. Please try again.',
+        description: 'Failed to load wine and spirits deals. Please try again.',
         variant: 'destructive',
       });
     }
@@ -27,7 +27,7 @@ export default function BeerPage() {
   
   return (
     <div className="container max-w-md mx-auto px-4 pb-20 pt-4">
-      <h1 className="text-2xl font-bold mb-4">Beer Deals</h1>
+      <h1 className="text-2xl font-bold mb-4">Wine & Spirits</h1>
       
       <div className="mb-4">
         <FilterBar activeFilter={filter} onFilterChange={setFilter} />
@@ -43,7 +43,7 @@ export default function BeerPage() {
         </div>
       ) : deals?.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">No beer deals found</p>
+          <p className="text-gray-500">No wine or spirits deals found</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -51,10 +51,10 @@ export default function BeerPage() {
             <SimpleDealCard
               key={deal.id}
               id={deal.id}
-              name={deal.drink_name || 'Beer Deal'}
-              dealType={deal.alcohol_subcategory || 'Draft Beer'}
+              name={deal.alcohol_category.charAt(0).toUpperCase() + deal.alcohol_category.slice(1)}
+              dealType={deal.alcohol_subcategory || 'Various types'}
               discount={Math.round(((deal.standard_price - deal.happy_hour_price) / deal.standard_price) * 100)}
-              category="beer"
+              category={deal.alcohol_category}
               subcategory={deal.alcohol_subcategory || undefined}
               servingStyle="glass"
               endTime={deal.hh_end_time}

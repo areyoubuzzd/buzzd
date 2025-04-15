@@ -7,6 +7,9 @@ import DealDetailsPage from "@/pages/deal-details-page";
 import ProfilePage from "@/pages/profile-page";
 import SavedDealsPage from "@/pages/saved-deals-page";
 import SearchPage from "@/pages/search-page";
+import BeerPage from "@/pages/beer-page";
+import WineSpiritsPage from "@/pages/wine-spirits-page";
+import OffersPage from "@/pages/offers-page";
 import ModernDealsPage from "@/pages/modern-deals-page";
 import CloudinaryTestPage from "@/pages/cloudinary-test";
 import CloudinaryUploadPage from "@/pages/cloudinary-upload-page";
@@ -26,6 +29,9 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/deal/:id" component={DealDetailsPage} />
       <Route path="/search" component={SearchPage} />
+      <Route path="/beer" component={BeerPage} />
+      <Route path="/wine-spirits" component={WineSpiritsPage} />
+      <Route path="/offers" component={OffersPage} />
       <Route path="/modern-deals" component={ModernDealsPage} />
       <Route path="/cloudinary-test" component={CloudinaryTestPage} />
       <Route path="/cloudinary-upload" component={CloudinaryUploadPage} />

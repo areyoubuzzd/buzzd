@@ -1,6 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { FiHome, FiUser, FiGift } from "react-icons/fi";
-import { GiBeerBottle, GiWineBottle } from "react-icons/gi";
+import { FiHome, FiUser, FiDollarSign, FiWind, FiCoffee } from "react-icons/fi";
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -20,19 +19,19 @@ export default function Navigation() {
         </Link>
         <Link href="/beer">
           <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/beer") ? "text-primary" : "text-gray-500"}`}>
-            <GiBeerBottle className="h-6 w-6" />
+            <FiCoffee className="h-6 w-6" />
             <span className="text-xs mt-1">Beer</span>
           </div>
         </Link>
         <Link href="/wine-spirits">
           <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/wine-spirits") ? "text-primary" : "text-gray-500"}`}>
-            <GiWineBottle className="h-6 w-6" />
+            <FiWind className="h-6 w-6" />
             <span className="text-xs mt-1">Wine / Spirits</span>
           </div>
         </Link>
         <Link href="/offers">
           <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/offers") ? "text-primary" : "text-gray-500"}`}>
-            <FiGift className="h-6 w-6" />
+            <FiDollarSign className="h-6 w-6" />
             <span className="text-xs mt-1">Offers</span>
           </div>
         </Link>

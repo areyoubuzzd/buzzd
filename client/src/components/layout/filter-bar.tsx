@@ -1,20 +1,18 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FiClock, FiPercent, FiUsers } from 'react-icons/fi';
 import { FaBeer, FaWineGlassAlt, FaGlassWhiskey } from 'react-icons/fa';
 
 // Updated FilterTypes based on the new requirements
-type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
+export type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
 
-interface FilterBarProps {
+export interface FilterBarProps {
+  activeFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
 }
 
-export default function FilterBar({ onFilterChange }: FilterBarProps) {
-  const [activeFilter, setActiveFilter] = useState<FilterType>('active');
+export default function FilterBar({ activeFilter, onFilterChange }: FilterBarProps) {
 
   const handleFilterClick = (filter: FilterType) => {
-    setActiveFilter(filter);
     onFilterChange(filter);
   };
 
