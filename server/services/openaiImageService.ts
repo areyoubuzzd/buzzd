@@ -113,7 +113,7 @@ async function generateImage(prompt: string, category: string, subcategory?: str
 
     log(`Successfully generated and uploaded image to Cloudinary: ${cloudinaryResponse.secure_url}`);
     return cloudinaryResponse.secure_url;
-  } catch (error) {
+  } catch (error: any) {
     log(`Error generating image: ${error.message}`);
     throw error;
   }
@@ -151,7 +151,7 @@ export async function getDrinkImage(
     
     // Generate the image
     return await generateImage(enhancedPrompt, category.toLowerCase(), subcategory?.toLowerCase());
-  } catch (error) {
+  } catch (error: any) {
     log(`Error in getDrinkImage: ${error.message}`);
     throw error;
   }
@@ -167,7 +167,7 @@ export async function generateSampleImages(): Promise<Record<string, string>> {
       const subcategoryFixed = category === 'beer-bucket' ? 'bucket' : undefined;
       
       results[category] = await getDrinkImage(categoryFixed, subcategoryFixed);
-    } catch (error) {
+    } catch (error: any) {
       log(`Error generating sample image for ${category}: ${error.message}`);
       results[category] = 'error';
     }

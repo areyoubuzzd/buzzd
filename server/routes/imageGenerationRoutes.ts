@@ -172,7 +172,7 @@ router.post("/generate-missing", async (req: Request, res: Response) => {
       results,
       message: `Generated images for ${results.filter(r => r.success).length} out of ${dealsWithoutImages.length} deals`
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating missing images:", error);
     return res.status(500).json({ 
       error: `Failed to generate missing images: ${error.message || 'Unknown error'}` 

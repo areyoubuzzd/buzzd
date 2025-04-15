@@ -11,6 +11,7 @@ import uploadDealImageRouter from "./routes/upload-deal-image";
 import menuAnalysisRoutes from "./routes/menuAnalysisRoutes_new.js";
 import dealsRoutes from "./routes/deals";
 import establishmentsRoutes from "./routes/establishments";
+import imageGenerationRoutes from "./routes/imageGenerationRoutes";
 import { db, pool } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -22,6 +23,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register menu analysis routes
   app.use('/api/menu-analysis', menuAnalysisRoutes);
+  
+  // Register image generation routes
+  app.use('/api/image-generation', imageGenerationRoutes);
   
   // NOTE: We no longer register deal and establishment routes here
   // They are registered directly in index.ts to ensure they take precedence
