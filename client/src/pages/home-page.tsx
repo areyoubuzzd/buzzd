@@ -3,16 +3,20 @@ import Header from "@/components/layout/header";
 import LocationBar from "@/components/layout/location-bar";
 import FilterBar from "@/components/layout/filter-bar";
 import DealsList from "@/components/deals/deals-list";
-import NewWhatsAppContact from "@/components/contact/new-whatsapp-contact";
-import NewLocationButton from "@/components/layout/new-location-button";
 import Navigation from "@/components/layout/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FiMapPin } from "react-icons/fi";
+import { FiMapPin, FiEdit2 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 // Updated FilterType to match the new filter-bar component
 type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
 
 export default function HomePage() {
+  // Use this for WhatsApp button so it's directly embedded in this file
+  const handleWhatsAppClick = () => {
+    const whatsappUrl = "https://wa.me/6587654321?text=Hello%2C%20I'd%20like%20to%20suggest%20a%20restaurant%20or%20deal%20to%20be%20added%20to%20the%20app.";
+    window.open(whatsappUrl, "_blank");
+  };
   // Initialize with a default location - Singapore
   const [location, setLocation] = useState<{ lat: number; lng: number }>({ lat: 1.3521, lng: 103.8198 });
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
@@ -93,28 +97,64 @@ export default function HomePage() {
       
       <FilterBar activeFilter={activeFilter} onFilterChange={handleFilterChange} />
       
-      {/* New location button component */}
-      <NewLocationButton 
-        location={userRoadName || "Bukit Timah Road"}
-        totalDeals={totalDealsFound}
-        onClick={() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          setTimeout(() => {
-            const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-            if (searchInput) {
-              searchInput.focus();
-              searchInput.select();
-            }
-          }, 100);
-        }}
-      />
+      {/* Inline location button */}
+      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+        <div className="container mx-auto">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center text-sm text-gray-600">
+                <FiMapPin className="mr-1 h-4 w-4" />
+                <span>{userRoadName || "Bukit Timah Road"}</span>
+              </div>
+              <div className="text-sm font-medium">
+                {totalDealsFound} deals found
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => {
+                  const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+                  if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                  }
+                }, 100);
+              }}
+              className="text-center text-sm text-blue-600 py-2 px-4 bg-blue-50 rounded-md border border-blue-100 hover:bg-blue-100 flex items-center justify-center w-full"
+            >
+              <span className="mr-2">Change location</span>
+              <FiEdit2 className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      </div>
       
       <DealsList 
         location={location} 
         activeFilter={activeFilter}
       />
       
-      <NewWhatsAppContact />
+      {/* Inline WhatsApp Contact */}
+      <div 
+        className="fixed bottom-20 left-0 right-0 z-50 bg-white py-3 border-t border-gray-200 shadow-sm" 
+      >
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              Missing a bar or deal?
+            </span>
+            <button
+              onClick={handleWhatsAppClick}
+              className="bg-[#25D366] hover:bg-[#1da851] text-white rounded-lg px-3 py-1 flex items-center"
+            >
+              <FaWhatsapp className="h-4 w-4 mr-1" />
+              <span className="text-sm">Suggest</span>
+            </button>
+          </div>
+        </div>
+      </div>
       
       <Navigation />
     </div>
