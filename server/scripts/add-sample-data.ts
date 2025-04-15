@@ -129,7 +129,7 @@ async function addSampleData() {
     for (const dealData of sampleDeals) {
       // Check if deal already exists
       const existingDeal = await db.query.deals.findFirst({
-        where: eq(deals.title, dealData.title)
+        where: eq(deals.drink_name, dealData.drink_name)
       });
       
       if (!existingDeal) {
@@ -137,17 +137,17 @@ async function addSampleData() {
           .values(dealData)
           .returning();
         
-        console.log(`Created deal: ${dealData.title} (ID: ${newDeal.id})`);
+        console.log(`Created deal: ${dealData.drink_name} (ID: ${newDeal.id})`);
       } else {
         // Update with the newest collections data
         await db.update(deals)
           .set({ 
             collections: dealData.collections,
-            imageUrl: dealData.imageUrl
+            image_url: dealData.imageUrl
           })
           .where(eq(deals.id, existingDeal.id));
         
-        console.log(`Updated deal: ${dealData.title} (ID: ${existingDeal.id})`);
+        console.log(`Updated deal: ${dealData.drink_name} (ID: ${existingDeal.id})`);
       }
     }
     
