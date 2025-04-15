@@ -23,17 +23,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register menu analysis routes
   app.use('/api/menu-analysis', menuAnalysisRoutes);
   
-  // Register deal and establishment routes (for the deal-to-restaurant workflow)
-  // Ensure these are mounted with explicit paths to avoid conflicts with Vite's static serving
-  app.use('/api/v2/deals', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, dealsRoutes);
-  
-  app.use('/api/v2/establishments', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, establishmentsRoutes);
+  // NOTE: We no longer register deal and establishment routes here
+  // They are registered directly in index.ts to ensure they take precedence
+  // over Vite's static file serving
   
   // Test endpoint for Cloudinary image URLs
   app.get("/api/test-cloudinary", async (_req, res) => {
