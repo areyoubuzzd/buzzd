@@ -58,9 +58,12 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     };
   }, [deal]);
 
-  // Format drink name
+  // Format drink name - only use specific drink names, not generic ones
   const drinkName = useMemo(() => {
-    return deal.drink_name || `${deal.alcohol_category || 'Drink'} Special`;
+    // Only use drink_name if it's a specific drink (not ending with "Special")
+    return deal.drink_name && !deal.drink_name.endsWith("Special") 
+      ? deal.drink_name 
+      : null;
   }, [deal]);
 
   return (
@@ -78,43 +81,38 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
           {savingsInfo}
         </div>
         
-        {/* Overlay with all information */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-2">
-          {/* Drink name */}
-          <h3 className="font-medium text-xs text-white line-clamp-2">
-            {drinkName}
-          </h3>
-          
-          {/* Price with strike-through */}
-          <div className="flex items-center gap-2 mt-1">
+        {/* Overlay with all information - restricted to lower third */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-2 pb-1.5">
+          {/* Price information at the top */}
+          <div className="flex items-center gap-2 justify-between">
             <p className="text-xs font-bold text-white">
               {currentPrice}
             </p>
             {originalPrice && (
-              <p className="text-xs text-red-400 line-through opacity-80">
+              <p className="text-xs text-red-400 line-through opacity-90">
                 {originalPrice}
               </p>
             )}
           </div>
           
           {/* Restaurant name */}
-          <h3 className="font-semibold text-xs text-white/90 line-clamp-1 mt-2 border-t border-white/20 pt-1">
+          <h3 className="font-semibold text-xs text-white/95 line-clamp-1 mt-1">
             {deal.establishment?.name || 'Restaurant Name'}
           </h3>
           
-          {/* Time and distance */}
-          <div className="flex items-center justify-between text-xs text-white/80 mt-1">
+          {/* Time and distance - smaller and more compact */}
+          <div className="flex items-center justify-between text-[9px] text-white/90 mt-0.5">
             {/* Happy hour time */}
             <div className="flex items-center">
-              <FiClock className="h-2.5 w-2.5 mr-0.5" />
-              <span className="text-[10px]">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
+              <FiClock className="h-2 w-2 mr-0.5" />
+              <span>{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
             </div>
             
             {/* Distance */}
             {distance && (
               <div className="flex items-center">
-                <FiMapPin className="h-2.5 w-2.5 mr-0.5" />
-                <span className="text-[10px]">{distance}</span>
+                <FiMapPin className="h-2 w-2 mr-0.5" />
+                <span>{distance}</span>
               </div>
             )}
           </div>
