@@ -6,6 +6,7 @@ import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
 import { FiMapPin } from "react-icons/fi";
+import { useQuery } from "@tanstack/react-query";
 
 // Import sample deals
 // We will use these deals just to show the UI, will replace with real data later
@@ -163,47 +164,36 @@ export default function HomeCollection() {
     }));
   };
 
-  // Sample deals with collections
+  // Fetch deals from API
+  const { data: dealsData, isLoading: isLoadingDeals, error } = useQuery({
+    queryKey: ['/api/deals/collections/all'],
+    retry: 2,
+  });
+  
+  // Process deals from API
   const allDeals = useMemo(() => {
-    const allSampleDeals = [
-      ...beerDeals.map((deal, index) => {
-        let collections = '';
-        
-        // Assign to appropriate collections based on price and type
-        if (deal.dealPrice <= 10) {
-          collections = 'beers_under_10';
-        }
-        
-        // Add to 1-for-1 collection if applicable
-        if (deal.isOneForOne) {
-          collections = collections ? `${collections},one_for_one_deals` : 'one_for_one_deals';
-        }
-        
-        return {
-          ...deal,
-          id: `beer-${index}`,
-          collections: collections
-        };
-      }),
-      ...houseWineDeals.map((deal, index) => ({
-        ...deal,
-        id: `wine-${index}`,
-        collections: 'wine_deals'
-      })),
-      ...spiritDeals.map((deal, index) => ({
-        ...deal,
-        id: `spirit-${index}`,
-        collections: deal.isHousePour ? 'happy_hour_spirits' : 'premium_spirits'
-      })),
-      ...cocktailDeals.map((deal, index) => ({
-        ...deal,
-        id: `cocktail-${index}`,
-        collections: 'cocktail_specials'
-      }))
-    ];
+    if (!dealsData) return [];
     
-    return prepareDeals(allSampleDeals);
-  }, []);
+    return dealsData.map((deal: any) => ({
+      id: deal.id,
+      description: deal.title || deal.drink_name,
+      alcohol_category: deal.alcohol_category,
+      alcohol_subcategory: deal.alcohol_subcategory,
+      establishment: {
+        name: deal.establishment?.name || 'Unknown Venue',
+        latitude: deal.establishment?.latitude || 1.3521,
+        longitude: deal.establishment?.longitude || 103.8198,
+        type: deal.establishment?.cuisine || 'Bar & Restaurant'
+      },
+      hh_start_time: deal.hh_start_time,
+      hh_end_time: deal.hh_end_time,
+      regularPrice: deal.standard_price,
+      dealPrice: deal.happy_hour_price,
+      imageUrl: deal.imageUrl || `https://placehold.co/400x400/e6f7ff/0099cc?text=${deal.alcohol_category || 'Drink'}`,
+      isOneForOne: deal.is_one_for_one,
+      collections: deal.collections
+    }));
+  }, [dealsData]);
   
   // Create our collections
   const collections = useMemo(() => {

@@ -1,5 +1,8 @@
 import express from 'express';
 import { storage } from '../storage';
+import { db } from '../db';
+import { deals, establishments } from '@shared/schema';
+import { eq, and, asc, sql } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -76,6 +79,66 @@ router.get('/search', async (req, res) => {
   } catch (error) {
     console.error("Error searching deals:", error);
     res.status(500).json({ message: "Failed to search deals" });
+  }
+});
+
+/**
+ * Get all deals with collections
+ * This endpoint fetches all deals with their collections for the Collections UI
+ */
+router.get('/collections/all', async (req, res) => {
+  try {
+    // Fetch all deals joined with establishments
+    const result = await db
+      .select({
+        deal: deals,
+        establishment: establishments
+      })
+      .from(deals)
+      .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
+      .orderBy(asc(deals.alcohol_category));
+    
+    // Transform to DealWithEstablishment format
+    const dealsWithEstablishments = result.map(item => ({
+      ...item.deal,
+      establishment: item.establishment
+    }));
+    
+    res.json(dealsWithEstablishments);
+  } catch (error) {
+    console.error("Error fetching deals with collections:", error);
+    res.status(500).json({ message: "Failed to fetch deals with collections" });
+  }
+});
+
+/**
+ * Get deals by collection
+ * This endpoint fetches deals that belong to a specific collection
+ */
+router.get('/collections/:collectionName', async (req, res) => {
+  try {
+    const collectionName = req.params.collectionName;
+    
+    // Fetch deals that have this collection in their collections field
+    const result = await db
+      .select({
+        deal: deals,
+        establishment: establishments
+      })
+      .from(deals)
+      .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
+      .where(sql`${deals.collections} LIKE ${'%' + collectionName + '%'}`);
+    
+    // Transform to DealWithEstablishment format
+    const dealsInCollection = result.map(item => ({
+      ...item.deal,
+      establishment: item.establishment
+    }));
+    
+    res.json(dealsInCollection);
+  } catch (error) {
+    console.error(`Error fetching deals for collection ${req.params.collectionName}:`, error);
+    res.status(500).json({ message: "Failed to fetch deals for collection" });
   }
 });
 

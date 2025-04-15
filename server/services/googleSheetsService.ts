@@ -230,6 +230,14 @@ export async function getDealsFromSheets(): Promise<any[]> {
         rowData.hhEnd || 
         '';
       
+      // Get collections from column P or any relevant column name
+      const collections = 
+        rowData.collections || 
+        rowData.Collections || 
+        rowData.tags || 
+        rowData.Tags || 
+        '';
+
       return {
         establishmentId,
         alcohol_category,
@@ -242,6 +250,7 @@ export async function getDealsFromSheets(): Promise<any[]> {
         valid_days,
         hh_start_time,
         hh_end_time,
+        collections, // Add collections to the returned data
         imageUrl: rowData.imageUrl || rowData.image || ''
       };
     });
@@ -352,6 +361,7 @@ export async function syncDealsFromSheets(): Promise<any[]> {
         valid_days: dealData.valid_days,
         hh_start_time: dealData.hh_start_time,
         hh_end_time: dealData.hh_end_time,
+        collections: dealData.collections, // Add collections field for categorization
         imageUrl: dealData.imageUrl
       };
       
