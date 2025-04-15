@@ -164,39 +164,69 @@ export default function HomeCollection() {
     }));
   };
 
+  // Define an interface for our Deal type
+  interface Deal {
+    id: number;
+    description: string;
+    alcohol_category: string;
+    alcohol_subcategory?: string;
+    establishment: {
+      name: string;
+      latitude: number;
+      longitude: number;
+      type: string;
+    };
+    hh_start_time: string;
+    hh_end_time: string;
+    regularPrice: number;
+    dealPrice: number;
+    imageUrl: string;
+    isOneForOne: boolean;
+    collections: string;
+  }
+
   // Fetch deals from API
-  const { data: dealsData, isLoading: isLoadingDeals, error } = useQuery({
+  const { data: dealsData, isLoading: isLoadingDeals, error } = useQuery<any[]>({
     queryKey: ['/api/deals/collections/all'],
     retry: 2,
   });
   
   // Process deals from API
-  const allDeals = useMemo(() => {
-    if (!dealsData) return [];
+  const allDeals = useMemo<Deal[]>(() => {
+    if (!dealsData || !Array.isArray(dealsData)) return [];
+    
+    // Update total deals count
+    setTotalDealsFound(dealsData.length);
     
     return dealsData.map((deal: any) => ({
       id: deal.id,
-      description: deal.title || deal.drink_name,
-      alcohol_category: deal.alcohol_category,
-      alcohol_subcategory: deal.alcohol_subcategory,
+      description: deal.title || deal.drink_name || "",
+      alcohol_category: deal.alcohol_category || "other",
+      alcohol_subcategory: deal.alcohol_subcategory || undefined,
       establishment: {
         name: deal.establishment?.name || 'Unknown Venue',
         latitude: deal.establishment?.latitude || 1.3521,
         longitude: deal.establishment?.longitude || 103.8198,
         type: deal.establishment?.cuisine || 'Bar & Restaurant'
       },
-      hh_start_time: deal.hh_start_time,
-      hh_end_time: deal.hh_end_time,
-      regularPrice: deal.standard_price,
-      dealPrice: deal.happy_hour_price,
+      hh_start_time: deal.hh_start_time || "17:00:00",
+      hh_end_time: deal.hh_end_time || "20:00:00",
+      regularPrice: Number(deal.standard_price || deal.regular_price || 0),
+      dealPrice: Number(deal.happy_hour_price || deal.deal_price || 0),
       imageUrl: deal.imageUrl || `https://placehold.co/400x400/e6f7ff/0099cc?text=${deal.alcohol_category || 'Drink'}`,
-      isOneForOne: deal.is_one_for_one,
-      collections: deal.collections
+      isOneForOne: Boolean(deal.is_one_for_one) || false,
+      collections: deal.collections || ''
     }));
-  }, [dealsData]);
+  }, [dealsData, setTotalDealsFound]);
+  
+  // Define interface for our collection structure
+  interface Collection {
+    title: string;
+    deals: Deal[];
+  }
   
   // Create our collections
-  const collections = useMemo(() => {
+  const collections = useMemo<Collection[]>(() => {
     // Define collection metadata with names and order
     const collectionsConfig = [
       { id: 'beers_under_10', title: 'Beers under $10' },
@@ -269,15 +299,32 @@ export default function HomeCollection() {
       {/* Main content area with collections */}
       <main className="flex-1 bg-gray-50 px-4 py-6 pb-20">
         <div className="container mx-auto">
-          {collections.map((collection, index) => (
-            <CollectionRow
-              key={index}
-              title={collection.title}
-              deals={collection.deals}
-              userLocation={location}
-              onViewAllClick={() => console.log(`View all ${collection.title}`)}
-            />
-          ))}
+          {isLoadingDeals ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-gray-500">Loading deals...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <p className="text-red-500 font-medium">Error loading deals</p>
+              <p className="text-gray-500 text-sm mt-2">Please try again later</p>
+            </div>
+          ) : collections.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <p className="text-gray-500">No deals found in your area</p>
+              <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or location</p>
+            </div>
+          ) : (
+            collections.map((collection, index) => (
+              <CollectionRow
+                key={index}
+                title={collection.title}
+                deals={collection.deals}
+                userLocation={location}
+                onViewAllClick={() => console.log(`View all ${collection.title}`)}
+              />
+            ))
+          )}
         </div>
       </main>
       
