@@ -82,7 +82,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         </div>
         
         {/* Overlay with all information - restricted to lower third */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-2 pb-1.5">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-2 pb-1.5">
           {/* Price information at the top */}
           <div className="flex items-center gap-2 justify-between">
             <p className="text-xs font-bold text-white">
@@ -101,18 +101,18 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
           </h3>
           
           {/* Time and distance - smaller and more compact */}
-          <div className="flex items-center justify-between text-[9px] text-white/90 mt-0.5">
+          <div className="flex items-center justify-between text-[9px] text-white mt-0.5">
             {/* Happy hour time */}
             <div className="flex items-center">
-              <FiClock className="h-2 w-2 mr-0.5" />
-              <span>{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
+              <FiClock className="h-2 w-2 mr-0.5 text-white" />
+              <span className="text-white font-medium">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
             </div>
             
             {/* Distance */}
             {distance && (
               <div className="flex items-center">
-                <FiMapPin className="h-2 w-2 mr-0.5" />
-                <span>{distance}</span>
+                <FiMapPin className="h-2 w-2 mr-0.5 text-white" />
+                <span className="text-white font-medium">{distance}</span>
               </div>
             )}
           </div>
