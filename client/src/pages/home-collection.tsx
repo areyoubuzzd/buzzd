@@ -198,9 +198,12 @@ export default function HomeCollection() {
     // Update total deals count
     setTotalDealsFound(dealsData.length);
     
+    // Log the actual API response to see what we're working with
+    console.log('Raw API data first deal:', dealsData[0]);
+    
     return dealsData.map((deal: any) => ({
       id: deal.id,
-      description: deal.title || deal.drink_name || "",
+      description: deal.drink_name || "",
       alcohol_category: deal.alcohol_category || "other",
       alcohol_subcategory: deal.alcohol_subcategory || undefined,
       establishment: {
@@ -211,9 +214,9 @@ export default function HomeCollection() {
       },
       hh_start_time: deal.hh_start_time || "17:00:00",
       hh_end_time: deal.hh_end_time || "20:00:00",
-      regularPrice: Number(deal.standard_price || deal.regular_price || 0),
-      dealPrice: Number(deal.happy_hour_price || deal.deal_price || 0),
-      imageUrl: deal.imageUrl || `https://placehold.co/400x400/e6f7ff/0099cc?text=${deal.alcohol_category || 'Drink'}`,
+      regularPrice: Number(deal.standard_price || 0),
+      dealPrice: Number(deal.happy_hour_price || 0),
+      imageUrl: deal.imageUrl || `https://placehold.co/400x400/e6f7ff/0099cc?text=${deal.drink_name || 'Drink'}`,
       isOneForOne: Boolean(deal.is_one_for_one) || false,
       collections: deal.collections || ''
     }));
