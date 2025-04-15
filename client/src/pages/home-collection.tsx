@@ -158,19 +158,33 @@ export default function HomeCollection() {
       regularPrice: deal.regularPrice,
       dealPrice: deal.dealPrice,
       imageUrl: `https://placehold.co/400x400/e6f7ff/0099cc?text=${deal.drinkCategory || 'Drink'}`,
-      isOneForOne: deal.isOneForOne || false
+      isOneForOne: deal.isOneForOne || false,
+      collections: deal.collections // Make sure to include collections
     }));
   };
 
   // Sample deals with collections
   const allDeals = useMemo(() => {
     const allSampleDeals = [
-      ...beerDeals.map((deal, index) => ({
-        ...deal,
-        id: `beer-${index}`,
-        collections: deal.dealPrice <= 10 ? 'beers_under_10' : '',
-        collections: deal.isOneForOne ? (deal.collections ? `${deal.collections},one_for_one_deals` : 'one_for_one_deals') : deal.collections || ''
-      })),
+      ...beerDeals.map((deal, index) => {
+        let collections = '';
+        
+        // Assign to appropriate collections based on price and type
+        if (deal.dealPrice <= 10) {
+          collections = 'beers_under_10';
+        }
+        
+        // Add to 1-for-1 collection if applicable
+        if (deal.isOneForOne) {
+          collections = collections ? `${collections},one_for_one_deals` : 'one_for_one_deals';
+        }
+        
+        return {
+          ...deal,
+          id: `beer-${index}`,
+          collections: collections
+        };
+      }),
       ...houseWineDeals.map((deal, index) => ({
         ...deal,
         id: `wine-${index}`,
