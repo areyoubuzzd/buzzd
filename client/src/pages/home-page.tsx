@@ -96,20 +96,25 @@ export default function HomePage() {
       <div className="bg-gray-50 px-4 py-2">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
-            <div 
-              className="flex items-center text-sm text-gray-600 cursor-pointer hover:text-gray-800 p-1 rounded hover:bg-gray-100"
+            <button 
+              className="flex items-center text-sm text-gray-600 cursor-pointer hover:text-gray-800 p-2 rounded hover:bg-gray-100 border border-transparent hover:border-gray-200"
               onClick={() => {
-                const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-                if (searchInput) {
-                  searchInput.focus();
-                  searchInput.select();
-                  searchInput.scrollIntoView({ behavior: 'smooth' });
-                }
+                // Manually scroll to the search input area
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Small delay to ensure scrolling has completed
+                setTimeout(() => {
+                  const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+                  if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                  }
+                }, 100);
               }}
             >
               <FiMapPin className="mr-1 h-4 w-4" />
               <span>{userRoadName || "Bukit Timah Road"}</span>
-            </div>
+            </button>
             <div className="text-sm font-medium">
               {totalDealsFound} deals found
             </div>
