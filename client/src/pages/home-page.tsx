@@ -82,7 +82,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-28">
+    <div className="flex flex-col min-h-screen pb-36">
       <Header />
       
       <LocationBar 
