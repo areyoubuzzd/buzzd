@@ -1,9 +1,8 @@
 import { useLocation, Link } from "wouter";
-import { FiUser, FiDollarSign } from "react-icons/fi";
+import { FiUser } from "react-icons/fi";
 import { FaBuilding } from "react-icons/fa";
 import { GiBeerStein } from "react-icons/gi";
-import { IoWineSharp } from "react-icons/io5";
-import { IoFlash } from "react-icons/io5";
+import { IoWineSharp, IoFlash } from "react-icons/io5";
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -39,10 +38,10 @@ export default function Navigation() {
             <span className="text-xs mt-1">Wine / Spirits</span>
           </div>
         </Link>
-        <Link href="/offers">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/offers") ? "text-primary" : "text-gray-500"}`}>
-            <FiDollarSign className="h-6 w-6" />
-            <span className="text-xs mt-1">Offers</span>
+        <Link href="/profile">
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/profile") ? "text-primary" : "text-gray-500"}`}>
+            <FiUser className="h-6 w-6" />
+            <span className="text-xs mt-1">Profile</span>
           </div>
         </Link>
       </div>
