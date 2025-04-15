@@ -88,6 +88,12 @@ router.get('/search', async (req, res) => {
  */
 router.get('/collections/all', async (req, res) => {
   try {
+    // Extra debug logging
+    console.log('Collections/all API called, headers:', req.headers);
+    
+    // Set proper content type
+    res.setHeader('Content-Type', 'application/json');
+    
     // Fetch all deals joined with establishments
     const result = await db
       .select({
@@ -98,13 +104,22 @@ router.get('/collections/all', async (req, res) => {
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
       .orderBy(asc(deals.alcohol_category));
     
+    // Log for debugging
+    console.log(`Fetched ${result.length} deals from database`);
+    
     // Transform to DealWithEstablishment format
     const dealsWithEstablishments = result.map(item => ({
       ...item.deal,
       establishment: item.establishment
     }));
     
-    res.json(dealsWithEstablishments);
+    // If no deals found, return empty array instead of error
+    if (dealsWithEstablishments.length === 0) {
+      console.log('No deals found in database, returning empty array');
+    }
+    
+    // Send response directly without using express json middleware
+    return res.send(JSON.stringify(dealsWithEstablishments || []));
   } catch (error) {
     console.error("Error fetching deals with collections:", error);
     res.status(500).json({ message: "Failed to fetch deals with collections" });
