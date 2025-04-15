@@ -291,7 +291,7 @@ export default function EstablishmentDetailsPage() {
             >
               <div className="text-center">
                 <div className="flex justify-center mb-2">
-                  <MapPin size={32} />
+                  <FaMapMarkedAlt size={32} />
                 </div>
                 <span className="text-sm font-medium">View on Google Maps</span>
               </div>
