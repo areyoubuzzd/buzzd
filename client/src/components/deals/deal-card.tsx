@@ -379,8 +379,16 @@ function DealCard({
     return "";
   }, [deal]);
   
-  // Get the deal name with either brand or subcategory, but not the main category
+  // Get the deal name using happy_hour_price and drink_name
   const dealName = useMemo(() => {
+    if (deal.isOneForOne) return "1-FOR-1";
+    
+    // Use the happy_hour_price and drink_name
+    if (deal.happy_hour_price && deal.drink_name) {
+      return `$${deal.happy_hour_price} ${deal.drink_name.toUpperCase()}`;
+    }
+    
+    // Fallback to old logic if needed
     let name = priceDisplay;
     
     // If brand is available, use that
@@ -480,7 +488,7 @@ function DealCard({
           {/* Deal name */}
           <h3 className="font-black text-white text-center font-luckiest uppercase tracking-wide leading-none truncate w-full px-1" 
               style={{ 
-                fontSize: dealName.length > 12 ? '1rem' : '1.25rem',
+                fontSize: '1.5rem', /* 24px */
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
