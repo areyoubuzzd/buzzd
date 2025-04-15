@@ -1,172 +1,73 @@
-import { Router } from "express";
-import { storage } from "../storage";
-import { z } from "zod";
+import express from 'express';
+import { storage } from '../storage';
 
-const router = Router();
-
-// Schema for location-based queries
-const locationQuerySchema = z.object({
-  latitude: z.coerce.number(),
-  longitude: z.coerce.number(),
-  radius: z.coerce.number().default(1), // Default radius is 1km
-});
+const router = express.Router();
 
 /**
- * Get active deals (deals that are active at the current time)
- * Filtered by current time/day and sorted by distance
+ * Get active deals for the nearest establishments
+ * This endpoint is used for the main deals discovery screen
+ * 
+ * Query Parameters:
+ * - lat: latitude of user location
+ * - lng: longitude of user location
+ * - radius: radius in kilometers (default: 1km)
  */
-router.get("/active", async (req, res) => {
+router.get('/nearby', async (req, res) => {
   try {
-    const result = locationQuerySchema.safeParse(req.query);
-    if (!result.success) {
-      return res.status(400).json({ 
-        error: "Invalid query parameters",
-        details: result.error.format() 
-      });
-    }
-
-    const { latitude, longitude, radius } = result.data;
+    const latitude = parseFloat(req.query.lat as string);
+    const longitude = parseFloat(req.query.lng as string);
+    const radius = parseFloat(req.query.radius as string) || 1; // Default 1km
     
-    // Get all active deals sorted by distance
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({ message: "Invalid coordinates" });
+    }
+    
     const activeDeals = await storage.getActiveDeals(latitude, longitude, radius);
-    
-    res.json(activeDeals);
-  } catch (error) {
-    console.error("Error fetching active deals:", error);
-    res.status(500).json({ error: "Failed to fetch active deals" });
-  }
-});
-
-/**
- * Get upcoming deals (deals that will be active later today or this week)
- */
-router.get("/upcoming", async (req, res) => {
-  try {
-    const result = locationQuerySchema.safeParse(req.query);
-    if (!result.success) {
-      return res.status(400).json({ 
-        error: "Invalid query parameters",
-        details: result.error.format() 
-      });
-    }
-
-    const { latitude, longitude, radius } = result.data;
-    
-    // Get upcoming deals sorted by distance
     const upcomingDeals = await storage.getUpcomingDeals(latitude, longitude, radius);
     
-    res.json(upcomingDeals);
+    res.json({
+      active: activeDeals,
+      upcoming: upcomingDeals
+    });
   } catch (error) {
-    console.error("Error fetching upcoming deals:", error);
-    res.status(500).json({ error: "Failed to fetch upcoming deals" });
+    console.error("Error fetching nearby deals:", error);
+    res.status(500).json({ message: "Failed to fetch nearby deals" });
   }
 });
 
 /**
- * Get future deals (deals active in the future, not today)
+ * Get deal details with establishment info
+ * This is the first step of the deal-to-restaurant workflow
+ * When a user clicks on a deal card, they see full deal details
  */
-router.get("/future", async (req, res) => {
-  try {
-    const result = locationQuerySchema.safeParse(req.query);
-    if (!result.success) {
-      return res.status(400).json({ 
-        error: "Invalid query parameters",
-        details: result.error.format() 
-      });
-    }
-
-    const { latitude, longitude, radius } = result.data;
-    
-    // Get future deals sorted by distance
-    const futureDeals = await storage.getFutureDeals(latitude, longitude, radius);
-    
-    res.json(futureDeals);
-  } catch (error) {
-    console.error("Error fetching future deals:", error);
-    res.status(500).json({ error: "Failed to fetch future deals" });
-  }
-});
-
-/**
- * Get detail about a specific deal
- */
-router.get("/:id", async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const dealId = parseInt(req.params.id);
     if (isNaN(dealId)) {
-      return res.status(400).json({ error: "Invalid deal ID" });
+      return res.status(400).json({ message: "Invalid deal ID" });
     }
     
     const deal = await storage.getDealDetails(dealId);
     if (!deal) {
-      return res.status(404).json({ error: "Deal not found" });
+      return res.status(404).json({ message: "Deal not found" });
+    }
+    
+    // If authenticated, record the deal view
+    if (req.isAuthenticated() && req.user) {
+      try {
+        await storage.recordDealView({
+          userId: req.user.id,
+          dealId: dealId
+        });
+      } catch (error) {
+        console.error("Error recording deal view:", error);
+      }
     }
     
     res.json(deal);
   } catch (error) {
     console.error("Error fetching deal details:", error);
-    res.status(500).json({ error: "Failed to fetch deal details" });
-  }
-});
-
-/**
- * Search for deals with various filters
- */
-router.get("/search", async (req, res) => {
-  try {
-    const querySchema = z.object({
-      query: z.string().optional(),
-      type: z.string().optional(),
-      status: z.string().optional(),
-    });
-
-    const result = querySchema.safeParse(req.query);
-    if (!result.success) {
-      return res.status(400).json({ 
-        error: "Invalid query parameters",
-        details: result.error.format() 
-      });
-    }
-
-    const { query = "", type, status } = result.data;
-    
-    const searchResults = await storage.searchDeals(query, { type, status });
-    
-    res.json(searchResults);
-  } catch (error) {
-    console.error("Error searching for deals:", error);
-    res.status(500).json({ error: "Failed to search for deals" });
-  }
-});
-
-/**
- * Record a deal view
- */
-router.post("/view/:id", async (req, res) => {
-  try {
-    // Check if user is authenticated
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "You must be logged in to view deals" });
-    }
-    
-    const dealId = parseInt(req.params.id);
-    if (isNaN(dealId)) {
-      return res.status(400).json({ error: "Invalid deal ID" });
-    }
-    
-    // Record the view
-    await storage.recordDealView({
-      userId: req.user!.id,
-      dealId,
-    });
-    
-    // Increment the user's deal view count
-    const updatedUser = await storage.incrementUserDealViews(req.user!.id);
-    
-    res.json({ success: true, user: updatedUser });
-  } catch (error) {
-    console.error("Error recording deal view:", error);
-    res.status(500).json({ error: "Failed to record deal view" });
+    res.status(500).json({ message: "Failed to fetch deal details" });
   }
 });
 
