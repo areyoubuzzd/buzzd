@@ -47,34 +47,58 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     return "Special Offer";
   }, [deal]);
 
+  // Format the price display
+  const priceDisplay = useMemo(() => {
+    const happyHourPrice = deal.happy_hour_price || deal.dealPrice;
+    const standardPrice = deal.standard_price || deal.regularPrice;
+    
+    if (happyHourPrice && standardPrice) {
+      return `$${happyHourPrice} (U.P. $${standardPrice})`;
+    } else if (happyHourPrice) {
+      return `$${happyHourPrice}`;
+    } else {
+      return 'Special Price';
+    }
+  }, [deal]);
+
+  // Format drink name
+  const drinkName = useMemo(() => {
+    return deal.drink_name || `${deal.alcohol_category || 'Drink'} Special`;
+  }, [deal]);
+
   return (
-    <Card className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow max-w-[170px]">
       <div className="relative aspect-square">
         {/* Deal image */}
         <img 
           src={deal.imageUrl || 'https://placehold.co/400x400/e6f7ff/0099cc?text=Happy+Hour'} 
-          alt={deal.description || 'Happy Hour Deal'} 
+          alt={drinkName} 
           className="w-full h-full object-cover"
         />
         
+        {/* Overlay with drink name and price */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2">
+          <h3 className="font-medium text-xs text-white line-clamp-2">
+            {drinkName}
+          </h3>
+          <p className="text-xs font-bold text-white mt-1">
+            {priceDisplay}
+          </p>
+        </div>
+        
         {/* Savings badge */}
-        <div className="absolute top-2 right-2 bg-primary text-white px-2.5 py-1 rounded-full text-xs font-medium">
+        <div className="absolute top-2 right-2 bg-primary text-white px-2 py-0.5 rounded-full text-xs font-medium">
           {savingsInfo}
         </div>
       </div>
       
-      <CardContent className="p-3">
+      <CardContent className="p-2">
         {/* Restaurant name */}
-        <h3 className="font-semibold text-sm line-clamp-1 mb-1">
+        <h3 className="font-semibold text-xs line-clamp-1">
           {deal.establishment?.name || 'Restaurant Name'}
         </h3>
         
-        {/* Deal description */}
-        <p className="text-xs text-gray-700 line-clamp-2 mb-2">
-          {deal.description || `${deal.alcohol_category || 'Drink'} Special`}
-        </p>
-        
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
           {/* Happy hour time */}
           <div className="flex items-center">
             <FiClock className="h-3 w-3 mr-1" />
