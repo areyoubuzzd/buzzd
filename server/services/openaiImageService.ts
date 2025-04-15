@@ -16,6 +16,15 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Set up error handler for missing environment variables
+if (!process.env.OPENAI_API_KEY) {
+  console.error("OPENAI_API_KEY is required for image generation");
+}
+
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error("Cloudinary configuration is incomplete. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET");
+}
+
 // Image generation templates for different drink types
 const imagePrompts: Record<string, string[]> = {
   beer: [

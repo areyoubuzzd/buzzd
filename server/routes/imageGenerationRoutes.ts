@@ -1,180 +1,182 @@
-import { Router, Request, Response } from "express";
-import { getDrinkImage, generateSampleImages } from "../services/openaiImageService";
-import { db } from "../db";
-import { deals } from "@shared/schema";
-import { eq } from "drizzle-orm";
-import { log } from "../vite";
+import { Router, Request, Response } from 'express';
+import { db } from '../db';
+import { deals } from '@shared/schema';
+import { getDrinkImage, generateSampleImages } from '../services/openaiImageService';
+import { eq, isNull, or } from 'drizzle-orm';
 
 const router = Router();
 
-// Generate image for a specific deal
+/**
+ * Generate a drink image for a specific deal
+ * POST /api/image-generation/generate-for-deal/:dealId
+ */
 router.post("/generate-for-deal/:dealId", async (req: Request, res: Response) => {
-  try {
-    const dealId = parseInt(req.params.dealId);
-    if (isNaN(dealId)) {
-      return res.status(400).json({ error: "Invalid deal ID" });
-    }
+  const { dealId } = req.params;
+  const dealIdNum = parseInt(dealId, 10);
 
+  if (isNaN(dealIdNum)) {
+    return res.status(400).json({ error: "Invalid deal ID" });
+  }
+
+  try {
     // Get the deal
-    const [deal] = await db.select().from(deals).where(eq(deals.id, dealId));
-    if (!deal) {
+    const [dealToUpdate] = await db.select().from(deals).where(eq(deals.id, dealIdNum));
+    
+    if (!dealToUpdate) {
       return res.status(404).json({ error: "Deal not found" });
     }
 
+    // Generate image based on deal category and subcategory
+    const category = dealToUpdate.alcohol_category;
+    const subcategory = dealToUpdate.alcohol_subcategory || undefined;
+    
+    console.log(`Generating image for deal #${dealId}: ${category}/${subcategory || 'N/A'}`);
+    
     // Generate the image
-    const imageUrl = await getDrinkImage(
-      deal.alcohol_category,
-      deal.alcohol_subcategory || undefined,
-      true // Force generation
-    );
-
+    const imageUrl = await getDrinkImage(category, subcategory);
+    
     // Update the deal with the new image URL
-    const [updatedDeal] = await db
-      .update(deals)
+    await db.update(deals)
       .set({ imageUrl })
-      .where(eq(deals.id, dealId))
-      .returning();
-
-    res.json({ 
+      .where(eq(deals.id, dealIdNum));
+    
+    return res.status(200).json({ 
       success: true, 
-      message: "Image generated and associated with deal",
+      dealId: dealIdNum, 
       imageUrl,
-      deal: updatedDeal
+      message: `Successfully generated and updated image for ${category}${subcategory ? '/' + subcategory : ''}`
     });
-  } catch (error) {
-    log(`Error generating image for deal: ${error.message}`);
-    res.status(500).json({ error: error.message });
+  } catch (error: any) {
+    console.error("Error generating image for deal:", error);
+    return res.status(500).json({ 
+      error: `Failed to generate image for deal: ${error.message || 'Unknown error'}` 
+    });
   }
 });
 
-// Generate images for all deals in a category
+/**
+ * Generate a sample image for a specific drink category
+ * POST /api/image-generation/generate-for-category/:category
+ */
 router.post("/generate-for-category/:category", async (req: Request, res: Response) => {
+  const { category } = req.params;
+  const { subcategory } = req.body;
+  
+  if (!category) {
+    return res.status(400).json({ error: "Category is required" });
+  }
+  
   try {
-    const category = req.params.category;
-    if (!category) {
-      return res.status(400).json({ error: "Category is required" });
-    }
-
-    // Get all deals in the category
-    const dealsInCategory = await db
-      .select()
-      .from(deals)
-      .where(eq(deals.alcohol_category, category));
-
-    if (dealsInCategory.length === 0) {
-      return res.status(404).json({ error: "No deals found in this category" });
-    }
-
-    // Generate images for each deal
-    const results = await Promise.all(
-      dealsInCategory.map(async (deal) => {
-        try {
-          const imageUrl = await getDrinkImage(
-            deal.alcohol_category,
-            deal.alcohol_subcategory || undefined
-          );
-
-          // Update the deal
-          await db
-            .update(deals)
-            .set({ imageUrl })
-            .where(eq(deals.id, deal.id));
-
-          return {
-            dealId: deal.id,
-            success: true,
-            imageUrl
-          };
-        } catch (error) {
-          return {
-            dealId: deal.id,
-            success: false,
-            error: error.message
-          };
-        }
-      })
-    );
-
-    res.json({
+    // Generate an image for this category/subcategory
+    console.log(`Generating sample image for ${category}${subcategory ? '/' + subcategory : ''}`);
+    
+    const imageUrl = await getDrinkImage(category, subcategory);
+    
+    return res.status(200).json({
       success: true,
-      message: `Generated images for ${results.filter(r => r.success).length} out of ${dealsInCategory.length} deals`,
-      results
+      category,
+      subcategory,
+      imageUrl,
+      message: `Successfully generated sample image for ${category}${subcategory ? '/' + subcategory : ''}`
     });
-  } catch (error) {
-    log(`Error generating images for category: ${error.message}`);
-    res.status(500).json({ error: error.message });
+  } catch (error: any) {
+    console.error("Error generating sample image:", error);
+    return res.status(500).json({ 
+      error: `Failed to generate sample image: ${error.message || 'Unknown error'}` 
+    });
   }
 });
 
-// Generate sample images for each category
+/**
+ * Generate sample images for all categories
+ * POST /api/image-generation/generate-samples
+ */
 router.post("/generate-samples", async (req: Request, res: Response) => {
   try {
+    console.log("Generating sample images for all categories");
+    
     const results = await generateSampleImages();
-    res.json({
+    
+    return res.status(200).json({
       success: true,
-      message: "Generated sample images for all categories",
-      results
+      results,
+      message: "Successfully generated sample images for all categories"
     });
-  } catch (error) {
-    log(`Error generating sample images: ${error.message}`);
-    res.status(500).json({ error: error.message });
+  } catch (error: any) {
+    console.error("Error generating sample images:", error);
+    return res.status(500).json({ 
+      error: `Failed to generate sample images: ${error.message || 'Unknown error'}` 
+    });
   }
 });
 
-// Generate images for all deals without images
+/**
+ * Generate images for all deals that don't have an image
+ * POST /api/image-generation/generate-missing
+ */
 router.post("/generate-missing", async (req: Request, res: Response) => {
   try {
-    // Get all deals without images
+    console.log("Generating images for deals with missing images");
+    
+    // Find deals with missing or empty images
     const dealsWithoutImages = await db
       .select()
       .from(deals)
-      .where(eq(deals.imageUrl, ""));
-
-    if (dealsWithoutImages.length === 0) {
-      return res.json({ 
-        success: true, 
-        message: "No deals found without images" 
-      });
+      .where(or(
+        eq(deals.imageUrl, ""),
+        isNull(deals.imageUrl)
+      ));
+    
+    console.log(`Found ${dealsWithoutImages.length} deals without images`);
+    
+    const results = [];
+    
+    // Generate and update images for each deal
+    for (const deal of dealsWithoutImages) {
+      try {
+        const category = deal.alcohol_category;
+        const subcategory = deal.alcohol_subcategory || undefined;
+        
+        console.log(`Generating image for deal #${deal.id}: ${category}/${subcategory || 'N/A'}`);
+        
+        // Generate the image
+        const imageUrl = await getDrinkImage(category, subcategory);
+        
+        // Update the deal with the new image URL
+        await db.update(deals)
+          .set({ imageUrl })
+          .where(eq(deals.id, deal.id));
+        
+        results.push({
+          dealId: deal.id,
+          category,
+          subcategory,
+          imageUrl,
+          success: true
+        });
+      } catch (error: any) {
+        console.error(`Error generating image for deal #${deal.id}:`, error);
+        results.push({
+          dealId: deal.id,
+          success: false,
+          error: error.message || 'Unknown error'
+        });
+      }
     }
-
-    // Generate images for each deal
-    const results = await Promise.all(
-      dealsWithoutImages.map(async (deal) => {
-        try {
-          const imageUrl = await getDrinkImage(
-            deal.alcohol_category,
-            deal.alcohol_subcategory || undefined
-          );
-
-          // Update the deal
-          await db
-            .update(deals)
-            .set({ imageUrl })
-            .where(eq(deals.id, deal.id));
-
-          return {
-            dealId: deal.id,
-            success: true,
-            imageUrl
-          };
-        } catch (error) {
-          return {
-            dealId: deal.id,
-            success: false,
-            error: error.message
-          };
-        }
-      })
-    );
-
-    res.json({
+    
+    return res.status(200).json({
       success: true,
-      message: `Generated images for ${results.filter(r => r.success).length} out of ${dealsWithoutImages.length} deals`,
-      results
+      totalDeals: dealsWithoutImages.length,
+      successCount: results.filter(r => r.success).length,
+      failureCount: results.filter(r => !r.success).length,
+      results,
+      message: `Generated images for ${results.filter(r => r.success).length} out of ${dealsWithoutImages.length} deals`
     });
   } catch (error) {
-    log(`Error generating missing images: ${error.message}`);
-    res.status(500).json({ error: error.message });
+    console.error("Error generating missing images:", error);
+    return res.status(500).json({ 
+      error: `Failed to generate missing images: ${error.message || 'Unknown error'}` 
+    });
   }
 });
 
