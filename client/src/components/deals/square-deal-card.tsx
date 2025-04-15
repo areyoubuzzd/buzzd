@@ -67,8 +67,8 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   }, [deal]);
 
   return (
-    <Card className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow max-w-[170px]">
-      <div className="relative aspect-square">
+    <Card className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow w-[175px] rounded-2xl">
+      <div className="relative h-[245px]">
         {/* Deal image */}
         <img 
           src={deal.imageUrl || 'https://placehold.co/400x400/e6f7ff/0099cc?text=Happy+Hour'} 
@@ -77,41 +77,41 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         />
         
         {/* Savings badge */}
-        <div className="absolute top-2 right-2 bg-primary text-white px-2 py-0.5 rounded-full text-xs font-medium">
+        <div className="absolute top-3 right-3 bg-primary text-white px-2 py-0.5 rounded-full text-xs font-medium">
           {savingsInfo}
         </div>
         
-        {/* Overlay with all information - restricted to lower third */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-2 pb-1.5">
-          {/* Price information at the top */}
-          <div className="flex items-center gap-2 justify-between">
-            <p className="text-xs font-bold text-white">
+        {/* Overlay with all information - covering ~45% of the card from bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-2.5">
+          {/* Price information at the top - more prominent */}
+          <div className="flex items-center gap-2 justify-between mb-2">
+            <p className="text-sm font-bold text-white">
               {currentPrice}
             </p>
             {originalPrice && (
-              <p className="text-xs text-red-400 line-through opacity-90">
+              <p className="text-xs text-red-400 line-through opacity-90 font-medium">
                 {originalPrice}
               </p>
             )}
           </div>
           
-          {/* Restaurant name */}
-          <h3 className="font-semibold text-xs text-white/95 line-clamp-1 mt-1">
+          {/* Restaurant name - more space and visibility */}
+          <h3 className="font-semibold text-xs text-white line-clamp-1 border-t border-white/20 pt-1.5 mb-1">
             {deal.establishment?.name || 'Restaurant Name'}
           </h3>
           
-          {/* Time and distance - smaller and more compact */}
-          <div className="flex items-center justify-between text-[9px] text-white mt-0.5">
+          {/* Time and distance - cleaner organization */}
+          <div className="flex items-center justify-between text-[9px] text-white">
             {/* Happy hour time */}
             <div className="flex items-center">
-              <FiClock className="h-2 w-2 mr-0.5 text-white" />
+              <FiClock className="h-2.5 w-2.5 mr-0.5 text-white" />
               <span className="text-white font-medium">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
             </div>
             
             {/* Distance */}
             {distance && (
               <div className="flex items-center">
-                <FiMapPin className="h-2 w-2 mr-0.5 text-white" />
+                <FiMapPin className="h-2.5 w-2.5 mr-0.5 text-white" />
                 <span className="text-white font-medium">{distance}</span>
               </div>
             )}
