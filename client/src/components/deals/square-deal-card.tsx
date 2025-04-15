@@ -47,18 +47,15 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     return "Special Offer";
   }, [deal]);
 
-  // Format the price display
-  const priceDisplay = useMemo(() => {
+  // Format the price display separately for current and standard price
+  const { currentPrice, originalPrice } = useMemo(() => {
     const happyHourPrice = deal.happy_hour_price || deal.dealPrice;
     const standardPrice = deal.standard_price || deal.regularPrice;
     
-    if (happyHourPrice && standardPrice) {
-      return `$${happyHourPrice} (U.P. $${standardPrice})`;
-    } else if (happyHourPrice) {
-      return `$${happyHourPrice}`;
-    } else {
-      return 'Special Price';
-    }
+    return {
+      currentPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
+      originalPrice: standardPrice ? `$${standardPrice}` : null
+    };
   }, [deal]);
 
   // Format drink name
@@ -76,44 +73,53 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
           className="w-full h-full object-cover"
         />
         
-        {/* Overlay with drink name and price */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2">
-          <h3 className="font-medium text-xs text-white line-clamp-2">
-            {drinkName}
-          </h3>
-          <p className="text-xs font-bold text-white mt-1">
-            {priceDisplay}
-          </p>
-        </div>
-        
         {/* Savings badge */}
         <div className="absolute top-2 right-2 bg-primary text-white px-2 py-0.5 rounded-full text-xs font-medium">
           {savingsInfo}
         </div>
-      </div>
-      
-      <CardContent className="p-2">
-        {/* Restaurant name */}
-        <h3 className="font-semibold text-xs line-clamp-1">
-          {deal.establishment?.name || 'Restaurant Name'}
-        </h3>
         
-        <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
-          {/* Happy hour time */}
-          <div className="flex items-center">
-            <FiClock className="h-2.5 w-2.5 mr-0.5" />
-            <span className="text-[10px]">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
+        {/* Overlay with all information */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-2">
+          {/* Drink name */}
+          <h3 className="font-medium text-xs text-white line-clamp-2">
+            {drinkName}
+          </h3>
+          
+          {/* Price with strike-through */}
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs font-bold text-white">
+              {currentPrice}
+            </p>
+            {originalPrice && (
+              <p className="text-xs text-red-400 line-through opacity-80">
+                {originalPrice}
+              </p>
+            )}
           </div>
           
-          {/* Distance */}
-          {distance && (
+          {/* Restaurant name */}
+          <h3 className="font-semibold text-xs text-white/90 line-clamp-1 mt-2 border-t border-white/20 pt-1">
+            {deal.establishment?.name || 'Restaurant Name'}
+          </h3>
+          
+          {/* Time and distance */}
+          <div className="flex items-center justify-between text-xs text-white/80 mt-1">
+            {/* Happy hour time */}
             <div className="flex items-center">
-              <FiMapPin className="h-2.5 w-2.5 mr-0.5" />
-              <span className="text-[10px]">{distance}</span>
+              <FiClock className="h-2.5 w-2.5 mr-0.5" />
+              <span className="text-[10px]">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
             </div>
-          )}
+            
+            {/* Distance */}
+            {distance && (
+              <div className="flex items-center">
+                <FiMapPin className="h-2.5 w-2.5 mr-0.5" />
+                <span className="text-[10px]">{distance}</span>
+              </div>
+            )}
+          </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
