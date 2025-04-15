@@ -248,9 +248,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
+    // Convert to Singapore time (GMT+8)
     const now = new Date();
-    const currentDay = now.getDay(); // 0-6, where 0 is Sunday
-    const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+    // Add the timezone offset to get to UTC, then add 8 hours for Singapore time
+    const singaporeTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 60 * 60000));
+    const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
+    const currentTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
     
     // Get the current day of the week in the format used in the valid_days field
     const dayMap: Record<number, string> = {
@@ -327,11 +330,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUpcomingDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
+    // Convert to Singapore time (GMT+8)
     const now = new Date();
-    const nowTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
-    const oneHourLater = new Date(now.getTime() + 3600000); // 1 hour later
+    // Add the timezone offset to get to UTC, then add 8 hours for Singapore time
+    const singaporeTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 60 * 60000));
+    const nowTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
+    const oneHourLater = new Date(singaporeTime.getTime() + 3600000); // 1 hour later
     const oneHourLaterTime = oneHourLater.toTimeString().substring(0, 5);
-    const currentDay = now.getDay(); // 0-6, where 0 is Sunday
+    const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
     
     // Get the current day of the week in the format used in the valid_days field
     const dayMap: Record<number, string> = {
@@ -387,9 +393,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
-    // Get tomorrow's day
+    // Get tomorrow's day in Singapore time (GMT+8)
     const now = new Date();
-    const tomorrow = new Date(now);
+    // Add the timezone offset to get to UTC, then add 8 hours for Singapore time
+    const singaporeTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 60 * 60000));
+    const tomorrow = new Date(singaporeTime);
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowDay = tomorrow.getDay(); // 0-6, where 0 is Sunday
     
@@ -470,15 +478,17 @@ export class DatabaseStorage implements IStorage {
         eq(deals.establishmentId, establishmentId),
         or(
           and(
+            // Happy hour time window (normal case, start time before end time)
             lte(deals.hh_start_time, currentTime),
             gte(deals.hh_end_time, currentTime),
             or(
-              sql`${deals.valid_days} LIKE ${'%' + currentDayStr + '%'}`,
+              // Day validation: Valid for current day, weekday, or everyday
+              sql`${deals.valid_days} LIKE '%${currentDayStr}%'`,
               and(
-                sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
-                sql`${isWeekday}`
+                sql`${deals.valid_days} LIKE '%Weekdays%'`,
+                eq(sql`1`, isWeekday ? 1 : 0)
               ),
-              sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+              sql`${deals.valid_days} LIKE '%Everyday%'`
             )
           ),
           // Special case for happy hours that span midnight
@@ -489,12 +499,13 @@ export class DatabaseStorage implements IStorage {
               lte(currentTime, deals.hh_end_time)
             ),
             or(
-              sql`${deals.valid_days} LIKE ${'%' + currentDayStr + '%'}`,
+              // Day validation: Valid for current day, weekday, or everyday
+              sql`${deals.valid_days} LIKE '%${currentDayStr}%'`,
               and(
-                sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
-                sql`${isWeekday}`
+                sql`${deals.valid_days} LIKE '%Weekdays%'`,
+                eq(sql`1`, isWeekday ? 1 : 0)
               ),
-              sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+              sql`${deals.valid_days} LIKE '%Everyday%'`
             )
           )
         )
