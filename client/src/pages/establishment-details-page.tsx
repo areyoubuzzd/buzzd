@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
-import { FaStar, FaMapMarkerAlt, FaArrowLeft } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaArrowLeft, FaWalking } from 'react-icons/fa';
 import { Link } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import Navigation from '@/components/layout/navigation';
+import { calculateDistance, formatDistance, getCurrentPosition, DEFAULT_POSITION } from '@/lib/distance-utils';
 
 interface Establishment {
   id: number;
@@ -50,6 +51,26 @@ interface EstablishmentDetailsResponse {
 export default function EstablishmentDetailsPage() {
   const [, params] = useRoute('/establishments/:id');
   const id = params?.id;
+  const [userPosition, setUserPosition] = useState(DEFAULT_POSITION);
+  const [userDistance, setUserDistance] = useState<number | null>(null);
+  
+  // Fetch user location
+  useEffect(() => {
+    const getLocation = async () => {
+      try {
+        const position = await getCurrentPosition();
+        setUserPosition({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+      } catch (error) {
+        console.error('Error getting location:', error);
+        // Use default position if geolocation fails
+      }
+    };
+    
+    getLocation();
+  }, []);
   
   const { 
     data, 
@@ -59,6 +80,19 @@ export default function EstablishmentDetailsPage() {
     queryKey: [`/api/establishments/${id}`],
     enabled: !!id,
   });
+  
+  // Calculate distance when establishment data and user position are available
+  useEffect(() => {
+    if (data?.establishment && data.establishment.latitude && data.establishment.longitude) {
+      const distance = calculateDistance(
+        userPosition.latitude,
+        userPosition.longitude,
+        data.establishment.latitude,
+        data.establishment.longitude
+      );
+      setUserDistance(distance);
+    }
+  }, [data, userPosition]);
 
   if (isLoading) {
     return (
@@ -133,8 +167,15 @@ export default function EstablishmentDetailsPage() {
       </div>
       
       <div className="p-4">
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <Badge variant="outline" className="bg-primary/10">{establishment.cuisine}</Badge>
+          
+          {userDistance !== null && (
+            <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+              <FaWalking className="h-3 w-3" />
+              {formatDistance(userDistance)}
+            </Badge>
+          )}
         </div>
         
         {establishment.description && (

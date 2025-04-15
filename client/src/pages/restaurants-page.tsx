@@ -60,7 +60,7 @@ export default function RestaurantsPage() {
       
       <div className="px-4 py-4">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {[...Array(6)].map((_, i) => (
               <RestaurantCardSkeleton key={i} />
             ))}
@@ -75,7 +75,7 @@ export default function RestaurantsPage() {
             <p>No restaurants found matching "{searchQuery}"</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredEstablishments?.map((establishment: Establishment) => (
               <RestaurantCard 
                 key={establishment.id} 

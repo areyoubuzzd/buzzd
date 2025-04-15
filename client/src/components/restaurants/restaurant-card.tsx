@@ -37,12 +37,12 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
 
   return (
     <Link href={`/establishments/${id}`}>
-      <Card className="overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
+      <Card className="overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 h-full flex flex-col">
         <div 
-          className="h-40 bg-cover bg-center w-full"
+          className="aspect-square bg-cover bg-center w-full"
           style={{ backgroundImage: `url(${imageUrlToUse})` }}
         />
-        <CardContent className="p-4">
+        <CardContent className="p-4 flex-grow">
           <div className="flex justify-between items-start">
             <h3 className="font-bold text-lg line-clamp-1">{name}</h3>
             {rating && (
@@ -70,9 +70,9 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
 
 export function RestaurantCardSkeleton() {
   return (
-    <Card className="overflow-hidden">
-      <div className="h-40 bg-gray-200 animate-pulse w-full" />
-      <CardContent className="p-4">
+    <Card className="overflow-hidden h-full flex flex-col">
+      <div className="aspect-square bg-gray-200 animate-pulse w-full" />
+      <CardContent className="p-4 flex-grow">
         <div className="h-6 bg-gray-200 animate-pulse w-3/4 rounded-md mb-2" />
         <div className="h-4 bg-gray-200 animate-pulse w-full rounded-md mb-3" />
         <div className="h-6 bg-gray-200 animate-pulse w-1/3 rounded-md mb-3" />
