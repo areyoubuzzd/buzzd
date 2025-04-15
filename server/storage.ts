@@ -18,6 +18,15 @@ import { Pool } from "@neondatabase/serverless";
 const PostgresSessionStore = connectPg(session);
 const MemoryStore = createMemoryStore(session);
 
+/**
+ * Convert a date to Singapore time (GMT+8)
+ * Use this for all time calculations to ensure consistency
+ */
+function getSingaporeTime(date = new Date()): Date {
+  // Add the timezone offset to get to UTC, then add 8 hours for Singapore time
+  return new Date(date.getTime() + (date.getTimezoneOffset() * 60000) + (8 * 60 * 60000));
+}
+
 // Storage interface
 export interface IStorage {
   // User related
@@ -456,9 +465,9 @@ export class DatabaseStorage implements IStorage {
    * This method is used in the deal-to-restaurant workflow
    */
   async getActiveDealsForEstablishment(establishmentId: number): Promise<Deal[]> {
-    const now = new Date();
-    const currentDay = now.getDay(); // 0-6, where 0 is Sunday
-    const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+    const singaporeTime = getSingaporeTime();
+    const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
+    const currentTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
     
     // Get the current day of the week in the format used in the valid_days field
     const dayMap: Record<number, string> = {
