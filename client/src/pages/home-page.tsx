@@ -98,7 +98,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center text-sm text-gray-600">
               <FiMapPin className="mr-1 h-4 w-4" />
-              <span>{userPostalCode || "Singapore"}</span>
+              <span>{userRoadName || userPostalCode || "Singapore"}</span>
             </div>
             <div className="text-sm font-medium">
               {totalDealsFound} deals found
