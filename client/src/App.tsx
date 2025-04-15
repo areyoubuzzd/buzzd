@@ -20,6 +20,8 @@ import DealImageUploader from "@/pages/deal-image-uploader";
 import CardsTestPage from "@/pages/cards-test-page";
 import GradientTestPage from "@/pages/gradient-test-page";
 import MenuAnalysisPage from "@/pages/menu-analysis-page";
+import RestaurantsPage from "@/pages/restaurants-page";
+import EstablishmentDetailsPage from "@/pages/establishment-details-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 
@@ -32,6 +34,8 @@ function Router() {
       <Route path="/search" component={SearchPage} />
       <Route path="/beer" component={BeerPage} />
       <Route path="/wine-spirits" component={WineSpiritsPage} />
+      <Route path="/restaurants" component={RestaurantsPage} />
+      <Route path="/establishments/:id" component={EstablishmentDetailsPage} />
       <Route path="/offers" component={OffersPage} />
       <Route path="/modern-deals" component={ModernDealsPage} />
       <Route path="/cloudinary-test" component={CloudinaryTestPage} />

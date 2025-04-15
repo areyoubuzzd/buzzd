@@ -25,13 +25,13 @@ export default function RestaurantsPage() {
     data: establishments, 
     isLoading, 
     error 
-  } = useQuery({
+  } = useQuery<Establishment[]>({
     queryKey: ['/api/establishments'],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Filter restaurants based on search query
-  const filteredEstablishments = establishments?.filter(establishment => {
+  const filteredEstablishments = establishments?.filter((establishment: Establishment) => {
     if (!searchQuery) return true;
     
     const query = searchQuery.toLowerCase();
@@ -76,7 +76,7 @@ export default function RestaurantsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredEstablishments?.map(establishment => (
+            {filteredEstablishments?.map((establishment: Establishment) => (
               <RestaurantCard 
                 key={establishment.id} 
                 establishment={establishment} 
