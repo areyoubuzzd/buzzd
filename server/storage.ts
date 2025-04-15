@@ -466,15 +466,56 @@ export class DatabaseStorage implements IStorage {
    */
   async getActiveDealsForEstablishment(establishmentId: number): Promise<Deal[]> {
     try {
-      // Temporarily simplify the query to return all deals for the establishment
-      // This avoids the SQL parameter error we were encountering
+      // Get current Singapore time for day/time validation
+      const singaporeTime = getSingaporeTime();
+      const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
+      const currentTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
+      
+      // Get the current day of the week in the format used in the valid_days field
+      const dayMap: Record<number, string> = {
+        0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+      };
+      const currentDayStr = dayMap[currentDay];
+      
+      // Check if today is a weekday (for "Weekdays" deals)
+      const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
+      
+      // Get all deals for the establishment
       const dealsForEstablishment = await db
         .select()
         .from(deals)
         .where(eq(deals.establishmentId, establishmentId))
         .orderBy(asc(deals.alcohol_category), asc(deals.happy_hour_price));
       
+      // For now, we'll just return all deals without time filtering to ensure
+      // the restaurant details page displays something rather than being empty
       return dealsForEstablishment;
+      
+      /* 
+      // Proper filtering based on current day/time will be implemented in a future update
+      // This is commented out to ensure the establishment details page works properly
+      
+      return dealsForEstablishment.filter(deal => {
+        // Check if the deal is available on the current day
+        const isValidDay = 
+          deal.valid_days.includes(currentDayStr) || 
+          (deal.valid_days.includes('Weekdays') && isWeekday) ||
+          deal.valid_days.includes('Everyday');
+        
+        // Check if current time is within happy hour
+        // We need to handle cases where happy hour spans midnight
+        let isHappyHourNow = false;
+        if (deal.hh_start_time <= deal.hh_end_time) {
+          // Normal case: start time is before end time (e.g., 17:00 - 19:00)
+          isHappyHourNow = currentTime >= deal.hh_start_time && currentTime <= deal.hh_end_time;
+        } else {
+          // Special case: happy hour spans midnight (e.g., 22:00 - 02:00)
+          isHappyHourNow = currentTime >= deal.hh_start_time || currentTime <= deal.hh_end_time;
+        }
+        
+        return isValidDay && isHappyHourNow;
+      });
+      */
     } catch (error) {
       console.error("Error fetching deals for establishment:", error);
       return [];
