@@ -98,8 +98,6 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
             )}
           </div>
           
-          <div className="mt-1 text-sm text-gray-500 line-clamp-1">{address}</div>
-          
           <div className="mt-2 flex flex-wrap gap-2 items-center">
             <Badge variant="outline" className="bg-primary/10">{cuisine}</Badge>
             

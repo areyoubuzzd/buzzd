@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
-import { FaStar, FaMapMarkerAlt, FaArrowLeft, FaWalking } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaArrowLeft, FaWalking, FaPhone, FaGlobe, FaMapMarkedAlt } from 'react-icons/fa';
 import { Link } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,8 @@ interface Establishment {
   external_id?: string;
   latitude?: number;
   longitude?: number;
+  phone?: string;
+  website?: string;
 }
 
 interface Deal {
