@@ -143,7 +143,7 @@ async function addSampleData() {
         await db.update(deals)
           .set({ 
             collections: dealData.collections,
-            image_url: dealData.imageUrl
+            image_url: dealData.imageUrl || "https://placehold.co/400x400/e6f7ff/0099cc?text=Deal"
           })
           .where(eq(deals.id, existingDeal.id));
         

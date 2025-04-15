@@ -227,15 +227,35 @@ export default function HomeCollection() {
   
   // Create our collections
   const collections = useMemo<Collection[]>(() => {
+    // First get all unique collection tags from the deals
+    const uniqueCollections = new Set<string>();
+    allDeals.forEach(deal => {
+      if (deal.collections) {
+        deal.collections.split(',').map((c: string) => c.trim()).forEach((tag: string) => {
+          if (tag) uniqueCollections.add(tag);
+        });
+      }
+    });
+    
     // Define collection metadata with names and order
     const collectionsConfig = [
+      // Pre-defined collections
       { id: 'beers_under_10', title: 'Beers under $10' },
       { id: 'one_for_one_deals', title: '1-for-1 Deals' },
       { id: 'wine_deals', title: 'Wine Deals' },
       { id: 'premium_spirits', title: 'Premium Spirits' },
       { id: 'cocktail_specials', title: 'Cocktail Specials' },
-      { id: 'happy_hour_spirits', title: 'Happy Hour Spirits' }
+      { id: 'happy_hour_spirits', title: 'Happy Hour Spirits' },
+      // Add any collections found in data that aren't in our predefined list
+      ...Array.from(uniqueCollections)
+        .filter(id => !['beers_under_10', 'one_for_one_deals', 'wine_deals', 'premium_spirits', 'cocktail_specials', 'happy_hour_spirits'].includes(id))
+        .map(id => ({ 
+          id, 
+          title: id.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+        }))
     ];
+    
+    console.log('Available collections:', Array.from(uniqueCollections));
     
     // Return collections with their deals
     return collectionsConfig.map(config => {
