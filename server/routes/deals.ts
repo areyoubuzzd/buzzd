@@ -52,22 +52,30 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: "Deal not found" });
     }
     
-    // If authenticated, record the deal view
-    if (req.isAuthenticated() && req.user) {
-      try {
-        await storage.recordDealView({
-          userId: req.user.id,
-          dealId: dealId
-        });
-      } catch (error) {
-        console.error("Error recording deal view:", error);
-      }
-    }
-    
     res.json(deal);
   } catch (error) {
     console.error("Error fetching deal details:", error);
     res.status(500).json({ message: "Failed to fetch deal details" });
+  }
+});
+
+/**
+ * Search deals
+ */
+router.get('/search', async (req, res) => {
+  try {
+    const query = req.query.q as string || '';
+    const filters = {
+      type: req.query.type as string | undefined,
+      status: req.query.status as string | undefined
+    };
+    
+    const deals = await storage.searchDeals(query, filters);
+    
+    res.json(deals);
+  } catch (error) {
+    console.error("Error searching deals:", error);
+    res.status(500).json({ message: "Failed to search deals" });
   }
 });
 

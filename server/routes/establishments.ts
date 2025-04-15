@@ -30,6 +30,7 @@ router.get('/nearby', async (req, res) => {
     }
     
     const establishments = await storage.getEstablishmentsNearby(latitude, longitude, radius);
+    
     res.json(establishments);
   } catch (error) {
     console.error("Error fetching nearby establishments:", error);
@@ -48,13 +49,11 @@ router.get('/:id', async (req, res) => {
       return res.status(400).json({ message: "Invalid establishment ID" });
     }
     
-    // Get the establishment details
     const establishment = await storage.getEstablishment(establishmentId);
     if (!establishment) {
       return res.status(404).json({ message: "Establishment not found" });
     }
     
-    // Get all active deals for this establishment
     const activeDeals = await storage.getActiveDealsForEstablishment(establishmentId);
     
     res.json({
@@ -62,8 +61,8 @@ router.get('/:id', async (req, res) => {
       activeDeals
     });
   } catch (error) {
-    console.error("Error fetching establishment and deals:", error);
-    res.status(500).json({ message: "Failed to fetch establishment and deals" });
+    console.error("Error fetching establishment details:", error);
+    res.status(500).json({ message: "Failed to fetch establishment details" });
   }
 });
 
