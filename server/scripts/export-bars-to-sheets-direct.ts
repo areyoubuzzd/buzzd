@@ -103,22 +103,21 @@ async function exportBarsToSheet() {
         // Create a row that matches the Google Sheets expected format
         const rowData: Record<string, string> = {};
         
-        // Use field mapping based on your actual column names
-        // Only add fields if they exist in the headers and the bar has a value
-        if ('name' in headers && bar.name) rowData.name = bar.name;
-        if ('external_id' in headers && bar.external_id) rowData.external_id = bar.external_id;
-        if ('establishment_id' in headers && bar.external_id) rowData.establishment_id = bar.external_id;
-        if ('address' in headers && bar.address) rowData.address = bar.address;
-        if ('city' in headers && bar.city) rowData.city = bar.city;
-        if ('postal_code' in headers && bar.postal_code) rowData.postal_code = bar.postal_code;
-        if ('postal_code' in headers && bar.postalcode) rowData.postal_code = bar.postalcode;
-        if ('latitude' in headers && bar.latitude !== null) rowData.latitude = bar.latitude.toString();
-        if ('longitude' in headers && bar.longitude !== null) rowData.longitude = bar.longitude.toString();
-        if ('image_url' in headers && bar.image_url) rowData.image_url = bar.image_url;
-        if ('image_url' in headers && bar.imageurl) rowData.image_url = bar.imageurl;
-        if ('rating' in headers && bar.rating !== null) rowData.rating = bar.rating.toString();
-        if ('cuisine' in headers && bar.cuisine) rowData.cuisine = bar.cuisine;
-        if ('price' in headers && bar.price !== null) rowData.price = bar.price.toString();
+        // Map fields to the actual column headers found in the Google Sheet
+        if ('restaurantId' in headers && bar.external_id) rowData['restaurantId'] = bar.external_id;
+        if ('restaurant name' in headers && bar.name) rowData['restaurant name'] = bar.name;
+        if ('full address' in headers && bar.address) rowData['full address'] = bar.address;
+        if ('Area' in headers) rowData['Area'] = 'Tanjong Pagar/Duxton Road';
+        if ('postalCode' in headers && bar.postal_code) rowData['postalCode'] = bar.postal_code;
+        if ('phoneNumber' in headers) rowData['phoneNumber'] = '';
+        if ('cuisine' in headers && bar.cuisine) rowData['cuisine'] = bar.cuisine || 'Bar';
+        if ('latitude' in headers && bar.latitude !== null) rowData['latitude'] = bar.latitude.toString();
+        if ('longitude' in headers && bar.longitude !== null) rowData['longitude'] = bar.longitude.toString();
+        if ('website' in headers) rowData['website'] = '';
+        if ('openingHours (in JSON format or separate columns for each day)' in headers) 
+            rowData['openingHours (in JSON format or separate columns for each day)'] = '';
+        if ('logoUrl' in headers && bar.image_url) rowData['logoUrl'] = bar.image_url;
+        if ('logoUrl' in headers && bar.imageurl) rowData['logoUrl'] = bar.imageurl;
         
         rows.push(rowData);
       }
@@ -129,9 +128,9 @@ async function exportBarsToSheet() {
         for (const row of rows) {
           try {
             await mainSheet.addRow(row);
-            console.log(`Added row for: ${row.name || 'unknown'}`);
+            console.log(`Added row for: ${row['restaurant name'] || 'unknown'}`);
           } catch (error) {
-            console.error(`Error adding row for ${row.name || 'unknown'}:`, error);
+            console.error(`Error adding row for ${row['restaurant name'] || 'unknown'}:`, error);
           }
         }
       }
