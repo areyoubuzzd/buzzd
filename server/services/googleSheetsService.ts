@@ -49,21 +49,34 @@ export async function getEstablishmentsFromSheets(): Promise<any[]> {
     const rows = await establishmentsSheet.getRows();
     
     // Adapt to your actual sheet structure - based on README.md schema for "Restaurants Sheet"
-    return rows.map(row => {
+    const restaurants = rows.map(row => {
       // Get all available fields, with defaults for required fields
       return {
+        // Basic information
         name: row.get('name') || row.get('restaurantName') || 'Unknown Restaurant',
-        description: row.get('description') || '',
+        description: row.get('description') || 'Restaurant in Singapore',
         address: row.get('address') || '',
         city: row.get('city') || 'Singapore',
-        postalCode: row.get('postalCode') || '',
+        postalCode: row.get('postalCode') || row.get('postal_code') || '',
+        
+        // Geolocation
         latitude: parseFloat(row.get('latitude')) || 0,
         longitude: parseFloat(row.get('longitude')) || 0,
-        imageUrl: row.get('logoUrl') || row.get('imageUrl') || null,
+        
+        // Media and categorization
+        imageUrl: row.get('logoUrl') || row.get('imageUrl') || row.get('image_url') || null,
         rating: row.get('rating') ? parseFloat(row.get('rating')) : null,
-        type: row.get('cuisine') || row.get('type') || 'restaurant'
+        
+        // Make sure cuisine has a default value as it's required by schema (was type before)
+        cuisine: row.get('cuisine') || row.get('type') || 'Restaurant & Bar',
+        
+        // Optional external ID for referencing
+        external_id: row.get('external_id') || row.get('id') || null
       };
     });
+    
+    console.log(`Processed ${restaurants.length} restaurants from Google Sheets`);
+    return restaurants;
   } catch (error) {
     console.error('Error getting establishments from Google Sheets:', error);
     throw error;
