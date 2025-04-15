@@ -310,7 +310,7 @@ export default function HomeCollection() {
           <div className="flex items-center justify-between">
             <div className="flex items-center text-sm text-gray-600">
               <FiMapPin className="mr-1 h-4 w-4" />
-              <span>Singapore</span>
+              <span>Bukit Timah Road</span>
             </div>
             <div className="text-sm font-medium">
               {totalDealsFound} deals found
