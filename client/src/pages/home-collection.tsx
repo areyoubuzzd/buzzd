@@ -162,31 +162,58 @@ export default function HomeCollection() {
     }));
   };
 
+  // Sample deals with collections
+  const allDeals = useMemo(() => {
+    const allSampleDeals = [
+      ...beerDeals.map((deal, index) => ({
+        ...deal,
+        id: `beer-${index}`,
+        collections: deal.dealPrice <= 10 ? 'beers_under_10' : '',
+        collections: deal.isOneForOne ? (deal.collections ? `${deal.collections},one_for_one_deals` : 'one_for_one_deals') : deal.collections || ''
+      })),
+      ...houseWineDeals.map((deal, index) => ({
+        ...deal,
+        id: `wine-${index}`,
+        collections: 'wine_deals'
+      })),
+      ...spiritDeals.map((deal, index) => ({
+        ...deal,
+        id: `spirit-${index}`,
+        collections: deal.isHousePour ? 'happy_hour_spirits' : 'premium_spirits'
+      })),
+      ...cocktailDeals.map((deal, index) => ({
+        ...deal,
+        id: `cocktail-${index}`,
+        collections: 'cocktail_specials'
+      }))
+    ];
+    
+    return prepareDeals(allSampleDeals);
+  }, []);
+  
   // Create our collections
   const collections = useMemo(() => {
-    return [
-      {
-        title: "Beers under $10",
-        deals: prepareDeals(beerDeals.filter(deal => deal.dealPrice && deal.dealPrice <= 10))
-      },
-      {
-        title: "1-for-1 Deals",
-        deals: prepareDeals([...beerDeals, ...houseWineDeals, ...spiritDeals, ...cocktailDeals].filter(deal => deal.isOneForOne))
-      },
-      {
-        title: "Wine Deals",
-        deals: prepareDeals(houseWineDeals)
-      },
-      {
-        title: "Premium Spirits",
-        deals: prepareDeals(spiritDeals.filter(deal => !deal.isHousePour))
-      },
-      {
-        title: "Cocktail Specials",
-        deals: prepareDeals(cocktailDeals)
-      }
+    // Define collection metadata with names and order
+    const collectionsConfig = [
+      { id: 'beers_under_10', title: 'Beers under $10' },
+      { id: 'one_for_one_deals', title: '1-for-1 Deals' },
+      { id: 'wine_deals', title: 'Wine Deals' },
+      { id: 'premium_spirits', title: 'Premium Spirits' },
+      { id: 'cocktail_specials', title: 'Cocktail Specials' },
+      { id: 'happy_hour_spirits', title: 'Happy Hour Spirits' }
     ];
-  }, []);
+    
+    // Return collections with their deals
+    return collectionsConfig.map(config => {
+      return {
+        title: config.title,
+        deals: allDeals.filter(deal => 
+          deal.collections && 
+          deal.collections.split(',').map((c: string) => c.trim()).includes(config.id)
+        )
+      };
+    }).filter(collection => collection.deals.length > 0);
+  }, [allDeals]);
 
   const handleLocationChange = (newLocation: { lat: number; lng: number }) => {
     setLocation(newLocation);

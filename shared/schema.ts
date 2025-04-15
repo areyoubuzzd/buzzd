@@ -84,6 +84,9 @@ export const deals = pgTable("deals", {
   hh_start_time: text("hh_start_time").notNull(), // Time in 24h format "17:00"
   hh_end_time: text("hh_end_time").notNull(), // Time in 24h format "19:00"
   
+  // Collections and categorization
+  collections: text("collections"), // Comma-separated collection names
+  
   // Media and metadata
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
