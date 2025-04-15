@@ -608,6 +608,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Development endpoint for syncing deals without auth (temporary)
+  app.post("/api/dev/sync-deals", async (req, res) => {
+    try {
+      console.log('DEV MODE: Syncing deals from Google Sheets without authentication...');
+      const deals = await syncDealsFromSheets();
+      console.log(`Synced ${deals.length} deals`);
+      
+      res.json({
+        success: true,
+        message: 'Successfully synced deals from Google Sheets',
+        count: deals.length
+      });
+    } catch (error) {
+      console.error('Error syncing deals:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to sync deals from Google Sheets',
+        error: (error as Error).message
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
