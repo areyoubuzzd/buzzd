@@ -82,7 +82,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen pb-28">
       <Header />
       
       <LocationBar 
@@ -93,40 +93,35 @@ export default function HomePage() {
       <FilterBar activeFilter={activeFilter} onFilterChange={handleFilterChange} />
       
       {/* Location and deal count indicator */}
-      <div className="bg-gray-50 px-4 py-2">
+      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="flex items-center text-sm text-gray-600 mr-1">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center text-sm text-gray-600">
                 <FiMapPin className="mr-1 h-4 w-4" />
-                <span className="mr-1">{userRoadName || "Bukit Timah Road"}</span>
+                <span>{userRoadName || "Bukit Timah Road"}</span>
               </div>
-              
-              <a 
-                href="#" 
-                className="text-xs text-blue-600 font-medium bg-blue-50 rounded px-2 py-1 border border-blue-100 shadow-sm hover:bg-blue-100"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Manually scroll to the search input area
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                  
-                  // Small delay to ensure scrolling has completed
-                  setTimeout(() => {
-                    const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-                    if (searchInput) {
-                      searchInput.focus();
-                      searchInput.select();
-                    }
-                  }, 100);
-                }}
-              >
-                Change
-              </a>
+              <div className="text-sm font-medium">
+                {totalDealsFound} deals found
+              </div>
             </div>
             
-            <div className="text-sm font-medium">
-              {totalDealsFound} deals found
-            </div>
+            <button 
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => {
+                  const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+                  if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                  }
+                }, 100);
+              }}
+              className="text-center text-xs text-blue-600 py-1 px-3 bg-blue-50 rounded-md border border-blue-100 hover:bg-blue-100 flex items-center justify-center w-full"
+            >
+              <span className="mr-1">Click to change location</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            </button>
           </div>
         </div>
       </div>
