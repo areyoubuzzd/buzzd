@@ -259,10 +259,10 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
         
         {/* Deals Section - Show deals based on user tier */}
         {filteredDeals.active && filteredDeals.active.length > 0 && (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-4 gap-x-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-4 gap-x-3">
             {/* Full view deals (limited by user tier) */}
             {filteredDeals.active.slice(0, fullDealsCount).map((deal: any) => deal && (
-              <div className="w-full px-3 sm:px-2 md:px-1" key={deal.id}>
+              <div className="w-full px-1" key={deal.id}>
                 <DealCard 
                   key={deal.id} 
                   deal={deal} 
@@ -274,7 +274,7 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
             
             {/* Grayed out deals (the rest) */}
             {filteredDeals.active.slice(fullDealsCount).map((deal: any) => deal && (
-              <div className="w-full px-3 sm:px-2 md:px-1" key={`gray-${deal.id}`}>
+              <div className="w-full px-1" key={`gray-${deal.id}`}>
                 <DealCard 
                   key={deal.id} 
                   deal={deal} 

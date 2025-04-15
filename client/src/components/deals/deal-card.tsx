@@ -416,12 +416,14 @@ function DealCard({
       )}
       onClick={handleCardClick}
       style={{
-        width: '100%', 
+        width: 'calc(100% - 2px)', 
+        maxWidth: '155px',
         height: '175px',
         background: getGradientBackground(deal.drinkType, deal.id),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         marginBottom: '8px',
+        margin: '0 auto',
       }}
     >
       {/* SVG Accent Pattern - Position absolute to overlay on background */}
@@ -474,11 +476,11 @@ function DealCard({
         </div>
         
         {/* Bottom section with deal name and details */}
-        <div className="p-3 pt-1 bg-black/75 flex flex-col items-center mt-auto relative" style={{ zIndex: 10 }}>
+        <div className="p-2 pt-1 bg-black/75 flex flex-col items-center mt-auto relative" style={{ zIndex: 10 }}>
           {/* Deal name */}
           <h3 className="font-black text-white text-center font-luckiest uppercase tracking-wide leading-none truncate w-full px-1" 
               style={{ 
-                fontSize: dealName.length > 15 ? '1.25rem' : '1.5rem',
+                fontSize: dealName.length > 12 ? '1rem' : '1.25rem',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
