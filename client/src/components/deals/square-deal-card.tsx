@@ -48,13 +48,15 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   }, [deal]);
 
   // Format the price display separately for current and standard price
-  const { currentPrice, originalPrice } = useMemo(() => {
+  const { currentPrice, originalPrice, dealHeadline } = useMemo(() => {
     const happyHourPrice = deal.happy_hour_price || deal.dealPrice;
     const standardPrice = deal.standard_price || deal.regularPrice;
+    const drinkName = deal.drink_name || '';
     
     return {
       currentPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
-      originalPrice: standardPrice ? `$${standardPrice}` : null
+      originalPrice: standardPrice ? `$${standardPrice}` : null,
+      dealHeadline: drinkName ? `$${happyHourPrice} ${drinkName}` : `$${happyHourPrice} Special`
     };
   }, [deal]);
 
@@ -83,36 +85,36 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         
         {/* Overlay with all information - covering ~45% of the card from bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-2.5">
-          {/* Price information at the top - more prominent */}
-          <div className="flex items-center gap-2 justify-between mb-2">
-            <p className="text-sm font-bold text-white">
-              {currentPrice}
-            </p>
-            {originalPrice && (
-              <p className="text-xs text-red-400 line-through opacity-90 font-medium">
-                {originalPrice}
-              </p>
-            )}
-          </div>
+          {/* Deal headline using Fredoka font */}
+          <h2 className="font-['Fredoka'] text-base font-bold text-white leading-5 mb-1.5 line-clamp-2">
+            {dealHeadline}
+          </h2>
           
-          {/* Restaurant name - more space and visibility */}
-          <h3 className="font-semibold text-xs text-white line-clamp-1 border-t border-white/20 pt-1.5 mb-1">
+          {/* Original price with strikethrough in red */}
+          {originalPrice && (
+            <p className="text-xs text-red-400 line-through opacity-90 font-medium mb-1.5">
+              {originalPrice}
+            </p>
+          )}
+          
+          {/* Restaurant name - Manrope font */}
+          <h3 className="font-['Manrope'] text-xs text-white/95 line-clamp-1 border-t border-white/20 pt-1.5 mb-1">
             {deal.establishment?.name || 'Restaurant Name'}
           </h3>
           
-          {/* Time and distance - cleaner organization */}
-          <div className="flex items-center justify-between text-[9px] text-white">
+          {/* Time and distance with Manrope font */}
+          <div className="flex items-center justify-between text-[9px] text-white font-['Manrope']">
             {/* Happy hour time */}
             <div className="flex items-center">
               <FiClock className="h-2.5 w-2.5 mr-0.5 text-white" />
-              <span className="text-white font-medium">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
+              <span className="text-white">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
             </div>
             
             {/* Distance */}
             {distance && (
               <div className="flex items-center">
                 <FiMapPin className="h-2.5 w-2.5 mr-0.5 text-white" />
-                <span className="text-white font-medium">{distance}</span>
+                <span className="text-white">{distance}</span>
               </div>
             )}
           </div>
