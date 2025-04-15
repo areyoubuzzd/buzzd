@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { FaStar } from 'react-icons/fa';
+import { FaStar, FaWalking } from 'react-icons/fa';
+import { calculateDistance, formatDistance, getCurrentPosition, DEFAULT_POSITION } from '@/lib/distance-utils';
 
 interface EstablishmentData {
   id: number;
@@ -15,6 +16,8 @@ interface EstablishmentData {
   rating?: number;
   description?: string;
   external_id?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface RestaurantCardProps {
@@ -30,10 +33,52 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
     imageUrl,
     rating,
     description,
+    latitude,
+    longitude,
   } = establishment;
+
+  // State for user distance
+  const [userDistance, setUserDistance] = useState<number | null>(null);
+  
+  // Fetch user location and calculate distance
+  useEffect(() => {
+    const getUserLocation = async () => {
+      try {
+        // Try to get the user's position
+        const position = await getCurrentPosition();
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+        
+        // Calculate distance if establishment has coordinates
+        if (latitude && longitude) {
+          const distance = calculateDistance(userLat, userLon, latitude, longitude);
+          setUserDistance(distance);
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+        // Use default position if geolocation fails
+        if (latitude && longitude) {
+          const distance = calculateDistance(
+            DEFAULT_POSITION.latitude,
+            DEFAULT_POSITION.longitude,
+            latitude,
+            longitude
+          );
+          setUserDistance(distance);
+        }
+      }
+    };
+    
+    getUserLocation();
+  }, [latitude, longitude]);
 
   // Default image if none provided
   const imageUrlToUse = imageUrl || 'https://via.placeholder.com/300x200?text=No+Image';
+  
+  // Skip description if it's the same as the address (or contains it)
+  const shouldShowDescription = description && 
+    !description.includes(address) && 
+    description !== address;
 
   return (
     <Link href={`/establishments/${id}`}>
@@ -55,11 +100,18 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
           
           <div className="mt-1 text-sm text-gray-500 line-clamp-1">{address}</div>
           
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-wrap gap-2 items-center">
             <Badge variant="outline" className="bg-primary/10">{cuisine}</Badge>
+            
+            {userDistance !== null && (
+              <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                <FaWalking className="h-3 w-3" />
+                {formatDistance(userDistance)}
+              </Badge>
+            )}
           </div>
           
-          {description && (
+          {shouldShowDescription && (
             <p className="mt-3 text-sm text-gray-600 line-clamp-2">{description}</p>
           )}
         </CardContent>
