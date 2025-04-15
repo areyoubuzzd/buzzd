@@ -85,8 +85,8 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         
         {/* Overlay with all information - covering ~45% of the card from bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-2.5">
-          {/* Deal headline using Fredoka font */}
-          <h2 className="font-['Fredoka'] text-base font-bold text-white leading-5 mb-1.5 line-clamp-2">
+          {/* Deal headline using Fredoka One font - extra bold */}
+          <h2 className="font-['Fredoka_One'] text-base text-white leading-5 mb-1.5 line-clamp-2">
             {dealHeadline}
           </h2>
           
