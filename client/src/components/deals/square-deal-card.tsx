@@ -68,13 +68,36 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
       : null;
   }, [deal]);
 
+  // Get the appropriate default image based on alcohol category
+  const getDefaultImage = useMemo(() => {
+    const category = deal.alcohol_category?.toLowerCase() || '';
+    
+    if (category.includes('beer')) {
+      return '/images/defaults/beer-default.jpg';
+    } else if (category.includes('wine')) {
+      return '/images/defaults/wine-default.jpg';
+    } else if (category.includes('whisky') || category.includes('whiskey')) {
+      return '/images/defaults/whisky-default.jpg';
+    } else if (category.includes('cocktail')) {
+      return '/images/defaults/cocktail-default.jpg';
+    } else if (category.includes('gin')) {
+      return '/images/defaults/gin-default.jpg';
+    } else if (category.includes('vodka')) {
+      return '/images/defaults/vodka-default.jpg';
+    } else if (category.includes('rum')) {
+      return '/images/defaults/rum-default.jpg';
+    } else {
+      return '/images/defaults/drink-default.jpg';
+    }
+  }, [deal.alcohol_category]);
+
   return (
     <Card className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow w-[175px] rounded-2xl">
       <div className="relative h-[245px]">
-        {/* Deal image */}
+        {/* Deal image with category-based fallback */}
         <img 
-          src={deal.imageUrl || 'https://placehold.co/400x400/e6f7ff/0099cc?text=Happy+Hour'} 
-          alt={drinkName} 
+          src={deal.imageUrl || getDefaultImage} 
+          alt={drinkName || deal.alcohol_category || 'Happy Hour Deal'} 
           className="w-full h-full object-cover"
         />
         
