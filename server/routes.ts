@@ -630,6 +630,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Development endpoint for syncing establishments without auth (temporary)
+  app.post("/api/dev/sync-establishments", async (req, res) => {
+    try {
+      console.log('DEV MODE: Syncing establishments from Google Sheets without authentication...');
+      const establishments = await syncEstablishmentsFromSheets();
+      console.log(`Synced ${establishments.length} establishments`);
+      
+      res.json({
+        success: true,
+        message: 'Successfully synced establishments from Google Sheets',
+        count: establishments.length
+      });
+    } catch (error) {
+      console.error('Error syncing establishments:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to sync establishments from Google Sheets',
+        error: (error as Error).message
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

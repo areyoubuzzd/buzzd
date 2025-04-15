@@ -40,10 +40,10 @@ const doc = new GoogleSpreadsheet(SPREADSHEET_ID, serviceAccountAuth);
 export async function getEstablishmentsFromSheets(): Promise<any[]> {
   try {
     await doc.loadInfo();
-    const establishmentsSheet = doc.sheetsByTitle['Restaurants Sheet'] || doc.sheetsByTitle['Sheet1'];
+    const establishmentsSheet = doc.sheetsByTitle['Restaurants'] || doc.sheetsByTitle['Sheet1'];
     
     if (!establishmentsSheet) {
-      throw new Error("Restaurants sheet not found - please make sure you have a sheet named 'Restaurants Sheet' or 'Sheet1'");
+      throw new Error("Restaurants sheet not found - please make sure you have a sheet named 'Restaurants' or 'Sheet1'");
     }
     
     const rows = await establishmentsSheet.getRows();
