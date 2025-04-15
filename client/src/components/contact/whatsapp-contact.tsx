@@ -8,8 +8,8 @@ export default function WhatsAppContact() {
   };
   
   return (
-    <section className="bg-white shadow-md border-t border-gray-200 mb-16">
-      <div className="container mx-auto px-4 py-5">
+    <section className="bg-white shadow-md border-t border-gray-200 pb-20 mt-4">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between">
           <div className="mb-4 sm:mb-0 text-center sm:text-left">
             <h2 className="font-semibold text-lg">Your favorite restaurant is not here?</h2>
@@ -19,7 +19,7 @@ export default function WhatsAppContact() {
           </div>
           <button
             onClick={handleWhatsAppClick}
-            className="bg-[#25D366] hover:bg-[#1da851] text-white rounded-lg py-2 px-5 flex items-center transition-colors duration-200"
+            className="bg-[#25D366] hover:bg-[#1da851] text-white rounded-lg py-2 px-6 flex items-center transition-colors duration-200 shadow-sm"
           >
             <FaWhatsapp className="h-5 w-5 mr-2" />
             <span className="font-medium">Let's fix that!</span>

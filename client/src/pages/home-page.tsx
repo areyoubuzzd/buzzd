@@ -96,25 +96,34 @@ export default function HomePage() {
       <div className="bg-gray-50 px-4 py-2">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
-            <button 
-              className="flex items-center text-sm text-gray-600 cursor-pointer hover:text-gray-800 p-2 rounded hover:bg-gray-100 border border-transparent hover:border-gray-200"
-              onClick={() => {
-                // Manually scroll to the search input area
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                // Small delay to ensure scrolling has completed
-                setTimeout(() => {
-                  const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-                  if (searchInput) {
-                    searchInput.focus();
-                    searchInput.select();
-                  }
-                }, 100);
-              }}
-            >
-              <FiMapPin className="mr-1 h-4 w-4" />
-              <span>{userRoadName || "Bukit Timah Road"}</span>
-            </button>
+            <div className="flex items-center">
+              <div className="flex items-center text-sm text-gray-600 mr-1">
+                <FiMapPin className="mr-1 h-4 w-4" />
+                <span className="mr-1">{userRoadName || "Bukit Timah Road"}</span>
+              </div>
+              
+              <a 
+                href="#" 
+                className="text-xs text-blue-600 font-medium bg-blue-50 rounded px-2 py-1 border border-blue-100 shadow-sm hover:bg-blue-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Manually scroll to the search input area
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  
+                  // Small delay to ensure scrolling has completed
+                  setTimeout(() => {
+                    const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+                    if (searchInput) {
+                      searchInput.focus();
+                      searchInput.select();
+                    }
+                  }, 100);
+                }}
+              >
+                Change
+              </a>
+            </div>
+            
             <div className="text-sm font-medium">
               {totalDealsFound} deals found
             </div>
