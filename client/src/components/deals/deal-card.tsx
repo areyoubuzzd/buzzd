@@ -423,9 +423,11 @@ function DealCard({
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         maxWidth: '100%', // Ensure it doesn't overflow its container
+        width: '100%', // Explicitly set width to 100% of container
         height: 0, // This forces the aspect ratio to be respected
         paddingBottom: 'calc(100% / 1.586)', // 1/1.586 ≈ 63% - makes it landscape!
         marginBottom: '4px', // Small but noticeable margin
+        boxSizing: 'border-box', // Ensure padding is included in dimensions
       }}
     >
       {/* SVG Accent Pattern - Position absolute to overlay on background */}
