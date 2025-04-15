@@ -287,11 +287,15 @@ export default function EstablishmentDetailsPage() {
               href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full h-full bg-center bg-cover"
-              style={{
-                backgroundImage: `url(https://maps.googleapis.com/maps/api/staticmap?center=${establishment.latitude},${establishment.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${establishment.latitude},${establishment.longitude}&key=${process.env.GOOGLE_MAPS_API_KEY})`
-              }}
-            />
+              className="flex items-center justify-center w-full h-full bg-gray-50 text-gray-700"
+            >
+              <div className="text-center">
+                <div className="flex justify-center mb-2">
+                  <MapPin size={32} />
+                </div>
+                <span className="text-sm font-medium">View on Google Maps</span>
+              </div>
+            </a>
           </div>
         )}
       </div>
