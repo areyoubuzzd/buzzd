@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
+import HomeCollection from "@/pages/home-collection";
 import AuthPage from "@/pages/auth-page";
 import DealDetailsPage from "@/pages/deal-details-page";
 import ProfilePage from "@/pages/profile-page";
@@ -25,7 +26,7 @@ import { AuthProvider } from "./hooks/use-auth";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={HomePage} />
+      <Route path="/" component={HomeCollection} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/deal/:id" component={DealDetailsPage} />
       <Route path="/search" component={SearchPage} />

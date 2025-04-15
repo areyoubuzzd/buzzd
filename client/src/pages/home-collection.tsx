@@ -6,7 +6,109 @@ import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
 import { FiMapPin } from "react-icons/fi";
-import { beerDeals, houseWineDeals, spiritDeals, cocktailDeals } from "@/data/sample-deals";
+
+// Import sample deals
+// We will use these deals just to show the UI, will replace with real data later
+const beerDeals = [
+  {
+    title: "House Draft Beer",
+    description: "House draft beer at happy hour prices all day long!",
+    drinkCategory: "beer",
+    drinkSubcategory: "lager",
+    isHousePour: true, 
+    servingStyle: "pint",
+    regularPrice: 15.00,
+    dealPrice: 9.00,
+    isOneForOne: false,
+  },
+  {
+    title: "Tiger Beer Pint",
+    description: "Tiger beer on tap at happy hour prices",
+    drinkCategory: "beer",
+    drinkSubcategory: "lager",
+    brand: "Tiger",
+    isHousePour: false,
+    regularPrice: 16.00,
+    dealPrice: 10.00,
+    isOneForOne: false,
+  },
+  {
+    title: "1-for-1 Draft Beer",
+    description: "Buy one draft beer, get one free!",
+    drinkCategory: "beer",
+    isHousePour: true,
+    regularPrice: 15.00,
+    dealPrice: 15.00,
+    isOneForOne: true,
+  }
+];
+
+const houseWineDeals = [
+  {
+    title: "House Pour Red Wine",
+    description: "Enjoy our house pour red wine at special prices during happy hour!",
+    drinkCategory: "wine",
+    drinkSubcategory: "red_wine",
+    isHousePour: true,
+    regularPrice: 15.00,
+    dealPrice: 8.00,
+    isOneForOne: false,
+  },
+  {
+    title: "1-for-1 House Wine",
+    description: "Buy one glass of house wine, get one free!",
+    drinkCategory: "wine",
+    isHousePour: true,
+    regularPrice: 15.00,
+    dealPrice: 15.00,
+    isOneForOne: true,
+  }
+];
+
+const spiritDeals = [
+  {
+    title: "House Pour Spirits",
+    description: "All house pour spirits at happy hour prices",
+    drinkCategory: "spirits",
+    isHousePour: true,
+    regularPrice: 15.00,
+    dealPrice: 8.00,
+    isOneForOne: false,
+  },
+  {
+    title: "Premium Whisky",
+    description: "Selected premium whiskies at special prices",
+    drinkCategory: "spirits",
+    drinkSubcategory: "whisky",
+    isHousePour: false,
+    regularPrice: 25.00,
+    dealPrice: 18.00,
+    isOneForOne: false,
+  }
+];
+
+const cocktailDeals = [
+  {
+    title: "House Cocktails",
+    description: "Our signature cocktails at happy hour prices",
+    drinkCategory: "cocktail",
+    drinkSubcategory: "signature",
+    isHousePour: true,
+    regularPrice: 22.00,
+    dealPrice: 16.00,
+    isOneForOne: false,
+  },
+  {
+    title: "1-for-1 Classic Cocktails",
+    description: "Buy one classic cocktail, get one free!",
+    drinkCategory: "cocktail",
+    drinkSubcategory: "classic",
+    isHousePour: false,
+    regularPrice: 22.00,
+    dealPrice: 22.00,
+    isOneForOne: true,
+  }
+];
 
 // Import the original sample deals
 // We will use these deals just to show the UI, will replace with real data later
