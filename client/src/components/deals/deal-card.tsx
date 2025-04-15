@@ -411,23 +411,17 @@ function DealCard({
   return (
     <div 
       className={cn(
-        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg w-full mb-0",
+        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg rounded-lg",
         isGrayedOut && "opacity-50"
       )}
       onClick={handleCardClick}
       style={{
-        // Credit card aspect ratio (1.586:1) - Width to height ratio
-        aspectRatio: '1.586/1',
-        borderRadius: '8px', // Slightly smaller radius
+        width: '100%', 
+        height: '175px',
         background: getGradientBackground(deal.drinkType, deal.id),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        maxWidth: '100%', // Ensure it doesn't overflow its container
-        width: '100%', // Explicitly set width to 100% of container
-        height: 0, // This forces the aspect ratio to be respected
-        paddingBottom: 'calc(100% / 1.586)', // 1/1.586 ≈ 63% - makes it landscape!
-        marginBottom: '4px', // Small but noticeable margin
-        boxSizing: 'border-box', // Ensure padding is included in dimensions
+        marginBottom: '8px',
       }}
     >
       {/* SVG Accent Pattern - Position absolute to overlay on background */}
