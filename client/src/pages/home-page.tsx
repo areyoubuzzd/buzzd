@@ -17,6 +17,7 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
+  const [userRoadName, setUserRoadName] = useState<string>(""); // Added road name state
 
   useEffect(() => {
     // Try to get user's location on mount
@@ -38,10 +39,15 @@ export default function HomePage() {
       );
     }
     
-    // Listen for postal code updates from LocationBar
+    // Listen for postal code and road name updates from LocationBar
     const handlePostalCodeUpdate = (event: CustomEvent) => {
-      if (event.detail && event.detail.postalCode) {
-        setUserPostalCode(event.detail.postalCode);
+      if (event.detail) {
+        if (event.detail.postalCode) {
+          setUserPostalCode(event.detail.postalCode);
+        }
+        if (event.detail.roadName) {
+          setUserRoadName(event.detail.roadName);
+        }
       }
     };
     

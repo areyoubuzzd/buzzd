@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { FiClock, FiMap } from "react-icons/fi";
+import { FiClock, FiMapPin } from "react-icons/fi";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateDistance } from "@/lib/location-utils";
 
@@ -101,15 +101,15 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
           {/* Happy hour time */}
           <div className="flex items-center">
-            <FiClock className="h-3 w-3 mr-1" />
-            <span>{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
+            <FiClock className="h-2.5 w-2.5 mr-0.5" />
+            <span className="text-[10px]">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
           </div>
           
           {/* Distance */}
           {distance && (
             <div className="flex items-center">
-              <FiMap className="h-3 w-3 mr-1" />
-              <span>{distance}</span>
+              <FiMapPin className="h-2.5 w-2.5 mr-0.5" />
+              <span className="text-[10px]">{distance}</span>
             </div>
           )}
         </div>

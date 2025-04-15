@@ -113,9 +113,9 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
       
       // Pass this information up to parent component
       if (typeof window !== 'undefined') {
-        // Let home page know about the postal code
+        // Let home page know about the postal code and road name
         window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
-          detail: { postalCode } 
+          detail: { postalCode, roadName } 
         }));
       }
     } catch (error) {
