@@ -134,18 +134,43 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
     if (searchInput) {
       console.log(`Searching for: ${searchInput}`);
       
-      // If it looks like a location, try to set that
+      // If it looks like a location or postal code
+      // First check if it's one of our predefined locations
       const locationSuggestion = SEARCH_SUGGESTIONS.find(
         suggestion => suggestion.type === 'location' && 
         suggestion.label.toLowerCase().includes(searchInput.toLowerCase())
       );
       
       if (locationSuggestion) {
-        // Simulate location change
+        // Simulate location change from predefined location
         setCurrentLocation(locationSuggestion.label);
+        
+        // Dispatch event to update the location displayed in the home page
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+            detail: { roadName: locationSuggestion.label } 
+          }));
+        }
         
         // Use Singapore coordinates with a slight offset for simulation
         // In a real app, you'd use geocoding here
+        onLocationChange({ 
+          lat: 1.3521 + (Math.random() * 0.02 - 0.01),
+          lng: 103.8198 + (Math.random() * 0.02 - 0.01)
+        });
+      } else {
+        // Treat as a custom location (could be postal code or any text)
+        setCurrentLocation(searchInput);
+        
+        // Dispatch event to update the location displayed in the home page
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+            detail: { roadName: searchInput } 
+          }));
+        }
+        
+        // For a real app, we would geocode this text to get coordinates
+        // For now, use Singapore coordinates with slight variation
         onLocationChange({ 
           lat: 1.3521 + (Math.random() * 0.02 - 0.01),
           lng: 103.8198 + (Math.random() * 0.02 - 0.01)
@@ -167,6 +192,14 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
     
     if (suggestion.type === 'location') {
       setCurrentLocation(suggestion.label);
+      
+      // Dispatch event to update the location displayed in the home page
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+          detail: { roadName: suggestion.label } 
+        }));
+      }
+      
       // Use Singapore coordinates with a slight offset for simulation
       onLocationChange({ 
         lat: 1.3521 + (Math.random() * 0.02 - 0.01),
@@ -193,15 +226,23 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiSearch className="h-5 w-5 text-gray-400" />
                   </div>
-                  <Input
-                    type="text"
-                    className="w-full py-2 pl-10 pr-20 text-sm bg-[#f8f7f5] border-gray-200 placeholder:text-gray-400"
-                    placeholder={`Search ${placeholderText}...`}
-                    style={{ color: "#444" }}
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onFocus={() => setShowSuggestions(true)}
-                  />
+                  <form onSubmit={handleSearchSubmit} className="w-full">
+                    <Input
+                      type="text"
+                      className="w-full py-2 pl-10 pr-20 text-sm bg-[#f8f7f5] border-gray-200 placeholder:text-gray-400"
+                      placeholder={`Search ${placeholderText}...`}
+                      style={{ color: "#444" }}
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onFocus={() => setShowSuggestions(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSearchSubmit(e);
+                        }
+                      }}
+                    />
+                  </form>
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                     {isLocating ? (
                       <div className="flex items-center">

@@ -96,7 +96,17 @@ export default function HomePage() {
       <div className="bg-gray-50 px-4 py-2">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm text-gray-600">
+            <div 
+              className="flex items-center text-sm text-gray-600 cursor-pointer hover:text-gray-800 p-1 rounded hover:bg-gray-100"
+              onClick={() => {
+                const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+                if (searchInput) {
+                  searchInput.focus();
+                  searchInput.select();
+                  searchInput.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
               <FiMapPin className="mr-1 h-4 w-4" />
               <span>{userRoadName || "Bukit Timah Road"}</span>
             </div>
