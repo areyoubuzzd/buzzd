@@ -29,16 +29,51 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    const url = queryKey[0] as string;
+    console.log(`Fetching from URL: ${url}`);
+    
+    try {
+      const res = await fetch(url, {
+        credentials: "include",
+        headers: {
+          "Accept": "application/json"
+        }
+      });
+      
+      console.log(`Received response with status: ${res.status}`);
+      
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        console.log('Returning null due to 401 status');
+        return null;
+      }
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`Error response: ${errorText}`);
+        throw new Error(`${res.status}: ${errorText || res.statusText}`);
+      }
+      
+      const text = await res.text();
+      console.log(`Response text: ${text.substring(0, 100)}...`);
+      
+      try {
+        if (text.trim() === '') {
+          console.log('Empty response text, returning empty array');
+          return [] as T;
+        }
+        
+        const json = JSON.parse(text);
+        console.log(`Successfully parsed JSON. Type: ${Array.isArray(json) ? 'array' : typeof json}, Length: ${Array.isArray(json) ? json.length : 'N/A'}`);
+        return json;
+      } catch (parseError) {
+        console.error('Error parsing JSON:', parseError);
+        console.error('Raw response:', text);
+        throw new Error(`Failed to parse JSON response: ${parseError.message}`);
+      }
+    } catch (fetchError) {
+      console.error(`Error fetching ${url}:`, fetchError);
+      throw fetchError;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({

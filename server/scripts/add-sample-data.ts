@@ -40,8 +40,6 @@ async function addSampleData() {
     // Add sample deals with collections data
     const sampleDeals = [
       {
-        title: 'Budget Tiger Beer',
-        description: 'Tiger Beer at happy hour prices',
         establishmentId: establishment.id,
         alcohol_category: 'beer',
         alcohol_subcategory: 'lager',

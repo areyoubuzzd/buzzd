@@ -37,7 +37,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Register dedicated V2 API routes first with explicit content-type
+  // Register API routes with explicit content-type
+  // First regular API routes
+  app.use('/api/deals', (req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  }, (await import('./routes/deals')).default);
+  
+  app.use('/api/establishments', (req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  }, (await import('./routes/establishments')).default);
+  
+  // Also register V2 API routes 
   app.use('/api/v2/deals', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     next();
