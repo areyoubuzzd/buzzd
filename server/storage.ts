@@ -44,6 +44,7 @@ export interface IStorage {
   getActiveDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]>;
   getUpcomingDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]>;
   getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]>;
+  getActiveDealsForEstablishment(establishmentId: number): Promise<Deal[]>;
   searchDeals(query: string, filters: { type?: string, status?: string }): Promise<DealWithEstablishment[]>;
   
   // Reviews
@@ -363,6 +364,67 @@ export class DatabaseStorage implements IStorage {
       ...item.deal,
       establishment: item.establishment
     }));
+  }
+  
+  /**
+   * Get all active deals for a specific establishment
+   * This method is used in the deal-to-restaurant workflow
+   */
+  async getActiveDealsForEstablishment(establishmentId: number): Promise<Deal[]> {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0-6, where 0 is Sunday
+    const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+    
+    // Get the current day of the week in the format used in the valid_days field
+    const dayMap: Record<number, string> = {
+      0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+    };
+    const currentDayStr = dayMap[currentDay];
+    
+    // If valid_days contains "Weekdays", we need to check if today is a weekday
+    const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
+    
+    // Check if the current time is within the happy hour time window
+    // and if the current day is in the valid days list
+    const activeDeals = await db
+      .select()
+      .from(deals)
+      .where(and(
+        eq(deals.establishmentId, establishmentId),
+        or(
+          and(
+            lte(deals.hh_start_time, currentTime),
+            gte(deals.hh_end_time, currentTime),
+            or(
+              sql`${deals.valid_days} LIKE ${'%' + currentDayStr + '%'}`,
+              and(
+                sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
+                sql`${isWeekday}`
+              ),
+              sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+            )
+          ),
+          // Special case for happy hours that span midnight
+          and(
+            gte(deals.hh_start_time, deals.hh_end_time),
+            or(
+              gte(currentTime, deals.hh_start_time),
+              lte(currentTime, deals.hh_end_time)
+            ),
+            or(
+              sql`${deals.valid_days} LIKE ${'%' + currentDayStr + '%'}`,
+              and(
+                sql`${deals.valid_days} LIKE ${'%Weekdays%'}`,
+                sql`${isWeekday}`
+              ),
+              sql`${deals.valid_days} LIKE ${'%Everyday%'}`
+            )
+          )
+        )
+      ))
+      .orderBy(asc(deals.alcohol_category), asc(deals.happy_hour_price));
+    
+    return activeDeals;
   }
 
   async searchDeals(query: string, filters: { type?: string, status?: string }): Promise<DealWithEstablishment[]> {
@@ -795,6 +857,98 @@ export class MemStorage implements IStorage {
       }));
     
     return upcomingDeals;
+  }
+
+  async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    const dayAfterTomorrow = new Date(tomorrow);
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+    
+    const tomorrowDay = tomorrow.getDay(); // 0-6, where 0 is Sunday
+    
+    const futureDeals = Array.from(this.deals.values())
+      .filter(deal => {
+        const establishment = this.establishments.get(deal.establishmentId);
+        if (!establishment) return false;
+        
+        // Logic for future deals would go here
+        // This is simplified for in-memory implementation
+        return true;
+      })
+      .map(deal => ({
+        ...deal,
+        establishment: this.establishments.get(deal.establishmentId)!
+      }));
+    
+    return futureDeals;
+  }
+  
+  /**
+   * Get all active deals for a specific establishment
+   * This method is used in the deal-to-restaurant workflow
+   */
+  async getActiveDealsForEstablishment(establishmentId: number): Promise<Deal[]> {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0-6, where 0 is Sunday
+    const currentTime = now.toTimeString().substring(0, 5); // Format: "HH:MM"
+    
+    // Get the current day of the week in the format used in the valid_days field
+    const dayMap: Record<number, string> = {
+      0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+    };
+    const currentDayStr = dayMap[currentDay];
+    
+    // If valid_days contains "Weekdays", we need to check if today is a weekday
+    const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
+    
+    // Filter deals for the specific establishment and check if they're active now
+    const activeDeals = Array.from(this.deals.values())
+      .filter(deal => {
+        // Only deals for this establishment
+        if (deal.establishmentId !== establishmentId) return false;
+        
+        // Check if the current day is included in valid_days
+        const isDayValid = 
+          deal.valid_days.includes(currentDayStr) || 
+          (deal.valid_days.includes('Weekdays') && isWeekday) ||
+          deal.valid_days.includes('Everyday');
+        
+        if (!isDayValid) return false;
+        
+        // Check if current time is within happy hour window
+        const isTimeValid = this.isTimeWithinHappyHour(
+          currentTime, 
+          deal.hh_start_time, 
+          deal.hh_end_time
+        );
+        
+        return isTimeValid;
+      })
+      .sort((a, b) => {
+        // Sort by alcohol category first
+        const catCompare = a.alcohol_category.localeCompare(b.alcohol_category);
+        if (catCompare !== 0) return catCompare;
+        
+        // Then by happy hour price
+        return a.happy_hour_price - b.happy_hour_price;
+      });
+    
+    return activeDeals;
+  }
+  
+  // Helper method to check if a time is within happy hour range
+  private isTimeWithinHappyHour(currentTime: string, startTime: string, endTime: string): boolean {
+    // Normal case: start time is before end time (e.g., 17:00 - 19:00)
+    if (startTime <= endTime) {
+      return currentTime >= startTime && currentTime <= endTime;
+    }
+    
+    // Special case: happy hour spans midnight (e.g., 22:00 - 02:00)
+    return currentTime >= startTime || currentTime <= endTime;
   }
 
   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEstablishment[]> {

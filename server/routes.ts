@@ -9,6 +9,8 @@ import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheet
 import { cloudinaryService } from "./services/cloudinaryService";
 import uploadDealImageRouter from "./routes/upload-deal-image";
 import menuAnalysisRoutes from "./routes/menuAnalysisRoutes_new.js";
+import dealsRoutes from "./routes/deals";
+import establishmentsRoutes from "./routes/establishments";
 import { db, pool } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
