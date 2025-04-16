@@ -280,21 +280,7 @@ export default function HomePage() {
     
     // Note: We're skipping House Pour Wine and Premium Spirits as requested
     
-    // Then create collections from tags
-    uniqueCollections.forEach(tag => {
-      // Skip if it's already a predefined collection
-      if (collectionList.some(c => c.name === tag)) return;
-      
-      collectionList.push({
-        name: tag,
-        deals: allDeals.filter(deal => 
-          deal.collections && 
-          deal.collections.split(',').map(c => c.trim()).includes(tag)
-        )
-      });
-    });
-    
-    // Define our priority collection order
+    // Define our priority collection order - this must match the exact collection names
     const priorityCollections = [
       "Active Happy Hours Nearby",
       "Beers Under $10",
@@ -302,34 +288,56 @@ export default function HomePage() {
       "1-for-1 Deals"
     ];
     
-    // Get only collections with at least one deal
-    const filteredCollections = collectionList.filter(collection => collection.deals.length > 0);
+    // Track the tag-based collections separately
+    const tagBasedCollections: Collection[] = [];
     
-    // Improved collection sorting with explicit priorities
-    return filteredCollections.sort((a, b) => {
-      // First check if both are in the priority list
-      const aPriorityIndex = priorityCollections.indexOf(a.name);
-      const bPriorityIndex = priorityCollections.indexOf(b.name);
+    // Then create collections from tags
+    uniqueCollections.forEach(tag => {
+      // Skip if it matches ANY priority collection (using case-insensitive comparison)
+      // This ensures we don't create duplicate collections with slightly different naming
+      if (priorityCollections.some(pc => pc.toLowerCase() === tag.toLowerCase())) return;
       
-      // If both are in priority list, sort by their index in the list
-      if (aPriorityIndex !== -1 && bPriorityIndex !== -1) {
-        return aPriorityIndex - bPriorityIndex;
+      // Skip if it's already been added to the collection list
+      if (collectionList.some(c => c.name === tag)) return;
+      
+      // Get deals for this tag
+      const dealsForTag = allDeals.filter(deal => 
+        deal.collections && 
+        deal.collections.split(',').map(c => c.trim()).includes(tag)
+      );
+      
+      // Only add if it has deals
+      if (dealsForTag.length > 0) {
+        tagBasedCollections.push({
+          name: tag,
+          deals: dealsForTag
+        });
       }
-      
-      // If only one is in priority list, that one comes first
-      if (aPriorityIndex !== -1) return -1;
-      if (bPriorityIndex !== -1) return 1;
-      
-      // For non-priority collections, prioritize those with active deals
+    });
+    
+    // Sort tag-based collections by whether they have active deals, then alphabetically
+    const sortedTagCollections = tagBasedCollections.sort((a, b) => {
       const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
       const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
       
       if (aHasActiveDeals && !bHasActiveDeals) return -1;
       if (!aHasActiveDeals && bHasActiveDeals) return 1;
       
-      // Finally, sort alphabetically
       return a.name.localeCompare(b.name);
     });
+    
+    // Filter our priority collections to only include those that have deals
+    const priorityCollectionsWithDeals = collectionList.filter(c => 
+      priorityCollections.includes(c.name) && c.deals.length > 0
+    );
+    
+    // Ensure priority collections are in exact order specified
+    priorityCollectionsWithDeals.sort((a, b) => {
+      return priorityCollections.indexOf(a.name) - priorityCollections.indexOf(b.name);
+    });
+    
+    // Return priority collections first, followed by tag-based collections
+    return [...priorityCollectionsWithDeals, ...sortedTagCollections];
   }, [dealsData, location]);
 
   useEffect(() => {
