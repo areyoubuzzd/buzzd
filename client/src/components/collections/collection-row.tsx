@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import SquareDealCard from "@/components/deals/square-deal-card";
@@ -12,6 +12,78 @@ interface CollectionRowProps {
 
 export default function CollectionRow({ title, deals, userLocation, onViewAllClick }: CollectionRowProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Distribute deals so same restaurants aren't adjacent
+  const distributedDeals = useMemo(() => {
+    // If no deals or just one deal, return as is
+    if (!deals || deals.length <= 1) return deals;
+    
+    // Create a map of establishment IDs to their deals
+    const establishmentDeals = new Map<number, any[]>();
+    
+    // Group deals by establishment
+    deals.forEach(deal => {
+      const estId = deal.establishment?.id;
+      if (!estId) return; // Skip if no establishment id
+      
+      if (!establishmentDeals.has(estId)) {
+        establishmentDeals.set(estId, []);
+      }
+      establishmentDeals.get(estId)?.push(deal);
+    });
+    
+    // If only one establishment, return original list
+    if (establishmentDeals.size === 1) return deals;
+    
+    // Distribute deals from different establishments
+    const result: any[] = [];
+    const remainingDeals = new Map(establishmentDeals);
+    
+    // Keep track of the last establishment ID to avoid adjacent deals from same place
+    let lastEstId: number | null = null;
+    
+    while (remainingDeals.size > 0) {
+      // Find an establishment that's different from the last one
+      let nextEstId: number | null = null;
+      
+      // If we have more than one establishment left, pick one different from last
+      if (remainingDeals.size > 1 && lastEstId !== null) {
+        // Array approach to avoid Map iteration issues
+        const estIds = Array.from(remainingDeals.keys());
+        for (const estId of estIds) {
+          if (estId !== lastEstId) {
+            nextEstId = estId;
+            break;
+          }
+        }
+      } else {
+        // Just take the first one
+        nextEstId = Array.from(remainingDeals.keys())[0];
+      }
+      
+      if (nextEstId === null) break;
+      
+      // Get deals for this establishment
+      const estDeals = remainingDeals.get(nextEstId) || [];
+      if (estDeals.length > 0) {
+        // Add one deal from this establishment
+        result.push(estDeals.shift());
+        
+        // If no more deals for this establishment, remove it
+        if (estDeals.length === 0) {
+          remainingDeals.delete(nextEstId);
+        } else {
+          // Update the remaining deals
+          remainingDeals.set(nextEstId, estDeals);
+        }
+        
+        // Update last establishment ID
+        lastEstId = nextEstId;
+      }
+    }
+    
+    return result;
+  }, [deals]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
@@ -56,7 +128,7 @@ export default function CollectionRow({ title, deals, userLocation, onViewAllCli
           className="flex overflow-x-auto scrollbar-hide py-4 px-4 gap-x-4 sm:gap-x-3 md:gap-x-3 lg:gap-x-2 xl:gap-x-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {deals.map((deal) => (
+          {distributedDeals.map((deal) => (
             <div key={deal.id} className="flex-shrink-0 w-[150px] xs:w-[155px] sm:w-[175px] md:w-[180px] lg:w-[190px] xl:w-[200px] h-[220px]">
               <SquareDealCard deal={deal} userLocation={userLocation} />
             </div>
