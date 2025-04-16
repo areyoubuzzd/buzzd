@@ -52,7 +52,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   }, [deal]);
 
   // Format the price display separately for current and standard price
-  const { currentPrice, originalPrice, dealHeadline } = useMemo(() => {
+  const { currentPrice, originalPrice, dealHeadline, formattedPrice, formattedDrinkName } = useMemo(() => {
     const happyHourPrice = deal.happy_hour_price || deal.dealPrice;
     const standardPrice = deal.standard_price || deal.regularPrice;
     const drinkName = deal.drink_name || '';
@@ -60,7 +60,10 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     return {
       currentPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
       originalPrice: standardPrice ? `$${standardPrice}` : null,
-      dealHeadline: drinkName ? `$${happyHourPrice} ${drinkName}` : `$${happyHourPrice}`
+      dealHeadline: drinkName ? `$${happyHourPrice} ${drinkName}` : `$${happyHourPrice}`,
+      // Split the headline into price and drink name for separate styling
+      formattedPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
+      formattedDrinkName: drinkName || ''
     };
   }, [deal]);
 
@@ -137,8 +140,11 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
             {/* Overlay with all information - covering 45% of the card from bottom */}
             <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-3">
               {/* Deal headline using Fredoka One font - extra bold */}
-              <h2 className="font-['Fredoka_One'] text-sm text-white leading-tight mb-1.5 line-clamp-1 truncate">
-                {dealHeadline}
+              <h2 className="font-['Fredoka_One'] text-sm leading-tight mb-1.5 line-clamp-1 truncate">
+                <span className="text-white">{formattedPrice}</span>
+                {formattedDrinkName && (
+                  <span className="text-blue-300 ml-1">{formattedDrinkName}</span>
+                )}
               </h2>
               
               {/* Restaurant name - Manrope font */}
