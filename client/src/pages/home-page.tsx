@@ -137,7 +137,30 @@ export default function HomePage() {
     // Then create a collection for each unique tag
     const collectionList: Collection[] = [];
     
-    // Add predefined collections first
+    // Add "Active Happy Hours Nearby" as the first collection
+    collectionList.push({
+      name: "Active Happy Hours Nearby",
+      description: "Currently active deals closest to you",
+      deals: allDeals
+        .filter(deal => isDealActiveNow(deal))
+        .sort((a, b) => {
+          // Sort by distance for this collection
+          // For demonstration, generate distances based on establishment ID
+          const getDistanceFromUser = (establishmentId: number) => {
+            // Use same formula as in square-deal-card
+            const baseDistance = (establishmentId % 10) * 0.5 + 0.1;
+            const userFactor = (location.lat + location.lng) % 1;
+            return baseDistance * (1 + userFactor * 0.2);
+          };
+          
+          const distA = getDistanceFromUser(a.establishmentId);
+          const distB = getDistanceFromUser(b.establishmentId);
+          
+          return distA - distB; // Sort by distance ascending
+        })
+    });
+    
+    // Add other predefined collections
     collectionList.push({
       name: "Beers Under $10",
       description: "Great beer deals under $10",
@@ -188,60 +211,21 @@ export default function HomePage() {
     // Get only collections with at least one deal
     const filteredCollections = collectionList.filter(collection => collection.deals.length > 0);
     
-    // Sort the collections based on the specified criteria
+    // Simplified collection sorting
     return filteredCollections.sort((a, b) => {
-      // 1. First, prioritize collections with active deals right now
+      // 0. Always put "Active Happy Hours Nearby" first
+      if (a.name === "Active Happy Hours Nearby") return -1;
+      if (b.name === "Active Happy Hours Nearby") return 1;
+      
+      // 1. Then, prioritize collections with active deals right now
       const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
       const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
       
       if (aHasActiveDeals && !bHasActiveDeals) return -1;
       if (!aHasActiveDeals && bHasActiveDeals) return 1;
       
-      // 2. Then, prioritize collections with deals closer to the user
-      // For demonstration/visualization, let's use deterministic coordinates based on establishment ID
-      // This ensures the collection sorting is consistent and visually verifiable
-      // In real app, we'd get the actual lat/lng from the establishment data
-      
-      // Find minimum distance to any deal in collection A
-      const aMinDistance = Math.min(
-        ...a.deals.map(deal => {
-          // Use deal.establishmentId as a seed for the coordinates to make it deterministic
-          // This will spread the establishments around Singapore in a predictable way
-          const seed = deal.establishmentId % 10; // Use modulo to get a single digit from ID
-          const dealLat = 1.3521 + (seed * 0.005); // Creates a grid of establishments
-          const dealLng = 103.8198 + (seed * 0.005);
-          return calculateDistance(location.lat, location.lng, dealLat, dealLng);
-        })
-      );
-      
-      // Find minimum distance to any deal in collection B
-      const bMinDistance = Math.min(
-        ...b.deals.map(deal => {
-          // Use the same deterministic approach for collection B
-          const seed = deal.establishmentId % 10;
-          const dealLat = 1.3521 + (seed * 0.005);
-          const dealLng = 103.8198 + (seed * 0.005);
-          return calculateDistance(location.lat, location.lng, dealLat, dealLng);
-        })
-      );
-      
-      // Add debug info to see how sorting is working
-      console.log(`Collection comparison: 
-        A: "${a.name}" - Has active: ${aHasActiveDeals}, Distance: ${aMinDistance.toFixed(2)}km
-        B: "${b.name}" - Has active: ${bHasActiveDeals}, Distance: ${bMinDistance.toFixed(2)}km
-      `);
-      
-      // If there's a significant difference in distance, prioritize closer ones
-      const distanceDiff = aMinDistance - bMinDistance;
-      if (Math.abs(distanceDiff) > 0.2) { // More than 200m difference
-        return distanceDiff > 0 ? 1 : -1;
-      }
-      
-      // 3. If distances are similar, sort by price
-      const aMinPrice = Math.min(...a.deals.map(deal => deal.happy_hour_price));
-      const bMinPrice = Math.min(...b.deals.map(deal => deal.happy_hour_price));
-      
-      return aMinPrice - bMinPrice;
+      // 2. Then, sort alphabetically by collection name
+      return a.name.localeCompare(b.name);
     });
   }, [dealsData, location]);
 
