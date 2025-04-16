@@ -1,15 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/header";
 import LocationBar from "@/components/layout/location-bar";
 import FilterBar from "@/components/layout/filter-bar";
-import DealsList from "@/components/deals/deals-list";
+import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
+import CollectionRow from "@/components/collections/collection-row";
+import DealsList from "@/components/deals/deals-list";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FiMapPin, FiEdit2 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
+import { useQuery } from "@tanstack/react-query";
 
 // Updated FilterType to match the new filter-bar component
 type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
+
+// Define Deal and Collection types
+type Deal = {
+  id: number;
+  establishmentId: number;
+  alcohol_category: string;
+  alcohol_subcategory: string;
+  drink_name: string;
+  regular_price: number;
+  happy_hour_price: number;
+  is_one_for_one: boolean;
+  is_house_pour: boolean;
+  valid_days: string;
+  hh_start_time: string;
+  hh_end_time: string;
+  collections?: string;
+  description?: string;
+};
+
+type Collection = {
+  name: string;
+  deals: Deal[];
+  description?: string;
+};
 
 export default function HomePage() {
   // Use this for WhatsApp button so it's directly embedded in this file
@@ -23,6 +50,84 @@ export default function HomePage() {
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
   const [userRoadName, setUserRoadName] = useState<string>(""); // Added road name state
+
+  // Fetch all deals for collections
+  const { data: dealsData } = useQuery<Deal[]>({
+    queryKey: ['/api/deals/collections/all'],
+    staleTime: 60000, // 1 minute
+    retry: 2
+  });
+  
+  // Create collections from deals data
+  const collections = useMemo<Collection[]>(() => {
+    if (!dealsData) return [];
+    
+    const allDeals = dealsData;
+    
+    // First get all unique collection tags from the deals
+    const uniqueCollections = new Set<string>();
+    allDeals.forEach(deal => {
+      if (deal.collections) {
+        deal.collections.split(',').map((c: string) => c.trim()).forEach((tag: string) => {
+          if (tag) uniqueCollections.add(tag);
+        });
+      }
+    });
+    
+    // Then create a collection for each unique tag
+    const collectionList: Collection[] = [];
+    
+    // Add predefined collections first
+    collectionList.push({
+      name: "Beers Under $10",
+      description: "Great beer deals under $10",
+      deals: allDeals.filter(deal => 
+        deal.alcohol_category === "Beer" && 
+        deal.happy_hour_price < 10
+      )
+    });
+    
+    collectionList.push({
+      name: "1-for-1 Deals",
+      description: "Buy one get one free!",
+      deals: allDeals.filter(deal => deal.is_one_for_one === true)
+    });
+    
+    collectionList.push({
+      name: "House Pour Wine",
+      description: "Wine deals at happy hour prices",
+      deals: allDeals.filter(deal => 
+        deal.alcohol_category === "Wine" && 
+        deal.is_house_pour === true
+      )
+    });
+    
+    collectionList.push({
+      name: "Premium Spirits",
+      description: "Top-shelf liquor deals",
+      deals: allDeals.filter(deal => 
+        deal.alcohol_category === "Spirits" && 
+        deal.is_house_pour === false
+      )
+    });
+    
+    // Then create collections from tags
+    uniqueCollections.forEach(tag => {
+      // Skip if it's already a predefined collection
+      if (collectionList.some(c => c.name === tag)) return;
+      
+      collectionList.push({
+        name: tag,
+        deals: allDeals.filter(deal => 
+          deal.collections && 
+          deal.collections.split(',').map(c => c.trim()).includes(tag)
+        )
+      });
+    });
+    
+    // Only return collections with at least one deal
+    return collectionList.filter(collection => collection.deals.length > 0);
+  }, [dealsData]);
 
   useEffect(() => {
     // Store the current page in sessionStorage for proper back navigation
@@ -149,6 +254,23 @@ export default function HomePage() {
         </div>
       </div>
       
+      {/* Collections display */}
+      {collections.length > 0 && (
+        <div className="bg-gray-50 py-2">
+          <div className="container mx-auto px-4">
+            {collections.map((collection, index) => (
+              <CollectionRow
+                key={`${collection.name}-${index}`}
+                title={collection.name}
+                description={collection.description}
+                deals={collection.deals}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Regular deals list */}
       <DealsList 
         location={location} 
         activeFilter={activeFilter}
