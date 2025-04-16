@@ -97,22 +97,7 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
     }
   };
 
-  return (
-    <div className="bg-[#f8f7f5] shadow-sm">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-end">
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm" 
-            className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2"
-            style={{ background: "#f8f7f5" }}
-            onClick={onOpenFilters}
-          >
-            <FiFilter className="h-5 w-5 text-[#191632]" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  // We're not rendering any visible component here since we moved the functionality
+  // to the location section and filter button
+  return null;
 }

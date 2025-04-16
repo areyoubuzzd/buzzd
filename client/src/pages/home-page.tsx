@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/header";
 import LocationBar from "@/components/layout/location-bar";
 import FilterBar from "@/components/layout/filter-bar";
@@ -7,7 +7,8 @@ import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
 import DealsList from "@/components/deals/deals-list";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FiMapPin, FiEdit2 } from "react-icons/fi";
+import { Button } from "@/components/ui/button";
+import { FiMapPin, FiEdit2, FiFilter } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 
@@ -210,13 +211,38 @@ export default function HomePage() {
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm text-gray-600">
+            <div 
+              className="flex items-center text-sm text-gray-600 cursor-pointer"
+              onClick={() => {
+                // Create a modal or prompt to enter a new location
+                const newLocation = prompt("Enter a new location:", userRoadName || "");
+                if (newLocation && newLocation.trim()) {
+                  // Dispatch the event to update location
+                  window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+                    detail: { roadName: newLocation.trim() } 
+                  }));
+                  
+                  // Update coordinates with some randomness (simulating geocoding)
+                  const newLat = 1.3521 + (Math.random() * 0.04 - 0.02);
+                  const newLng = 103.8198 + (Math.random() * 0.04 - 0.02);
+                  handleLocationChange({ lat: newLat, lng: newLng });
+                }
+              }}
+            >
               <FiMapPin className="mr-1 h-4 w-4" />
               <span>{userRoadName || "Bukit Timah Road"}</span>
+              <FiEdit2 className="ml-1 h-3 w-3 text-blue-500" />
             </div>
-            <div className="text-sm font-medium">
-              {totalDealsFound} deals found
-            </div>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="sm" 
+              className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2"
+              style={{ background: "#f8f7f5" }}
+              onClick={handleOpenFilters}
+            >
+              <FiFilter className="h-4 w-4 text-[#191632]" />
+            </Button>
           </div>
         </div>
       </div>
