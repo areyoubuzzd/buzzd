@@ -114,14 +114,14 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   const establishmentId = deal.establishmentId || (deal.establishment && deal.establishment.id);
   
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       <a 
         href={`/establishments/${establishmentId}`}
         onClick={handleCardClick}
-        className="block text-inherit no-underline"
+        className="block text-inherit no-underline h-full"
       >
         <Card className="overflow-hidden h-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-200 rounded-xl cursor-pointer">
-          <div className="relative" style={{ height: 'calc(100% + 250px)' }}>
+          <div className="relative h-full">
             {/* Deal image with category-based fallback */}
             <img 
               src={deal.imageUrl || getDefaultImage} 
