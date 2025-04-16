@@ -170,9 +170,10 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
   
   // Check if any deal is active now
   const isActive = useMemo(() => {
+    console.log(`Checking active status for ${name}, deals:`, activeDeals);
     if (!activeDeals || activeDeals.length === 0) return false;
     return activeDeals.some(deal => isWithinHappyHour(deal));
-  }, [activeDeals]);
+  }, [activeDeals, name]);
   
   // Fetch user location and calculate distance
   useEffect(() => {
