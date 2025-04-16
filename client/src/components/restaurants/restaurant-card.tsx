@@ -82,12 +82,12 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
 
   return (
     <Link href={`/establishments/${id}`}>
-      <Card className="overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 h-full flex flex-col">
+      <Card className="overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 h-full flex flex-col rounded-xl">
         <div 
           className="aspect-square bg-cover bg-center w-full"
           style={{ backgroundImage: `url(${imageUrlToUse})` }}
         />
-        <CardContent className="p-4 flex-grow">
+        <CardContent className="p-5 flex-grow">
           <div className="flex justify-between items-start">
             <h3 className="font-bold text-lg line-clamp-1">{name}</h3>
             {rating && (
