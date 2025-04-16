@@ -380,9 +380,11 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
                 <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
                 <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
                   {isActive ? 'Active' : 'Inactive'}
-                  {isActive && endTime && <span className="ml-1">Ends: {endTime}</span>}
                 </span>
               </div>
+              {isActive && endTime && (
+                <span className="text-xs text-green-600 ml-3.5">Ends: {endTime}</span>
+              )}
               {!isActive && hasHappyHourToday && startTime && (
                 <span className="text-xs text-yellow-600 ml-3.5">Starts: {startTime}</span>
               )}
