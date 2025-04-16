@@ -232,8 +232,9 @@ export default function HomePage() {
         deals: activeHappyHoursDeals
       });
       
-      // Remember we've used this name
+      // Remember we've used this name (both formats)
       usedCollectionNames.add("active happy hours nearby");
+      usedCollectionNames.add("active_happy_hours_nearby");
     }
     
     // =======================================================
@@ -258,8 +259,9 @@ export default function HomePage() {
         deals: beersUnder10Deals
       });
       
-      // Remember we've used this name
+      // Remember we've used this name - IMPORTANT: add both forms to avoid duplicates
       usedCollectionNames.add("beers under $10");
+      usedCollectionNames.add("beers_under_10");
     }
     
     // =======================================================
@@ -284,8 +286,9 @@ export default function HomePage() {
         deals: cocktailsUnder15Deals
       });
       
-      // Remember we've used this name
+      // Remember we've used this name (both formats)
       usedCollectionNames.add("cocktails under $15");
+      usedCollectionNames.add("cocktails_under_15");
     }
     
     // =======================================================
@@ -308,8 +311,9 @@ export default function HomePage() {
         deals: oneForOneDeals
       });
       
-      // Remember we've used this name
+      // Remember we've used this name (both formats)
       usedCollectionNames.add("1-for-1 deals");
+      usedCollectionNames.add("one_for_one_deals");
     }
     
     // =======================================================
@@ -332,8 +336,15 @@ export default function HomePage() {
     const tagCollections: Collection[] = [];
     
     allTags.forEach(tag => {
+      const tagLower = tag.toLowerCase();
+      const tagUnderscored = tag.replace(/\s+/g, '_').toLowerCase();
+      const tagSpaced = tag.replace(/_+/g, ' ').toLowerCase();
+      
       // Skip if we already have a collection with this name (case insensitive)
-      if (usedCollectionNames.has(tag.toLowerCase())) {
+      // Check both underscore and space formats
+      if (usedCollectionNames.has(tagLower) || 
+          usedCollectionNames.has(tagUnderscored) || 
+          usedCollectionNames.has(tagSpaced)) {
         return;
       }
       
