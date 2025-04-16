@@ -217,7 +217,7 @@ export default function HomePage() {
                 // Create a prompt for entering a new location
                 const newLocation = prompt("Enter a new location:", userRoadName || "");
                 if (newLocation && newLocation.trim()) {
-                  // Update the location name
+                  // Update the location name immediately
                   setUserRoadName(newLocation.trim());
                   
                   // Dispatch event to update location name
@@ -232,7 +232,14 @@ export default function HomePage() {
                   // Update location and trigger a UI refresh
                   handleLocationChange({ lat: newLat, lng: newLng });
                   
+                  // Force a refresh of the deals - important for immediate visual feedback
                   console.log("Location changed to:", newLocation.trim());
+                  
+                  // Show a confirmation message
+                  alert(`Location updated to: ${newLocation.trim()}`);
+                  
+                  // Force a page refresh to reflect new deals based on location
+                  window.location.reload();
                 }
               }}
             >
