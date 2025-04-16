@@ -83,6 +83,13 @@ export default function EstablishmentDetailsPage() {
     enabled: !!id,
   });
   
+  // For debugging
+  useEffect(() => {
+    if (data) {
+      console.log("Establishment details loaded:", data);
+    }
+  }, [data]);
+  
   // Calculate distance when establishment data and user position are available
   useEffect(() => {
     if (data?.establishment && data.establishment.latitude && data.establishment.longitude) {

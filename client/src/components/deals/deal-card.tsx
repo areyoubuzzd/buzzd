@@ -436,99 +436,105 @@ function DealCard({
   };
   
   return (
-    <div 
-      className={cn(
-        "relative overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg rounded-lg",
-        isGrayedOut && "opacity-50"
-      )}
-      onClick={handleCardClick}
-      style={{
-        width: 'calc(100% - 2px)', 
-        maxWidth: '155px',
-        height: '175px',
-        background: getGradientBackground(deal.drinkType, deal.id),
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        marginBottom: '8px',
-        margin: '0 auto',
-      }}
-    >
-      {/* SVG Accent Pattern - Position absolute to overlay on background */}
-      <div 
-        className="absolute inset-0 pointer-events-none"
-        dangerouslySetInnerHTML={{ __html: getAccentPattern(deal.drinkType, deal.id) }}
-      />
-      
-      {/* Card Content */}
-      <div className="absolute inset-0 flex flex-col h-full">
-        {/* Top section with discount badge */}
-        <div className="relative p-4 flex-grow flex justify-center items-center">
-          {/* Hero Image - centered bottle/glass image */}
-          <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ zIndex: 1 }}>
-            <img 
-              src={`${getHeroImage(deal.brand || deal.drinkType, 'glass')}?v=${Date.now()}`}
-              alt={`${deal.brand || deal.drinkType} hero image`}
-              className="h-[150%] object-contain"
-              style={{ 
-                filter: 'brightness(1.2) contrast(1.0) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.4))', 
-                transform: 'translateY(30px) scale(0.9)',
-                maxWidth: 'none',
-                opacity: 0.95
-              }}
-            />
-          </div>
-          
-          {/* Discount badge */}
-          {savingsAmount && (
-            <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold" style={{ zIndex: 20 }}>
-              {savingsAmount}
-            </div>
-          )}
-          
-          {/* Save button */}
-          {onToggleSave && (
-            <button 
-              onClick={handleSaveClick}
-              className="absolute top-3 right-3 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
-              style={{ zIndex: 20 }}
-            >
-              <Heart 
-                className={cn(
-                  "w-5 h-5 transition-colors", 
-                  isSaved ? "fill-red-500 text-red-500" : "text-white"
-                )} 
-              />
-            </button>
-          )}
-        </div>
+    <div className="w-full">
+      <a 
+        href={`/establishments/${deal.establishmentId || (deal.establishment && deal.establishment.id)}`}
+        className={cn(
+          "relative block overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg rounded-lg",
+          isGrayedOut && "opacity-50"
+        )}
+        onClick={(e) => {
+          e.preventDefault();
+          handleCardClick();
+        }}
+        style={{
+          width: 'calc(100% - 2px)', 
+          maxWidth: '155px',
+          height: '175px',
+          background: getGradientBackground(deal.drinkType, deal.id),
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          marginBottom: '8px',
+          margin: '0 auto',
+        }}
+      >
+        {/* SVG Accent Pattern - Position absolute to overlay on background */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          dangerouslySetInnerHTML={{ __html: getAccentPattern(deal.drinkType, deal.id) }}
+        />
         
-        {/* Bottom section with deal name and details */}
-        <div className="p-2 pt-1 bg-black/75 flex flex-col items-center mt-auto relative" style={{ zIndex: 10 }}>
-          {/* Deal name */}
-          <h3 className="font-black text-white text-center font-luckiest uppercase tracking-wide leading-none truncate w-full px-1" 
-              style={{ 
-                fontSize: '1.5rem', /* 24px */
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}>
-            {dealName}
-          </h3>
-          
-          {/* Time and establishment */}
-          <div className="flex items-center gap-1 text-white/90 text-xs mt-1">
-            <Clock size={12} className="text-white/80" />
-            <span>{formattedTimeRange}</span>
-            {distance && (
-              <>
-                <span className="px-1">•</span>
-                <MapPin size={12} className="text-white/80" />
-                <span>{distance}</span>
-              </>
+        {/* Card Content */}
+        <div className="absolute inset-0 flex flex-col h-full">
+          {/* Top section with discount badge */}
+          <div className="relative p-4 flex-grow flex justify-center items-center">
+            {/* Hero Image - centered bottle/glass image */}
+            <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ zIndex: 1 }}>
+              <img 
+                src={`${getHeroImage(deal.brand || deal.drinkType, 'glass')}?v=${Date.now()}`}
+                alt={`${deal.brand || deal.drinkType} hero image`}
+                className="h-[150%] object-contain"
+                style={{ 
+                  filter: 'brightness(1.2) contrast(1.0) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.4))', 
+                  transform: 'translateY(30px) scale(0.9)',
+                  maxWidth: 'none',
+                  opacity: 0.95
+                }}
+              />
+            </div>
+            
+            {/* Discount badge */}
+            {savingsAmount && (
+              <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold" style={{ zIndex: 20 }}>
+                {savingsAmount}
+              </div>
+            )}
+            
+            {/* Save button */}
+            {onToggleSave && (
+              <button 
+                onClick={handleSaveClick}
+                className="absolute top-3 right-3 p-1 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+                style={{ zIndex: 20 }}
+              >
+                <Heart 
+                  className={cn(
+                    "w-5 h-5 transition-colors", 
+                    isSaved ? "fill-red-500 text-red-500" : "text-white"
+                  )} 
+                />
+              </button>
             )}
           </div>
+          
+          {/* Bottom section with deal name and details */}
+          <div className="p-2 pt-1 bg-black/75 flex flex-col items-center mt-auto relative" style={{ zIndex: 10 }}>
+            {/* Deal name */}
+            <h3 className="font-black text-white text-center font-luckiest uppercase tracking-wide leading-none truncate w-full px-1" 
+                style={{ 
+                  fontSize: '1.5rem', /* 24px */
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
+              {dealName}
+            </h3>
+            
+            {/* Time and establishment */}
+            <div className="flex items-center gap-1 text-white/90 text-xs mt-1">
+              <Clock size={12} className="text-white/80" />
+              <span>{formattedTimeRange}</span>
+              {distance && (
+                <>
+                  <span className="px-1">•</span>
+                  <MapPin size={12} className="text-white/80" />
+                  <span>{distance}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </a>
     </div>
   );
 }
