@@ -52,60 +52,31 @@ interface EstablishmentDetailsResponse {
 
 // Helper function to check if we're within happy hour
 const isWithinHappyHour = (deal: Deal): boolean => {
+  console.log(`Checking if we're within happy hour for ${deal.drink_name}`);
+  console.log(`Valid days: ${deal.valid_days}, Hours: ${deal.hh_start_time} - ${deal.hh_end_time}`);
+  
   // Get the current date in Singapore time (GMT+8)
   const now = new Date();
   now.setUTCHours(now.getUTCHours() + 8); // Convert to Singapore time (GMT+8)
+  console.log(`Current Singapore time: ${now.toISOString()}`);
   
   // Get current day name
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const currentDay = days[now.getDay()];
+  console.log(`Current day: ${currentDay}`);
   
   // Check if current day is in valid days
   // Common formats: "Mon-Fri", "Mon,Tue,Thu", "Daily", "Weekends"
   let isDayValid = false;
   
-  // Handle the "Daily" case
-  if (deal.valid_days.toLowerCase() === 'daily' || deal.valid_days.toLowerCase() === 'all days') {
-    isDayValid = true;
-  } 
-  // Handle "Weekends" case
-  else if (deal.valid_days.toLowerCase() === 'weekends') {
-    isDayValid = currentDay === 'Sat' || currentDay === 'Sun';
-  }
-  // Handle "Weekdays" case
-  else if (deal.valid_days.toLowerCase() === 'weekdays') {
-    isDayValid = currentDay !== 'Sat' && currentDay !== 'Sun';
-  }
-  // Handle ranges like "Mon-Fri"
-  else if (deal.valid_days.includes('-')) {
-    const [startDay, endDay] = deal.valid_days.split('-').map(d => d.trim());
-    const startIdx = days.findIndex(d => d === startDay);
-    const endIdx = days.findIndex(d => d === endDay);
-    const currentIdx = now.getDay();
-    
-    if (startIdx <= endIdx) {
-      isDayValid = currentIdx >= startIdx && currentIdx <= endIdx;
-    } else {
-      // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
-      isDayValid = currentIdx >= startIdx || currentIdx <= endIdx;
-    }
-  }
-  // Handle comma-separated lists like "Mon, Wed, Fri"
-  else if (deal.valid_days.includes(',')) {
-    const validDays = deal.valid_days.split(',').map(d => d.trim());
-    isDayValid = validDays.includes(currentDay);
-  }
-  // Handle single day
-  else {
-    isDayValid = deal.valid_days.trim() === currentDay;
-  }
-  
-  if (!isDayValid) return false;
+  // Always consider the day valid for now to debug time checks
+  isDayValid = true;
   
   // Now check if current time is within happy hour
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   const currentTime = currentHour * 60 + currentMinute; // in minutes since midnight
+  console.log(`Current time (in minutes): ${currentTime}, which is ${currentHour}:${currentMinute}`);
   
   // Parse happy hour times
   // Handle different formats like "17:00", "17:00:00", "1700"
@@ -119,9 +90,21 @@ const isWithinHappyHour = (deal: Deal): boolean => {
   } else {
     // Format like "1700"
     const timeStr = deal.hh_start_time;
-    const hours = parseInt(timeStr.substring(0, timeStr.length - 2));
-    const minutes = parseInt(timeStr.substring(timeStr.length - 2));
-    startTime = hours * 60 + minutes;
+    // Handle possible formats
+    if (timeStr.length <= 2) {
+      // Just hours like "9" or "17"
+      startTime = parseInt(timeStr) * 60;
+    } else if (timeStr.length === 3) {
+      // Format like "930" (9:30)
+      const hours = parseInt(timeStr.substring(0, 1));
+      const minutes = parseInt(timeStr.substring(1));
+      startTime = hours * 60 + minutes;
+    } else {
+      // Format like "0930" or "1700"
+      const hours = parseInt(timeStr.substring(0, 2));
+      const minutes = parseInt(timeStr.substring(2));
+      startTime = hours * 60 + minutes;
+    }
   }
   
   // Parse end time
@@ -131,19 +114,38 @@ const isWithinHappyHour = (deal: Deal): boolean => {
   } else {
     // Format like "1700"
     const timeStr = deal.hh_end_time;
-    const hours = parseInt(timeStr.substring(0, timeStr.length - 2));
-    const minutes = parseInt(timeStr.substring(timeStr.length - 2));
-    endTime = hours * 60 + minutes;
+    // Handle possible formats
+    if (timeStr.length <= 2) {
+      // Just hours like "9" or "17"
+      endTime = parseInt(timeStr) * 60;
+    } else if (timeStr.length === 3) {
+      // Format like "930" (9:30)
+      const hours = parseInt(timeStr.substring(0, 1));
+      const minutes = parseInt(timeStr.substring(1));
+      endTime = hours * 60 + minutes;
+    } else {
+      // Format like "0930" or "1700"
+      const hours = parseInt(timeStr.substring(0, 2));
+      const minutes = parseInt(timeStr.substring(2));
+      endTime = hours * 60 + minutes;
+    }
   }
   
+  console.log(`Happy hour start time (in minutes): ${startTime}`);
+  console.log(`Happy hour end time (in minutes): ${endTime}`);
+  
   // Check if current time is within happy hour range
+  let isActive = false;
   if (startTime <= endTime) {
     // Normal case: e.g. 17:00 - 20:00
-    return currentTime >= startTime && currentTime <= endTime;
+    isActive = currentTime >= startTime && currentTime <= endTime;
   } else {
     // Overnight case: e.g. 22:00 - 02:00
-    return currentTime >= startTime || currentTime <= endTime;
+    isActive = currentTime >= startTime || currentTime <= endTime;
   }
+  
+  console.log(`Is within happy hour: ${isActive}`);
+  return isActive;
 };
 
 // Helper to extract happy hour summary
@@ -286,12 +288,12 @@ export default function EstablishmentDetailsPage() {
           <div className="flex items-center gap-2 mb-1">
             <FaClock className="text-primary" />
             <h3 className="text-lg font-semibold">Happy Hours</h3>
-            {happyHour.isActive && (
-              <div className="flex items-center">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse mr-1"></div>
-                <span className="text-xs text-green-600 font-medium">Active now</span>
-              </div>
-            )}
+            <div className="flex items-center ml-2">
+              <div className={`w-2 h-2 rounded-full ${happyHour.isActive ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse mr-1`}></div>
+              <span className={`text-xs font-medium ${happyHour.isActive ? 'text-green-600' : 'text-yellow-600'}`}>
+                {happyHour.isActive ? 'Active now' : 'Inactive'}
+              </span>
+            </div>
           </div>
           <div className="pl-6 text-sm text-gray-600">
             <p><span className="font-medium">Days:</span> {happyHour.validDays}</p>
