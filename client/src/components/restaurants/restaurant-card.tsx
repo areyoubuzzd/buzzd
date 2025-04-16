@@ -375,28 +375,29 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
             <h3 className="font-medium text-base line-clamp-1">{name}</h3>
             
             {/* Happy Hour status indicator */}
-            <div className="flex flex-col mt-1.5 mb-2">
+            <div className="mt-1.5 mb-2">
+              {/* Status indicator */}
               <div className="flex items-center gap-1.5">
                 <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
                 <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
                   {isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
+              
+              {/* Time indicator with clock */}
               {isActive && endTime && (
-                <div className="flex items-center ml-3.5">
-                  <div className="w-2 h-2 invisible"></div> {/* Placeholder for alignment with dot above */}
-                  <span className="text-xs text-green-600 flex items-center gap-1 ml-1.5">
-                    <FaClock className="h-2.5 w-2.5" />
-                    <span>Ends: {endTime}</span>
+                <div className="flex items-center mt-1 ml-3.5">
+                  <FaClock className="h-2.5 w-2.5 text-green-600" />
+                  <span className="text-xs text-green-600 ml-1">
+                    Ends: {endTime}
                   </span>
                 </div>
               )}
               {!isActive && hasHappyHourToday && startTime && (
-                <div className="flex items-center ml-3.5">
-                  <div className="w-2 h-2 invisible"></div> {/* Placeholder for alignment with dot above */}
-                  <span className="text-xs text-yellow-600 flex items-center gap-1 ml-1.5">
-                    <FaClock className="h-2.5 w-2.5" />
-                    <span>Starts: {startTime}</span>
+                <div className="flex items-center mt-1 ml-3.5">
+                  <FaClock className="h-2.5 w-2.5 text-yellow-600" />
+                  <span className="text-xs text-yellow-600 ml-1">
+                    Starts: {startTime}
                   </span>
                 </div>
               )}
