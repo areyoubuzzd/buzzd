@@ -140,11 +140,8 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
             {/* Overlay with all information - covering 45% of the card from bottom */}
             <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-3">
               {/* Deal headline using Fredoka One font - extra bold */}
-              <h2 className="font-['Fredoka_One'] text-sm leading-tight mb-1.5 line-clamp-1 truncate">
-                <span className="text-white">{formattedPrice}</span>
-                {formattedDrinkName && (
-                  <span className="text-blue-300 ml-1">{formattedDrinkName}</span>
-                )}
+              <h2 className="font-['Fredoka_One'] text-sm text-white leading-tight mb-1.5 line-clamp-1 truncate">
+                {dealHeadline}
               </h2>
               
               {/* Restaurant name - Manrope font */}
