@@ -59,6 +59,49 @@ export default function HomePage() {
     retry: 2
   });
   
+  // Helper function to check if deal is active right now (based on day and time)
+  const isDealActiveNow = (deal: Deal): boolean => {
+    const now = new Date();
+    const currentDay = now.toLocaleString('en-US', { weekday: 'long', timeZone: 'Asia/Singapore' });
+    const currentTime = now.toLocaleString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: false, 
+      timeZone: 'Asia/Singapore' 
+    });
+    
+    // Check if today is in the valid days
+    const validDays = deal.valid_days.split(',').map(day => day.trim().toLowerCase());
+    if (!validDays.includes(currentDay.toLowerCase())) {
+      return false;
+    }
+    
+    // Check if current time is within happy hour
+    const [startHour, startMinute] = deal.hh_start_time.split(':').map(Number);
+    const [endHour, endMinute] = deal.hh_end_time.split(':').map(Number);
+    const [currentHour, currentMinute] = currentTime.split(':').map(Number);
+    
+    const startTimeMinutes = startHour * 60 + startMinute;
+    const endTimeMinutes = endHour * 60 + endMinute;
+    const currentTimeMinutes = currentHour * 60 + currentMinute;
+    
+    return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
+  };
+  
+  // Helper function to calculate distance between two coordinates (in km)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+  
   // Create collections from deals data
   const collections = useMemo<Collection[]>(() => {
     if (!dealsData) return [];
@@ -126,9 +169,54 @@ export default function HomePage() {
       });
     });
     
-    // Only return collections with at least one deal
-    return collectionList.filter(collection => collection.deals.length > 0);
-  }, [dealsData]);
+    // Get only collections with at least one deal
+    const filteredCollections = collectionList.filter(collection => collection.deals.length > 0);
+    
+    // Sort the collections based on the specified criteria
+    return filteredCollections.sort((a, b) => {
+      // 1. First, prioritize collections with active deals right now
+      const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
+      const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
+      
+      if (aHasActiveDeals && !bHasActiveDeals) return -1;
+      if (!aHasActiveDeals && bHasActiveDeals) return 1;
+      
+      // 2. Then, prioritize collections with deals closer to the user
+      // Find minimum distance to any deal in collection A
+      const aMinDistance = Math.min(
+        ...a.deals.map(deal => {
+          // In real app, we'd have coordinates for each establishment
+          // For now, using random coordinates for demonstration
+          const dealLat = 1.3521 + (Math.random() * 0.04 - 0.02);
+          const dealLng = 103.8198 + (Math.random() * 0.04 - 0.02);
+          return calculateDistance(location.lat, location.lng, dealLat, dealLng);
+        })
+      );
+      
+      // Find minimum distance to any deal in collection B
+      const bMinDistance = Math.min(
+        ...b.deals.map(deal => {
+          // In real app, we'd have coordinates for each establishment
+          // For now, using random coordinates for demonstration
+          const dealLat = 1.3521 + (Math.random() * 0.04 - 0.02);
+          const dealLng = 103.8198 + (Math.random() * 0.04 - 0.02);
+          return calculateDistance(location.lat, location.lng, dealLat, dealLng);
+        })
+      );
+      
+      // If there's a significant difference in distance, prioritize closer ones
+      const distanceDiff = aMinDistance - bMinDistance;
+      if (Math.abs(distanceDiff) > 0.2) { // More than 200m difference
+        return distanceDiff > 0 ? 1 : -1;
+      }
+      
+      // 3. If distances are similar, sort by price
+      const aMinPrice = Math.min(...a.deals.map(deal => deal.happy_hour_price));
+      const bMinPrice = Math.min(...b.deals.map(deal => deal.happy_hour_price));
+      
+      return aMinPrice - bMinPrice;
+    });
+  }, [dealsData, location]);
 
   useEffect(() => {
     // Store the current page in sessionStorage for proper back navigation
