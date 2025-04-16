@@ -28,7 +28,8 @@ import { AuthProvider } from "./hooks/use-auth";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={HomeCollection} />
+      <Route path="/" component={HomePage} />
+      <Route path="/collections" component={HomeCollection} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/deal/:id" component={DealDetailsPage} />
       <Route path="/search" component={SearchPage} />
