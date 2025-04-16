@@ -561,15 +561,50 @@ export default function HomePage() {
       {collections.length > 0 && (
         <div className="bg-gray-50 py-2">
           <div className="container mx-auto px-4">
-            {collections.map((collection, index) => (
-              <CollectionRow
-                key={`${collection.name}-${index}`}
-                title={collection.name}
-                description={collection.description}
-                deals={collection.deals}
-                userLocation={location}
-              />
-            ))}
+            {/* First, render the priority collections in exact order */}
+            {collections
+              .filter(collection => 
+                ["Active Happy Hours Nearby", "Beers Under $10", "Cocktails Under $15", "1-for-1 Deals"]
+                .includes(collection.name)
+              )
+              .sort((a, b) => {
+                // Define the priority order
+                const priorityOrder = [
+                  "Active Happy Hours Nearby", 
+                  "Beers Under $10", 
+                  "Cocktails Under $15", 
+                  "1-for-1 Deals"
+                ];
+                // Sort by priority index
+                return priorityOrder.indexOf(a.name) - priorityOrder.indexOf(b.name);
+              })
+              .map((collection, index) => (
+                <CollectionRow
+                  key={`priority-${collection.name}-${index}`}
+                  title={collection.name}
+                  description={collection.description}
+                  deals={collection.deals}
+                  userLocation={location}
+                />
+              ))
+            }
+            
+            {/* Then, render all other collections */}
+            {collections
+              .filter(collection => 
+                !["Active Happy Hours Nearby", "Beers Under $10", "Cocktails Under $15", "1-for-1 Deals"]
+                .includes(collection.name)
+              )
+              .map((collection, index) => (
+                <CollectionRow
+                  key={`other-${collection.name}-${index}`}
+                  title={collection.name}
+                  description={collection.description}
+                  deals={collection.deals}
+                  userLocation={location}
+                />
+              ))
+            }
           </div>
         </div>
       )}
