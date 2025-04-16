@@ -57,7 +57,7 @@ export default function CollectionRow({ title, deals, userLocation, onViewAllCli
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {deals.map((deal) => (
-            <div key={deal.id} className="flex-shrink-0 w-[150px] xs:w-[155px] sm:w-[175px] md:w-[180px] lg:w-[190px] xl:w-[200px] h-[270px]">
+            <div key={deal.id} className="flex-shrink-0 w-[150px] xs:w-[155px] sm:w-[175px] md:w-[180px] lg:w-[190px] xl:w-[200px] h-[220px]">
               <SquareDealCard deal={deal} userLocation={userLocation} />
             </div>
           ))}
