@@ -383,16 +383,22 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
                 </span>
               </div>
               {isActive && endTime && (
-                <span className="text-xs text-green-600 ml-3.5 flex items-center gap-1">
-                  <FaClock className="h-2.5 w-2.5" />
-                  <span>Ends: {endTime}</span>
-                </span>
+                <div className="flex items-center ml-3.5">
+                  <div className="w-2 h-2 invisible"></div> {/* Placeholder for alignment with dot above */}
+                  <span className="text-xs text-green-600 flex items-center gap-1 ml-1.5">
+                    <FaClock className="h-2.5 w-2.5" />
+                    <span>Ends: {endTime}</span>
+                  </span>
+                </div>
               )}
               {!isActive && hasHappyHourToday && startTime && (
-                <span className="text-xs text-yellow-600 ml-3.5 flex items-center gap-1">
-                  <FaClock className="h-2.5 w-2.5" />
-                  <span>Starts: {startTime}</span>
-                </span>
+                <div className="flex items-center ml-3.5">
+                  <div className="w-2 h-2 invisible"></div> {/* Placeholder for alignment with dot above */}
+                  <span className="text-xs text-yellow-600 flex items-center gap-1 ml-1.5">
+                    <FaClock className="h-2.5 w-2.5" />
+                    <span>Starts: {startTime}</span>
+                  </span>
+                </div>
               )}
             </div>
             
