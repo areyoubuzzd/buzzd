@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FiMapPin, FiEdit2, FiFilter } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 // Updated FilterType to match the new filter-bar component
 type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
@@ -290,10 +291,19 @@ export default function HomePage() {
   }, []);
 
   const handleLocationChange = (newLocation: { lat: number; lng: number }) => {
+    // IMPORTANT: This is the key function that updates location
+    console.log("Updating location to:", newLocation);
+    
+    // Update the location in state which will trigger all components to re-render
+    // with the new location coordinates
     setLocation(newLocation);
     
-    // In a real app, we'd recalculate deals based on new location
-    // For now, just simulate different number of deals
+    // Reset deals data to force a refresh based on new location
+    // This is key to making the location change work properly
+    // In a real app with an API, we'd refetch the data with new coordinates
+    queryClient.invalidateQueries({ queryKey: ['/api/deals/collections/all'] });
+    
+    // Simulate different number of deals
     setTotalDealsFound(Math.floor(Math.random() * 20) + 10);
   };
 
@@ -339,15 +349,30 @@ export default function HomePage() {
                     detail: { roadName: newLocation.trim() } 
                   }));
                   
-                  // Generate random coordinates for the new location
-                  const newLat = 1.3521 + (Math.random() * 0.04 - 0.02);
-                  const newLng = 103.8198 + (Math.random() * 0.04 - 0.02);
+                  // For demonstration, create deterministic coordinates based on the location name
+                  // In a real app, we'd use a geocoding API to get actual coordinates
+                  
+                  // Generate a hash code from the location string
+                  const hashCode = (str: string) => {
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) {
+                      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    return hash;
+                  };
+                  
+                  // Use the hash to generate coordinates within Singapore
+                  const locationHash = hashCode(newLocation.trim());
+                  // Singapore latitude range: roughly 1.2655 to 1.4255 (±0.08 from center 1.3455)
+                  // Singapore longitude range: roughly 103.6000 to 104.0400 (±0.22 from center 103.8200)
+                  const newLat = 1.3455 + ((locationHash % 100) / 1000);  // Small variation based on name
+                  const newLng = 103.8200 + ((locationHash % 100) / 500); // Wider variation for longitude
                   
                   // Show a confirmation message first
                   alert(`Location updated to: ${newLocation.trim()}`);
                   
-                  // Log the change
-                  console.log("Location changed to:", newLocation.trim());
+                  // Log the change with coordinates
+                  console.log(`Location changed to: ${newLocation.trim()} at coordinates: ${newLat.toFixed(6)}, ${newLng.toFixed(6)}`);
                   
                   // Update user interface with new location value
                   setLocation({ lat: newLat, lng: newLng });
@@ -358,7 +383,7 @@ export default function HomePage() {
                     handleLocationChange({ lat: newLat, lng: newLng });
                     
                     // No need to reload the page - this will refresh the data automatically
-                  }, 500);
+                  }, 300);
                 }
               }}
             >
