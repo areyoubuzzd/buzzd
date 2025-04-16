@@ -120,7 +120,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         onClick={handleCardClick}
         className="block text-inherit no-underline"
       >
-        <Card className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow rounded-xl cursor-pointer">
+        <Card className="overflow-hidden h-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-200 rounded-xl cursor-pointer">
           <div className="relative" style={{ height: 'calc(100% + 50px)' }}>
             {/* Deal image with category-based fallback */}
             <img 
