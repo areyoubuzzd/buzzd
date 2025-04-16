@@ -374,31 +374,37 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
           <div>
             <h3 className="font-medium text-base line-clamp-1">{name}</h3>
             
-            {/* Happy Hour status indicator */}
+            {/* Status badges */}
             <div className="mt-1.5 mb-2">
-              {/* Status indicator */}
-              <div className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+              {/* Active/Inactive status */}
+              <div className="flex items-center">
+                <div className={`w-2 h-2 rounded-full mr-1.5 ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
                 <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
                   {isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
               
-              {/* Time indicator with clock */}
+              {/* Time display */}
               {isActive && endTime && (
-                <div className="flex items-center mt-1 ml-3.5">
-                  <FaClock className="h-2.5 w-2.5 text-green-600" />
-                  <span className="text-xs text-green-600 ml-1">
-                    Ends: {endTime}
-                  </span>
+                <div className="flex mt-0.5">
+                  <div className="w-2 mr-1.5"></div>
+                  <div className="flex items-center">
+                    <FaClock className="h-2 w-2 text-green-600 mr-1" />
+                    <span className="text-xs text-green-600">
+                      Ends: {endTime}
+                    </span>
+                  </div>
                 </div>
               )}
               {!isActive && hasHappyHourToday && startTime && (
-                <div className="flex items-center mt-1 ml-3.5">
-                  <FaClock className="h-2.5 w-2.5 text-yellow-600" />
-                  <span className="text-xs text-yellow-600 ml-1">
-                    Starts: {startTime}
-                  </span>
+                <div className="flex mt-0.5">
+                  <div className="w-2 mr-1.5"></div>
+                  <div className="flex items-center">
+                    <FaClock className="h-2 w-2 text-yellow-600 mr-1" />
+                    <span className="text-xs text-yellow-600">
+                      Starts: {startTime}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
@@ -435,12 +441,18 @@ export function RestaurantCardSkeleton() {
         <div className="h-5 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3" />
         
         {/* Active status */}
-        <div className="flex flex-col mt-1.5 mb-2">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse"></div>
-            <div className="h-4 bg-gray-200 animate-pulse w-24 rounded-md"></div>
+        <div className="mt-1.5 mb-2">
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse mr-1.5"></div>
+            <div className="h-4 bg-gray-200 animate-pulse w-16 rounded-md"></div>
           </div>
-          <div className="h-4 bg-gray-200 animate-pulse w-20 rounded-md ml-3.5 mt-0.5"></div>
+          <div className="flex mt-0.5">
+            <div className="w-2 mr-1.5"></div>
+            <div className="flex items-center">
+              <div className="h-2 w-2 bg-gray-200 animate-pulse rounded-full mr-1"></div>
+              <div className="h-4 bg-gray-200 animate-pulse w-20 rounded-md"></div>
+            </div>
+          </div>
         </div>
         
         {/* Rating and distance */}
