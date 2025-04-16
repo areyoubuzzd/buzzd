@@ -118,41 +118,52 @@ export default function HomePage() {
     return distance;
   };
   
-  // Create collections from deals data
+  // Generate collections from deals data
   const collections = useMemo<Collection[]>(() => {
-    if (!dealsData) return [];
+    if (!dealsData || dealsData.length === 0) return [];
     
-    const allDeals = dealsData;
+    // Create a copy of the deals data to work with
+    const allDeals = [...dealsData];
     
-    // First get all unique collection tags from the deals
-    const uniqueCollections = new Set<string>();
-    allDeals.forEach(deal => {
-      if (deal.collections) {
-        deal.collections.split(',').map((c: string) => c.trim()).forEach((tag: string) => {
-          if (tag) uniqueCollections.add(tag);
-        });
+    // Define a function to check if a deal is active right now
+    const isDealActiveNow = (deal: Deal): boolean => {
+      const now = new Date();
+      const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const currentDayName = days[currentDay];
+      
+      // Simple check - if the day name is in valid_days
+      if (!deal.valid_days || !deal.valid_days.includes(currentDayName)) {
+        return false;
       }
-    });
+      
+      // Check if current time is within happy hour
+      const nowTime = now.getHours() * 100 + now.getMinutes();
+      const startTime = parseInt(deal.hh_start_time.replace(':', ''));
+      const endTime = parseInt(deal.hh_end_time.replace(':', ''));
+      
+      return nowTime >= startTime && nowTime <= endTime;
+    };
     
-    // Then create a collection for each unique tag
-    const collectionList: Collection[] = [];
-    
-    // Helper functions for creating collections
-    const calculateDistance = (establishmentId: number) => {
-      // Use same formula as in square-deal-card for consistent distance calculation
+    // Calculate distance based on establishment ID (simplified for demo)
+    const calculateDistance = (establishmentId: number): number => {
       const baseDistance = (establishmentId % 10) * 0.5 + 0.1;
       const userFactor = (location.lat + location.lng) % 1;
       return baseDistance * (1 + userFactor * 0.2);
     };
     
-    const enrichDeal = (deal: any) => ({
-      ...deal,
-      isActive: isDealActiveNow(deal),
-      distance: calculateDistance(deal.establishmentId)
-    });
+    // Enrich deals with active status and distance
+    const enrichDeals = (deals: Deal[]): (Deal & { isActive: boolean; distance: number })[] => {
+      return deals.map(deal => ({
+        ...deal,
+        isActive: isDealActiveNow(deal),
+        distance: calculateDistance(deal.establishmentId)
+      }));
+    };
     
-    const sortByActiveDistancePrice = (deals: any[]) => {
-      return deals.sort((a, b) => {
+    // Sort deals by active status (active first), then distance, then price
+    const sortDeals = (deals: (Deal & { isActive: boolean; distance: number })[]) => {
+      return [...deals].sort((a, b) => {
         // 1. Active deals first
         if (a.isActive && !b.isActive) return -1;
         if (!a.isActive && b.isActive) return 1;
@@ -167,177 +178,212 @@ export default function HomePage() {
       });
     };
     
-    // Create an array to track the collections we've added, in order
-    const addedCollections: string[] = [];
+    // The final array of collections we'll return
+    const result: Collection[] = [];
     
-    // 1. Add "Active Happy Hours Nearby" as the first collection (up to 5km range)
-    const activeHoursNearby = {
-      name: "Active Happy Hours Nearby",
-      description: "Currently active deals closest to you",
-      deals: (() => {
-        // First, get all deals and indicate if they're active
-        const allDealsWithStatus = allDeals.map(enrichDeal);
-        
-        // Filter to include only deals within 5km
-        const dealsWithin5km = allDealsWithStatus.filter(deal => deal.distance <= 5);
-        
-        // Sort all deals by: active status (active first), then distance, then price
-        const sortedDeals = sortByActiveDistancePrice(dealsWithin5km);
-        
-        // Now filter to avoid repeating restaurants
-        const includedEstablishments = new Set<number>();
-        const uniqueRestaurantDeals: typeof sortedDeals = [];
-        
-        // Add deals without repeating restaurants
-        // Exception: If all active deals are from the same restaurant, include them
-        const activeDeals = sortedDeals.filter(d => d.isActive);
-        const allActiveFromSameRestaurant = activeDeals.length > 0 && 
-          activeDeals.every(d => d.establishmentId === activeDeals[0].establishmentId);
-        
-        for (const deal of sortedDeals) {
-          // If all active deals are from same restaurant, include them all
-          if (deal.isActive && allActiveFromSameRestaurant) {
-            uniqueRestaurantDeals.push(deal);
-            continue;
-          }
-          
-          // Otherwise only include one deal per restaurant, prioritizing active deals
-          if (!includedEstablishments.has(deal.establishmentId)) {
-            uniqueRestaurantDeals.push(deal);
-            includedEstablishments.add(deal.establishmentId);
-          }
+    // Keep track of which collection names we've already used (case-insensitive)
+    const usedCollectionNames = new Set<string>();
+    
+    // =======================================================
+    // 1. Create "Active Happy Hours Nearby" collection (always first)
+    // =======================================================
+    
+    const activeHappyHoursDeals = (() => {
+      const enrichedDeals = enrichDeals(allDeals);
+      
+      // Filter to include only deals within 5km
+      const dealsWithin5km = enrichedDeals.filter(deal => deal.distance <= 5);
+      
+      // Sort by active status, distance, and price
+      const sortedDeals = sortDeals(dealsWithin5km);
+      
+      // Filter to avoid repeating restaurants
+      const includedEstablishments = new Set<number>();
+      const uniqueDeals: typeof sortedDeals = [];
+      
+      // Exception: If ALL active deals are from the same restaurant, include all of them
+      const activeDeals = sortedDeals.filter(d => d.isActive);
+      const allActiveFromSameRestaurant = activeDeals.length > 0 && 
+        activeDeals.every(d => d.establishmentId === activeDeals[0].establishmentId);
+      
+      for (const deal of sortedDeals) {
+        // If all active deals are from same place, include them all
+        if (deal.isActive && allActiveFromSameRestaurant) {
+          uniqueDeals.push(deal);
+          continue;
         }
         
-        // Finally, limit to 20 deals
-        return uniqueRestaurantDeals.slice(0, 20);
-      })()
-    };
-    
-    // Only add if it has deals
-    if (activeHoursNearby.deals.length > 0) {
-      collectionList.push(activeHoursNearby);
-      addedCollections.push(activeHoursNearby.name);
-    }
-    
-    // 2. Add location-aware fixed collections
-    
-    // Beers under $10 - location aware
-    const beersUnder10 = {
-      name: "Beers Under $10",
-      description: "Great beer deals under $10 near you",
-      deals: (() => {
-        const filteredDeals = allDeals
-          .filter(deal => deal.alcohol_category === "Beer" && deal.happy_hour_price < 10)
-          .map(enrichDeal);
-          
-        return sortByActiveDistancePrice(filteredDeals);
-      })()
-    };
-    
-    // Only add if it has deals
-    if (beersUnder10.deals.length > 0) {
-      collectionList.push(beersUnder10);
-      addedCollections.push(beersUnder10.name);
-    }
-    
-    // Cocktails under $15 - location aware
-    const cocktailsUnder15 = {
-      name: "Cocktails Under $15",
-      description: "Affordable cocktail deals near you",
-      deals: (() => {
-        const filteredDeals = allDeals
-          .filter(deal => deal.alcohol_category === "Cocktail" && deal.happy_hour_price < 15)
-          .map(enrichDeal);
-          
-        return sortByActiveDistancePrice(filteredDeals);
-      })()
-    };
-    
-    // Only add if it has deals
-    if (cocktailsUnder15.deals.length > 0) {
-      collectionList.push(cocktailsUnder15);
-      addedCollections.push(cocktailsUnder15.name);
-    }
-    
-    // 1-for-1 Deals - location aware
-    const oneForOneDeals = {
-      name: "1-for-1 Deals",
-      description: "Buy one get one free deals near you",
-      deals: (() => {
-        const filteredDeals = allDeals
-          .filter(deal => deal.is_one_for_one === true)
-          .map(enrichDeal);
-          
-        return sortByActiveDistancePrice(filteredDeals);
-      })()
-    };
-    
-    // Only add if it has deals
-    if (oneForOneDeals.deals.length > 0) {
-      collectionList.push(oneForOneDeals);
-      addedCollections.push(oneForOneDeals.name);
-    }
-    
-    // Note: We're skipping House Pour Wine and Premium Spirits as requested
-    
-    // Define our priority collection order - this must match the exact collection names
-    const priorityCollections = [
-      "Active Happy Hours Nearby",
-      "Beers Under $10",
-      "Cocktails Under $15",
-      "1-for-1 Deals"
-    ];
-    
-    // Track the tag-based collections separately
-    const tagBasedCollections: Collection[] = [];
-    
-    // Then create collections from tags
-    uniqueCollections.forEach(tag => {
-      // Skip if it matches ANY priority collection (using case-insensitive comparison)
-      // This ensures we don't create duplicate collections with slightly different naming
-      if (priorityCollections.some(pc => pc.toLowerCase() === tag.toLowerCase())) return;
+        // Otherwise only include one deal per restaurant
+        if (!includedEstablishments.has(deal.establishmentId)) {
+          uniqueDeals.push(deal);
+          includedEstablishments.add(deal.establishmentId);
+        }
+      }
       
-      // Skip if it's already been added to the collection list
-      if (collectionList.some(c => c.name === tag)) return;
+      // Limit to 20 deals max
+      return uniqueDeals.slice(0, 20);
+    })();
+    
+    // Only add if it has deals
+    if (activeHappyHoursDeals.length > 0) {
+      result.push({
+        name: "Active Happy Hours Nearby",
+        description: "Currently active deals closest to you",
+        deals: activeHappyHoursDeals
+      });
       
-      // Get deals for this tag
-      const dealsForTag = allDeals.filter(deal => 
-        deal.collections && 
-        deal.collections.split(',').map(c => c.trim()).includes(tag)
+      // Remember we've used this name
+      usedCollectionNames.add("active happy hours nearby");
+    }
+    
+    // =======================================================
+    // 2. Create "Beers Under $10" collection (always second)
+    // =======================================================
+    
+    const beersUnder10Deals = (() => {
+      // Filter to beer deals under $10
+      const filteredDeals = allDeals.filter(deal => 
+        deal.alcohol_category === "Beer" && deal.happy_hour_price < 10
       );
       
-      // Only add if it has deals
-      if (dealsForTag.length > 0) {
-        tagBasedCollections.push({
-          name: tag,
-          deals: dealsForTag
-        });
+      // Enrich and sort
+      return sortDeals(enrichDeals(filteredDeals));
+    })();
+    
+    // Only add if it has deals
+    if (beersUnder10Deals.length > 0) {
+      result.push({
+        name: "Beers Under $10",
+        description: "Great beer deals under $10 near you",
+        deals: beersUnder10Deals
+      });
+      
+      // Remember we've used this name
+      usedCollectionNames.add("beers under $10");
+    }
+    
+    // =======================================================
+    // 3. Create "Cocktails Under $15" collection (always third)
+    // =======================================================
+    
+    const cocktailsUnder15Deals = (() => {
+      // Filter to cocktail deals under $15
+      const filteredDeals = allDeals.filter(deal => 
+        deal.alcohol_category === "Cocktail" && deal.happy_hour_price < 15
+      );
+      
+      // Enrich and sort
+      return sortDeals(enrichDeals(filteredDeals));
+    })();
+    
+    // Only add if it has deals
+    if (cocktailsUnder15Deals.length > 0) {
+      result.push({
+        name: "Cocktails Under $15",
+        description: "Affordable cocktail deals near you",
+        deals: cocktailsUnder15Deals
+      });
+      
+      // Remember we've used this name
+      usedCollectionNames.add("cocktails under $15");
+    }
+    
+    // =======================================================
+    // 4. Create "1-for-1 Deals" collection (always fourth)
+    // =======================================================
+    
+    const oneForOneDeals = (() => {
+      // Filter to 1-for-1 deals
+      const filteredDeals = allDeals.filter(deal => deal.is_one_for_one === true);
+      
+      // Enrich and sort
+      return sortDeals(enrichDeals(filteredDeals));
+    })();
+    
+    // Only add if it has deals
+    if (oneForOneDeals.length > 0) {
+      result.push({
+        name: "1-for-1 Deals",
+        description: "Buy one get one free deals near you",
+        deals: oneForOneDeals
+      });
+      
+      // Remember we've used this name
+      usedCollectionNames.add("1-for-1 deals");
+    }
+    
+    // =======================================================
+    // 5. Create collections for all remaining tags
+    // =======================================================
+    
+    // Extract all unique tags from the deals' collections field
+    const allTags = new Set<string>();
+    
+    allDeals.forEach(deal => {
+      if (deal.collections) {
+        deal.collections.split(',')
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0)
+          .forEach(tag => allTags.add(tag));
       }
     });
     
-    // Sort tag-based collections by whether they have active deals, then alphabetically
-    const sortedTagCollections = tagBasedCollections.sort((a, b) => {
-      const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
-      const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
+    // Create a collection for each tag (if not already used)
+    const tagCollections: Collection[] = [];
+    
+    allTags.forEach(tag => {
+      // Skip if we already have a collection with this name (case insensitive)
+      if (usedCollectionNames.has(tag.toLowerCase())) {
+        return;
+      }
       
+      // Find all deals with this tag
+      const dealsWithTag = allDeals.filter(deal => 
+        deal.collections && 
+        deal.collections.split(',')
+          .map(t => t.trim())
+          .some(t => t.toLowerCase() === tag.toLowerCase())
+      );
+      
+      // Only create collection if it has deals
+      if (dealsWithTag.length > 0) {
+        const enrichedDeals = enrichDeals(dealsWithTag);
+        
+        tagCollections.push({
+          name: tag,
+          description: `${tag} deals near you`,
+          deals: sortDeals(enrichedDeals)
+        });
+        
+        // Remember we've used this tag
+        usedCollectionNames.add(tag.toLowerCase());
+      }
+    });
+    
+    // Sort tag collections - active deals first, then alphabetically
+    const sortedTagCollections = tagCollections.sort((a, b) => {
+      // Check if any deals in collection A are active
+      const aHasActiveDeals = a.deals.some(deal => 
+        (deal as unknown as { isActive: boolean }).isActive
+      );
+      
+      // Check if any deals in collection B are active
+      const bHasActiveDeals = b.deals.some(deal => 
+        (deal as unknown as { isActive: boolean }).isActive
+      );
+      
+      // If one has active deals but the other doesn't, show the active one first
       if (aHasActiveDeals && !bHasActiveDeals) return -1;
       if (!aHasActiveDeals && bHasActiveDeals) return 1;
       
+      // Otherwise sort alphabetically
       return a.name.localeCompare(b.name);
     });
     
-    // Filter our priority collections to only include those that have deals
-    const priorityCollectionsWithDeals = collectionList.filter(c => 
-      priorityCollections.includes(c.name) && c.deals.length > 0
-    );
+    // Add all tag collections after our priority collections
+    result.push(...sortedTagCollections);
     
-    // Ensure priority collections are in exact order specified
-    priorityCollectionsWithDeals.sort((a, b) => {
-      return priorityCollections.indexOf(a.name) - priorityCollections.indexOf(b.name);
-    });
-    
-    // Return priority collections first, followed by tag-based collections
-    return [...priorityCollectionsWithDeals, ...sortedTagCollections];
+    return result;
   }, [dealsData, location]);
 
   useEffect(() => {
