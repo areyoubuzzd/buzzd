@@ -6,7 +6,7 @@ import { useLocation } from "wouter";
 
 interface SquareDealCardProps {
   deal: any;
-  userLocation: { lat: number; lng: number };
+  userLocation?: { lat: number; lng: number };
 }
 
 export default function SquareDealCard({ deal, userLocation }: SquareDealCardProps) {

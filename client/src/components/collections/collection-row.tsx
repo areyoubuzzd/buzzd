@@ -6,11 +6,12 @@ import SquareDealCard from "@/components/deals/square-deal-card";
 interface CollectionRowProps {
   title: string;
   deals: any[];
-  userLocation: { lat: number; lng: number };
+  description?: string;
+  userLocation?: { lat: number; lng: number };
   onViewAllClick?: () => void;
 }
 
-export default function CollectionRow({ title, deals, userLocation, onViewAllClick }: CollectionRowProps) {
+export default function CollectionRow({ title, deals, description, userLocation, onViewAllClick }: CollectionRowProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Distribute deals so same restaurants aren't adjacent
