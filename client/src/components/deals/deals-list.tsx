@@ -123,20 +123,9 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
   const { user } = useAuth();
   const [showAllPremiumContent, setShowAllPremiumContent] = useState(false);
 
-  // Simulate fetching from API, but use our static data
+  // Fetch real deals from API
   const { data, isLoading, error } = useQuery({
-    queryKey: ["/api/deals/nearby", { lat: location?.lat, lng: location?.lng, filter: activeFilter }],
-    queryFn: async () => {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      return {
-        active: DUMMY_DEALS,
-        upcoming: [],
-        future: [],
-        subscription: { tier: user?.subscriptionTier || 'free', limit: 3, viewed: 0 }
-      };
-    },
+    queryKey: ["/api/deals/collections/all", { lat: location?.lat, lng: location?.lng, filter: activeFilter }],
     enabled: !!location?.lat && !!location?.lng,
   });
   
@@ -147,9 +136,10 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
   const filteredDeals = useMemo(() => {
     if (!data) return defaultDeals;
     
-    // Ensure data has the expected structure with fallbacks
+    // Handle the new API format where data is directly an array of deals
     const safeData = {
-      active: Array.isArray(data.active) ? data.active : [],
+      // If data is an array, use it directly as active deals
+      active: Array.isArray(data) ? data : Array.isArray(data.active) ? data.active : [],
       upcoming: Array.isArray(data.upcoming) ? data.upcoming : [],
       future: Array.isArray(data.future) ? data.future : [],
       subscription: data.subscription || { tier: 'free' }
@@ -160,15 +150,25 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
       
       switch (activeFilter) {
         case 'one-for-one':
-          return deals.filter(deal => deal && deal.isOneForOne);
+          return deals.filter(deal => deal && 
+            (deal.isOneForOne || 
+             (deal.collections && deal.collections.includes('one_for_one_deals'))));
         case 'high-savings':
-          return deals.filter(deal => deal && deal.savingsPercentage >= 30);
+          return deals.filter(deal => deal && 
+            (deal.savingsPercentage >= 30 || 
+             (deal.savings_percentage && deal.savings_percentage >= 30)));
         case 'beer':
-          return deals.filter(deal => deal && deal.drinkType === 'beer');
+          return deals.filter(deal => deal && 
+            (deal.drinkType === 'beer' || 
+             (deal.alcohol_category && deal.alcohol_category.toLowerCase() === 'beer')));
         case 'wine':
-          return deals.filter(deal => deal && deal.drinkType === 'wine');
+          return deals.filter(deal => deal && 
+            (deal.drinkType === 'wine' || 
+             (deal.alcohol_category && deal.alcohol_category.toLowerCase() === 'wine')));
         case 'whisky':
-          return deals.filter(deal => deal && deal.drinkType === 'whisky');
+          return deals.filter(deal => deal && 
+            (deal.drinkType === 'whisky' || 
+             (deal.alcohol_category && deal.alcohol_category.toLowerCase() === 'whisky')));
         case 'active':
         default:
           return deals;
@@ -193,6 +193,9 @@ export default function DealsList({ location, activeFilter }: DealsListProps) {
   // Count of all available deals for premium upsell
   const totalAvailableDeals = useMemo(() => {
     if (!data) return 0;
+    // If data is an array, use its length directly
+    if (Array.isArray(data)) return data.length;
+    // Otherwise try to access data.active
     return (data.active?.length || 0);
   }, [data]);
 
