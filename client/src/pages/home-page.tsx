@@ -210,25 +210,9 @@ export default function HomePage() {
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
-            <div 
-              className="flex items-center text-sm text-gray-600 cursor-pointer"
-              onClick={() => {
-                // Scroll up to the search bar
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                // Then focus the search box
-                setTimeout(() => {
-                  const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-                  if (searchInput) {
-                    searchInput.focus();
-                    searchInput.select();
-                  }
-                }, 100);
-              }}
-            >
+            <div className="flex items-center text-sm text-gray-600">
               <FiMapPin className="mr-1 h-4 w-4" />
               <span>{userRoadName || "Bukit Timah Road"}</span>
-              <FiEdit2 className="ml-1 h-3 w-3 text-blue-500" />
             </div>
             <div className="text-sm font-medium">
               {totalDealsFound} deals found
