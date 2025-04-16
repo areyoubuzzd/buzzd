@@ -65,14 +65,6 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     };
   }, [deal]);
 
-  // Format drink name - only use specific drink names, not generic ones
-  const drinkName = useMemo(() => {
-    // Only use drink_name if it's a specific drink (not ending with "Special")
-    return deal.drink_name && !deal.drink_name.endsWith("Special") 
-      ? deal.drink_name 
-      : null;
-  }, [deal]);
-
   // Get the appropriate default image based on alcohol category
   const getDefaultImage = useMemo(() => {
     const category = deal.alcohol_category?.toLowerCase() || '';
@@ -126,7 +118,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
             {/* Deal image with category-based fallback */}
             <img 
               src={deal.imageUrl || getDefaultImage} 
-              alt={drinkName || deal.alcohol_category || 'Happy Hour Deal'} 
+              alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
               className="w-full h-full object-cover"
             />
             
