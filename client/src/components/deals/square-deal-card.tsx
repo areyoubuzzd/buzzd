@@ -96,10 +96,15 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
 
   // Handle click to navigate to establishment details
   const handleCardClick = () => {
+    console.log("Square card clicked! Deal:", deal);
+    
     if (deal.establishmentId || (deal.establishment && deal.establishment.id)) {
       // Use either direct establishmentId or id from establishment object
       const establishmentId = deal.establishmentId || deal.establishment.id;
+      console.log("Navigating to establishment:", `/establishments/${establishmentId}`);
       setLocation(`/establishments/${establishmentId}`);
+    } else {
+      console.error("No establishment ID found to navigate to in square-deal-card!");
     }
   };
 

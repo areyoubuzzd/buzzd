@@ -407,14 +407,24 @@ function DealCard({
   const [, setLocation] = useLocation();
 
   const handleCardClick = () => {
+    // Log for debugging
+    console.log("Card clicked! Deal:", deal);
+    
     // If onViewDetails callback is provided, call it
     if (onViewDetails) {
+      console.log("Calling onViewDetails");
       onViewDetails(deal.id);
     }
     
     // Navigate to the establishment details page if establishmentId is available
     if (deal.establishmentId) {
+      console.log("Navigating to:", `/establishments/${deal.establishmentId}`);
       setLocation(`/establishments/${deal.establishmentId}`);
+    } else if (deal.establishment && deal.establishment.id) {
+      console.log("Navigating to establishment from nested property:", `/establishments/${deal.establishment.id}`);
+      setLocation(`/establishments/${deal.establishment.id}`);
+    } else {
+      console.error("No establishment ID found to navigate to!");
     }
   };
   
