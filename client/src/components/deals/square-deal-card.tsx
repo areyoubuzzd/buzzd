@@ -57,6 +57,8 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     const standardPrice = deal.standard_price || deal.regularPrice;
     const drinkName = deal.drink_name || '';
     
+    // Ensure we're using the correct format that matches what's shown on the screen
+    // Create a headline that includes both price and drink name in white text
     return {
       currentPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
       originalPrice: standardPrice ? `$${standardPrice}` : null,
