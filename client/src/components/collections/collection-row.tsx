@@ -53,11 +53,11 @@ export default function CollectionRow({ title, deals, userLocation, onViewAllCli
         {/* Scrollable container */}
         <div 
           ref={scrollContainerRef}
-          className="flex overflow-x-auto scrollbar-hide gap-3 py-2 px-4"
+          className="flex overflow-x-auto scrollbar-hide py-2 px-4 gap-x-4 sm:gap-x-2 md:gap-x-2 lg:gap-x-1 xl:gap-x-1"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {deals.map((deal) => (
-            <div key={deal.id} className="flex-shrink-0" style={{ width: 'calc(50% - 8px)' }}>
+            <div key={deal.id} className="flex-shrink-0 w-[150px] xs:w-[155px] sm:w-[175px] md:w-[180px] lg:w-[190px] xl:w-[200px]">
               <SquareDealCard deal={deal} userLocation={userLocation} />
             </div>
           ))}

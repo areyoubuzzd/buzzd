@@ -55,10 +55,9 @@ const isWithinHappyHour = (deal: Deal): boolean => {
   console.log(`Checking if we're within happy hour for ${deal.drink_name}`);
   console.log(`Valid days: ${deal.valid_days}, Hours: ${deal.hh_start_time} - ${deal.hh_end_time}`);
   
-  // Get the current date in Singapore time (GMT+8)
+  // Get the current date directly from the system time
+  // This should already be in the user's local timezone
   const now = new Date();
-  now.setUTCHours(now.getUTCHours() + 8); // Convert to Singapore time (GMT+8)
-  console.log(`Current Singapore time: ${now.toISOString()}`);
   
   // Get current day name
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -69,8 +68,44 @@ const isWithinHappyHour = (deal: Deal): boolean => {
   // Common formats: "Mon-Fri", "Mon,Tue,Thu", "Daily", "Weekends"
   let isDayValid = false;
   
-  // Always consider the day valid for now to debug time checks
-  isDayValid = true;
+  // Handle the "Daily" case
+  if (deal.valid_days.toLowerCase() === 'daily' || deal.valid_days.toLowerCase() === 'all days') {
+    isDayValid = true;
+  } 
+  // Handle "Weekends" case
+  else if (deal.valid_days.toLowerCase() === 'weekends') {
+    isDayValid = currentDay === 'Sat' || currentDay === 'Sun';
+  }
+  // Handle "Weekdays" case
+  else if (deal.valid_days.toLowerCase() === 'weekdays') {
+    isDayValid = currentDay !== 'Sat' && currentDay !== 'Sun';
+  }
+  // Handle ranges like "Mon-Fri"
+  else if (deal.valid_days.includes('-')) {
+    const [startDay, endDay] = deal.valid_days.split('-').map(d => d.trim());
+    const startIdx = days.findIndex(d => d === startDay);
+    const endIdx = days.findIndex(d => d === endDay);
+    const currentIdx = now.getDay();
+    
+    if (startIdx <= endIdx) {
+      isDayValid = currentIdx >= startIdx && currentIdx <= endIdx;
+    } else {
+      // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
+      isDayValid = currentIdx >= startIdx || currentIdx <= endIdx;
+    }
+  }
+  // Handle comma-separated lists like "Mon, Wed, Fri"
+  else if (deal.valid_days.includes(',')) {
+    const validDays = deal.valid_days.split(',').map(d => d.trim());
+    isDayValid = validDays.includes(currentDay);
+  }
+  // Handle single day
+  else {
+    isDayValid = deal.valid_days.trim() === currentDay;
+  }
+  
+  console.log(`Is day valid: ${isDayValid}`);
+  if (!isDayValid) return false;
   
   // Now check if current time is within happy hour
   const currentHour = now.getHours();
@@ -133,6 +168,9 @@ const isWithinHappyHour = (deal: Deal): boolean => {
   
   console.log(`Happy hour start time (in minutes): ${startTime}`);
   console.log(`Happy hour end time (in minutes): ${endTime}`);
+  
+  // For testing - set to true to force active state
+  // return true;
   
   // Check if current time is within happy hour range
   let isActive = false;
@@ -315,7 +353,7 @@ export default function EstablishmentDetailsPage() {
             <Link href={referrer}>
               <Button size="sm" variant="ghost" className="text-white hover:bg-white/20 mb-2">
                 <FaArrowLeft className="mr-2 h-4 w-4" />
-                Back to {referrer === '/restaurants' ? 'Restaurants' : 'Home'}
+                Back
               </Button>
             </Link>
           </div>
