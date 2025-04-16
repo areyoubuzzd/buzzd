@@ -170,7 +170,9 @@ export default function HomeCollection() {
     description: string;
     alcohol_category: string;
     alcohol_subcategory?: string;
+    establishmentId: number | null;
     establishment: {
+      id: number | null;
       name: string;
       latitude: number;
       longitude: number;
@@ -206,7 +208,9 @@ export default function HomeCollection() {
       description: deal.drink_name || "",
       alcohol_category: deal.alcohol_category || "other",
       alcohol_subcategory: deal.alcohol_subcategory || undefined,
+      establishmentId: deal.establishmentId || (deal.establishment?.id) || null,
       establishment: {
+        id: deal.establishment?.id || null,
         name: deal.establishment?.name || 'Unknown Venue',
         latitude: deal.establishment?.latitude || 1.3521,
         longitude: deal.establishment?.longitude || 103.8198,
