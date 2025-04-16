@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { heroes, getHeroImage } from "@/assets/heroes";
+import { useLocation } from "wouter";
 
 // Legacy function (not used anymore, using the imported getHeroImage instead)
 function _getDemoHeroImage(drinkType: string | undefined, brand?: string): string {
@@ -403,9 +404,17 @@ function DealCard({
     return name;
   }, [deal, priceDisplay]);
   
+  const [, setLocation] = useLocation();
+
   const handleCardClick = () => {
+    // If onViewDetails callback is provided, call it
     if (onViewDetails) {
       onViewDetails(deal.id);
+    }
+    
+    // Navigate to the establishment details page if establishmentId is available
+    if (deal.establishmentId) {
+      setLocation(`/establishments/${deal.establishmentId}`);
     }
   };
   

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { FiClock, FiMapPin } from "react-icons/fi";
 import { Card, CardContent } from "@/components/ui/card";
 import { calculateDistance } from "@/lib/location-utils";
+import { useLocation } from "wouter";
 
 interface SquareDealCardProps {
   deal: any;
@@ -9,6 +10,8 @@ interface SquareDealCardProps {
 }
 
 export default function SquareDealCard({ deal, userLocation }: SquareDealCardProps) {
+  // Use wouter's useLocation for navigation
+  const [, setLocation] = useLocation();
   // Calculate the distance between the user and the establishment
   const distance = useMemo(() => {
     if (deal.establishment?.latitude && deal.establishment?.longitude && userLocation) {
