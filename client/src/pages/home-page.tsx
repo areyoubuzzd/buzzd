@@ -137,27 +137,66 @@ export default function HomePage() {
     // Then create a collection for each unique tag
     const collectionList: Collection[] = [];
     
-    // Add "Active Happy Hours Nearby" as the first collection
+    // Add "Active Happy Hours Nearby" as the first collection with improved sorting
     collectionList.push({
       name: "Active Happy Hours Nearby",
       description: "Currently active deals closest to you",
-      deals: allDeals
-        .filter(deal => isDealActiveNow(deal))
-        .sort((a, b) => {
-          // Sort by distance for this collection
-          // For demonstration, generate distances based on establishment ID
-          const getDistanceFromUser = (establishmentId: number) => {
-            // Use same formula as in square-deal-card
+      deals: (() => {
+        // First, get all deals and indicate if they're active
+        const allDealsWithStatus = allDeals.map(deal => ({
+          ...deal,
+          isActive: isDealActiveNow(deal),
+          distance: (() => {
+            // Calculate distance using same formula as in square-deal-card
+            const establishmentId = deal.establishmentId;
             const baseDistance = (establishmentId % 10) * 0.5 + 0.1;
             const userFactor = (location.lat + location.lng) % 1;
             return baseDistance * (1 + userFactor * 0.2);
-          };
+          })()
+        }));
+        
+        // Sort all deals by: active status (active first), then distance, then price
+        const sortedDeals = allDealsWithStatus.sort((a, b) => {
+          // 1. Active deals first
+          if (a.isActive && !b.isActive) return -1;
+          if (!a.isActive && b.isActive) return 1;
           
-          const distA = getDistanceFromUser(a.establishmentId);
-          const distB = getDistanceFromUser(b.establishmentId);
+          // 2. Then by distance
+          if (a.distance !== b.distance) {
+            return a.distance - b.distance;
+          }
           
-          return distA - distB; // Sort by distance ascending
-        })
+          // 3. Then by price (cheaper first)
+          return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
+        });
+        
+        // Now filter to avoid repeating restaurants
+        const includedEstablishments = new Set<number>();
+        const uniqueRestaurantDeals: typeof sortedDeals = [];
+        
+        // Add deals without repeating restaurants
+        // Exception: If all active deals are from the same restaurant, include them
+        const activeDeals = sortedDeals.filter(d => d.isActive);
+        const allActiveFromSameRestaurant = activeDeals.length > 0 && 
+          activeDeals.every(d => d.establishmentId === activeDeals[0].establishmentId);
+        
+        for (const deal of sortedDeals) {
+          // If all active deals are from same restaurant, include them all
+          if (deal.isActive && allActiveFromSameRestaurant) {
+            uniqueRestaurantDeals.push(deal);
+            continue;
+          }
+          
+          // Otherwise only include one deal per restaurant, prioritizing active deals
+          if (!includedEstablishments.has(deal.establishmentId)) {
+            uniqueRestaurantDeals.push(deal);
+            includedEstablishments.add(deal.establishmentId);
+          }
+        }
+        
+        // Finally, limit to 20 deals
+        return uniqueRestaurantDeals.slice(0, 20);
+      })()
     });
     
     // Add other predefined collections
