@@ -52,7 +52,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   }, [deal]);
 
   // Format the price display separately for current and standard price
-  const { currentPrice, originalPrice, dealHeadline, formattedPrice, formattedDrinkName } = useMemo(() => {
+  const { currentPrice, originalPrice, dealHeadline } = useMemo(() => {
     const happyHourPrice = deal.happy_hour_price || deal.dealPrice;
     const standardPrice = deal.standard_price || deal.regularPrice;
     const drinkName = deal.drink_name || '';
@@ -60,10 +60,8 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     return {
       currentPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
       originalPrice: standardPrice ? `$${standardPrice}` : null,
+      // Combined headline in white text only - no separate styling
       dealHeadline: drinkName ? `$${happyHourPrice} ${drinkName}` : `$${happyHourPrice}`,
-      // Split the headline into price and drink name for separate styling
-      formattedPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
-      formattedDrinkName: drinkName || ''
     };
   }, [deal]);
 
