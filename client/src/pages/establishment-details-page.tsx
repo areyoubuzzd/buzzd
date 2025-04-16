@@ -170,6 +170,9 @@ export default function EstablishmentDetailsPage() {
   const [userPosition, setUserPosition] = useState(DEFAULT_POSITION);
   const [userDistance, setUserDistance] = useState<number | null>(null);
   
+  // Keep track of the referrer/previous page
+  const [referrer, setReferrer] = useState<string>("/");
+  
   // Fetch user location
   useEffect(() => {
     const getLocation = async () => {
@@ -203,6 +206,46 @@ export default function EstablishmentDetailsPage() {
       console.log("Establishment details loaded:", data);
     }
   }, [data]);
+  
+  // Detect the referrer page
+  useEffect(() => {
+    // Check the document referrer to see where the user came from
+    const previousPath = document.referrer;
+    console.log("Previous path from document.referrer:", previousPath);
+    
+    // Check if we can determine the source from local state or sessionStorage
+    const sourceFromSessionStorage = sessionStorage.getItem('lastVisitedPage');
+    console.log("Source from sessionStorage:", sourceFromSessionStorage);
+    
+    // If we have information about the referring page, use it
+    if (sourceFromSessionStorage && (sourceFromSessionStorage === '/restaurants' || sourceFromSessionStorage === '/')) {
+      setReferrer(sourceFromSessionStorage);
+      console.log("Setting referrer from sessionStorage:", sourceFromSessionStorage);
+    } else if (previousPath && previousPath.includes('/restaurants')) {
+      setReferrer('/restaurants');
+      console.log("Setting referrer to /restaurants based on document.referrer");
+    } else {
+      // Use a fallback based on the history object if available
+      try {
+        // If coming from '/restaurants', set that as the referrer
+        const currentUrl = window.location.href;
+        const isFromRestaurants = window.performance && 
+                                 window.performance.navigation && 
+                                 window.performance.navigation.type === 1 && 
+                                 currentUrl.includes('/restaurants');
+        
+        if (isFromRestaurants) {
+          setReferrer('/restaurants');
+          console.log("Setting referrer to /restaurants based on navigation timing");
+        } else {
+          // Default to home if we can't determine
+          console.log("No specific referrer detected, using default of '/'");
+        }
+      } catch (error) {
+        console.error("Error checking navigation:", error);
+      }
+    }
+  }, []);
   
   // Calculate distance when establishment data and user position are available
   useEffect(() => {
@@ -269,10 +312,10 @@ export default function EstablishmentDetailsPage() {
       >
         <div className="absolute inset-0 bg-black/40 flex items-end">
           <div className="p-4 text-white">
-            <Link href="/">
+            <Link href={referrer}>
               <Button size="sm" variant="ghost" className="text-white hover:bg-white/20 mb-2">
                 <FaArrowLeft className="mr-2 h-4 w-4" />
-                Back
+                Back to {referrer === '/restaurants' ? 'Restaurants' : 'Home'}
               </Button>
             </Link>
           </div>

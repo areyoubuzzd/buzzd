@@ -25,6 +25,10 @@ export default function HomePage() {
   const [userRoadName, setUserRoadName] = useState<string>(""); // Added road name state
 
   useEffect(() => {
+    // Store the current page in sessionStorage for proper back navigation
+    sessionStorage.setItem('lastVisitedPage', '/');
+    console.log('Set lastVisitedPage to / in sessionStorage');
+    
     // Try to get user's location on mount
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { RestaurantCard, RestaurantCardSkeleton } from '@/components/restaurants/restaurant-card';
 import Navigation from '@/components/layout/navigation';
@@ -20,6 +20,12 @@ interface Establishment {
 
 export default function RestaurantsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Store the current page in sessionStorage for proper back navigation
+  useEffect(() => {
+    sessionStorage.setItem('lastVisitedPage', '/restaurants');
+    console.log('Set lastVisitedPage to /restaurants in sessionStorage');
+  }, []);
   
   const { 
     data: establishments, 
