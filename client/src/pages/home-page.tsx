@@ -207,44 +207,38 @@ export default function HomePage() {
       
       <FilterBar activeFilter={activeFilter} onFilterChange={handleFilterChange} />
       
-      {/* Inline location display with editable field */}
+      {/* Inline location display as text with edit icon */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
           <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm text-gray-600 relative">
-              <FiMapPin className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  // Update coordinates with some randomness (simulating geocoding)
+            <div 
+              className="flex items-center text-sm text-gray-600 cursor-pointer pl-6 relative"
+              onClick={() => {
+                // Create a prompt for entering a new location
+                const newLocation = prompt("Enter a new location:", userRoadName || "");
+                if (newLocation && newLocation.trim()) {
+                  // Update the location name
+                  setUserRoadName(newLocation.trim());
+                  
+                  // Dispatch event to update location name
+                  window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+                    detail: { roadName: newLocation.trim() } 
+                  }));
+                  
+                  // Generate random coordinates for the new location
                   const newLat = 1.3521 + (Math.random() * 0.04 - 0.02);
                   const newLng = 103.8198 + (Math.random() * 0.04 - 0.02);
+                  
+                  // Update location and trigger a UI refresh
                   handleLocationChange({ lat: newLat, lng: newLng });
-                }}
-                className="flex items-center"
-              >
-                <input
-                  type="text"
-                  className="pl-7 pr-6 py-1 rounded-lg border border-gray-200 text-sm w-full min-w-[150px] focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                  placeholder="Enter location"
-                  value={userRoadName || ""}
-                  onChange={(e) => {
-                    // Dispatch event to update location name
-                    window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
-                      detail: { roadName: e.target.value } 
-                    }));
-                    setUserRoadName(e.target.value);
-                  }}
-                  onBlur={(e) => {
-                    if (e.target.value.trim()) {
-                      // Update coordinates with some randomness (simulating geocoding)
-                      const newLat = 1.3521 + (Math.random() * 0.04 - 0.02);
-                      const newLng = 103.8198 + (Math.random() * 0.04 - 0.02);
-                      handleLocationChange({ lat: newLat, lng: newLng });
-                    }
-                  }}
-                />
-              </form>
+                  
+                  console.log("Location changed to:", newLocation.trim());
+                }
+              }}
+            >
+              <FiMapPin className="absolute left-0 top-1/2 transform -translate-y-1/2 h-4 w-4" />
+              <span className="mr-1">{userRoadName || "Singapore"}</span>
+              <FiEdit2 className="h-3 w-3 text-blue-500 inline-block" />
             </div>
             <Button 
               type="button" 
