@@ -88,30 +88,25 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
           style={{ backgroundImage: `url(${imageUrlToUse})` }}
         />
         <CardContent className="p-5 flex-grow">
-          <div className="flex justify-between items-start">
-            <h3 className="font-bold text-lg line-clamp-1">{name}</h3>
-            {rating && (
-              <div className="flex items-center gap-1 text-yellow-500">
-                <FaStar />
-                <span>{rating.toFixed(1)}</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-2 flex flex-wrap gap-2 items-center">
-            <Badge variant="outline" className="bg-primary/10">{cuisine}</Badge>
+          <div>
+            <h3 className="font-medium text-base line-clamp-1">{name}</h3>
             
-            {userDistance !== null && (
-              <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
-                <FaWalking className="h-3 w-3" />
-                {formatDistance(userDistance)}
-              </Badge>
-            )}
+            <div className="mt-2 flex flex-wrap gap-2 items-center">
+              {rating && (
+                <Badge variant="outline" className="flex items-center gap-1 bg-yellow-50 text-yellow-700 border-yellow-200">
+                  <FaStar className="h-3 w-3" />
+                  <span>{rating.toFixed(1)}</span>
+                </Badge>
+              )}
+              
+              {userDistance !== null && (
+                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                  <FaWalking className="h-3 w-3" />
+                  {formatDistance(userDistance)}
+                </Badge>
+              )}
+            </div>
           </div>
-          
-          {shouldShowDescription && (
-            <p className="mt-3 text-sm text-gray-600 line-clamp-2">{description}</p>
-          )}
         </CardContent>
       </Card>
     </Link>
@@ -123,10 +118,11 @@ export function RestaurantCardSkeleton() {
     <Card className="overflow-hidden h-full flex flex-col rounded-xl">
       <div className="aspect-square bg-gray-200 animate-pulse w-full" />
       <CardContent className="p-5 flex-grow">
-        <div className="h-6 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3" />
-        <div className="h-4 bg-gray-200 animate-pulse w-full rounded-md mb-4" />
-        <div className="h-6 bg-gray-200 animate-pulse w-1/3 rounded-md mb-3" />
-        <div className="h-4 bg-gray-200 animate-pulse w-full rounded-md" />
+        <div className="h-5 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3" />
+        <div className="flex gap-2 mt-2">
+          <div className="h-6 bg-gray-200 animate-pulse w-16 rounded-full" />
+          <div className="h-6 bg-gray-200 animate-pulse w-16 rounded-full" />
+        </div>
       </CardContent>
     </Card>
   );
