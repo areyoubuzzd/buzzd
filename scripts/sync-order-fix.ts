@@ -106,14 +106,16 @@ async function importEstablishments() {
     
     // Create establishments in database
     const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-    const results = [];
+    const results: any[] = [];
     
     for (const row of rows) {
+      const restaurant_name = row.get('restaurant name') || row.get('name') || row.get('restaurantName') || 'Unknown Restaurant';
+      
       const establishment = {
-        name: row.get('name') || row.get('restaurantName') || 'Unknown Restaurant',
-        description: row.get('description') || 'Restaurant in Singapore',
-        address: row.get('address') || '',
-        city: row.get('city') || 'Singapore',
+        name: restaurant_name,
+        description: row.get('description') || `${restaurant_name} - Restaurant in Singapore`,
+        address: row.get('full address') || row.get('address') || '',
+        city: row.get('city') || row.get('Area') || 'Singapore',
         postalCode: row.get('postalCode') || row.get('postal_code') || '',
         
         // Geolocation
@@ -126,8 +128,8 @@ async function importEstablishments() {
         
         cuisine: row.get('cuisine') || row.get('type') || 'Restaurant & Bar',
         
-        // Important: external_id for reference
-        external_id: row.get('external_id') || row.get('id') || null
+        // Important: external_id for reference - use restaurant_id from sheet
+        external_id: row.get('restaurant_id') || row.get('external_id') || row.get('id') || null
       };
       
       try {
@@ -222,7 +224,7 @@ async function importDeals() {
     
     // Load the rows from the sheet
     const rows = await dealsSheet.getRows();
-    const results = [];
+    const results: any[] = [];
     
     // Log the header row to see what columns we have
     if (rows.length > 0) {
