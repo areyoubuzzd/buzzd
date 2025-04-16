@@ -4,12 +4,24 @@ import { storage } from '../storage';
 const router = express.Router();
 
 /**
- * Get all establishments (restaurants, bars, etc.)
+ * Get all establishments (restaurants, bars, etc.) with their active deals
  */
 router.get('/', async (req, res) => {
   try {
     const establishments = await storage.getAllEstablishments();
-    res.json(establishments);
+    
+    // For each establishment, fetch its active deals
+    const establishmentsWithDeals = await Promise.all(
+      establishments.map(async (establishment) => {
+        const activeDeals = await storage.getActiveDealsForEstablishment(establishment.id);
+        return {
+          ...establishment,
+          activeDeals
+        };
+      })
+    );
+    
+    res.json(establishmentsWithDeals);
   } catch (error) {
     console.error("Error fetching establishments:", error);
     res.status(500).json({ message: "Failed to fetch establishments" });
@@ -18,6 +30,7 @@ router.get('/', async (req, res) => {
 
 /**
  * Get nearby establishments with optional radius parameter
+ * Include active deals for each establishment
  */
 router.get('/nearby', async (req, res) => {
   try {
@@ -31,7 +44,18 @@ router.get('/nearby', async (req, res) => {
     
     const establishments = await storage.getEstablishmentsNearby(latitude, longitude, radius);
     
-    res.json(establishments);
+    // For each establishment, fetch its active deals
+    const establishmentsWithDeals = await Promise.all(
+      establishments.map(async (establishment) => {
+        const activeDeals = await storage.getActiveDealsForEstablishment(establishment.id);
+        return {
+          ...establishment,
+          activeDeals
+        };
+      })
+    );
+    
+    res.json(establishmentsWithDeals);
   } catch (error) {
     console.error("Error fetching nearby establishments:", error);
     res.status(500).json({ message: "Failed to fetch nearby establishments" });
