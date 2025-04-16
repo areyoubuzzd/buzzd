@@ -206,35 +206,15 @@ export default function HomePage() {
       
       <FilterBar activeFilter={activeFilter} onFilterChange={handleFilterChange} />
       
-      {/* Inline location button */}
+      {/* Inline location display */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center text-sm text-gray-600">
-                <FiMapPin className="mr-1 h-4 w-4" />
-                <span>{userRoadName || "Bukit Timah Road"}</span>
-              </div>
-              <div className="text-sm font-medium">
-                {totalDealsFound} deals found
-              </div>
-            </div>
-            
-            <button 
+          <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center text-sm text-gray-600 cursor-pointer"
               onClick={() => {
                 // Scroll up to the search bar
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                // Generate random coordinates to simulate a location change
-                const randomOffset = () => (Math.random() * 0.04) - 0.02;
-                const newLat = 1.3521 + randomOffset();
-                const newLng = 103.8198 + randomOffset();
-                
-                // First update the location
-                handleLocationChange({
-                  lat: newLat,
-                  lng: newLng
-                });
                 
                 // Then focus the search box
                 setTimeout(() => {
@@ -245,11 +225,14 @@ export default function HomePage() {
                   }
                 }, 100);
               }}
-              className="text-center text-sm text-blue-600 py-2 px-4 bg-blue-50 rounded-md border border-blue-100 hover:bg-blue-100 flex items-center justify-center w-full"
             >
-              <span className="mr-2">Change location</span>
-              <FiEdit2 className="h-3 w-3" />
-            </button>
+              <FiMapPin className="mr-1 h-4 w-4" />
+              <span>{userRoadName || "Bukit Timah Road"}</span>
+              <FiEdit2 className="ml-1 h-3 w-3 text-blue-500" />
+            </div>
+            <div className="text-sm font-medium">
+              {totalDealsFound} deals found
+            </div>
           </div>
         </div>
       </div>
