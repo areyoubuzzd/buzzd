@@ -167,8 +167,11 @@ export default function HomePage() {
       });
     };
     
+    // Create an array to track the collections we've added, in order
+    const addedCollections: string[] = [];
+    
     // 1. Add "Active Happy Hours Nearby" as the first collection (up to 5km range)
-    collectionList.push({
+    const activeHoursNearby = {
       name: "Active Happy Hours Nearby",
       description: "Currently active deals closest to you",
       deals: (() => {
@@ -208,11 +211,18 @@ export default function HomePage() {
         // Finally, limit to 20 deals
         return uniqueRestaurantDeals.slice(0, 20);
       })()
-    });
+    };
+    
+    // Only add if it has deals
+    if (activeHoursNearby.deals.length > 0) {
+      collectionList.push(activeHoursNearby);
+      addedCollections.push(activeHoursNearby.name);
+    }
     
     // 2. Add location-aware fixed collections
+    
     // Beers under $10 - location aware
-    collectionList.push({
+    const beersUnder10 = {
       name: "Beers Under $10",
       description: "Great beer deals under $10 near you",
       deals: (() => {
@@ -222,10 +232,16 @@ export default function HomePage() {
           
         return sortByActiveDistancePrice(filteredDeals);
       })()
-    });
+    };
+    
+    // Only add if it has deals
+    if (beersUnder10.deals.length > 0) {
+      collectionList.push(beersUnder10);
+      addedCollections.push(beersUnder10.name);
+    }
     
     // Cocktails under $15 - location aware
-    collectionList.push({
+    const cocktailsUnder15 = {
       name: "Cocktails Under $15",
       description: "Affordable cocktail deals near you",
       deals: (() => {
@@ -235,10 +251,16 @@ export default function HomePage() {
           
         return sortByActiveDistancePrice(filteredDeals);
       })()
-    });
+    };
+    
+    // Only add if it has deals
+    if (cocktailsUnder15.deals.length > 0) {
+      collectionList.push(cocktailsUnder15);
+      addedCollections.push(cocktailsUnder15.name);
+    }
     
     // 1-for-1 Deals - location aware
-    collectionList.push({
+    const oneForOneDeals = {
       name: "1-for-1 Deals",
       description: "Buy one get one free deals near you",
       deals: (() => {
@@ -248,42 +270,15 @@ export default function HomePage() {
           
         return sortByActiveDistancePrice(filteredDeals);
       })()
-    });
+    };
     
-    // 3. Additional collections prioritizing active deals but ignoring distance
-    collectionList.push({
-      name: "House Pour Wine",
-      description: "Wine deals at happy hour prices",
-      deals: (() => {
-        const filteredDeals = allDeals
-          .filter(deal => deal.alcohol_category === "Wine" && deal.is_house_pour === true)
-          .map(deal => ({ ...deal, isActive: isDealActiveNow(deal) }));
-          
-        // Sort by active status first, then by price
-        return filteredDeals.sort((a, b) => {
-          if (a.isActive && !b.isActive) return -1;
-          if (!a.isActive && b.isActive) return 1;
-          return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
-        });
-      })()
-    });
+    // Only add if it has deals
+    if (oneForOneDeals.deals.length > 0) {
+      collectionList.push(oneForOneDeals);
+      addedCollections.push(oneForOneDeals.name);
+    }
     
-    collectionList.push({
-      name: "Premium Spirits",
-      description: "Top-shelf liquor deals",
-      deals: (() => {
-        const filteredDeals = allDeals
-          .filter(deal => deal.alcohol_category === "Spirits" && deal.is_house_pour === false)
-          .map(deal => ({ ...deal, isActive: isDealActiveNow(deal) }));
-          
-        // Sort by active status first, then by price
-        return filteredDeals.sort((a, b) => {
-          if (a.isActive && !b.isActive) return -1;
-          if (!a.isActive && b.isActive) return 1;
-          return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
-        });
-      })()
-    });
+    // Note: We're skipping House Pour Wine and Premium Spirits as requested
     
     // Then create collections from tags
     uniqueCollections.forEach(tag => {
@@ -304,9 +299,7 @@ export default function HomePage() {
       "Active Happy Hours Nearby",
       "Beers Under $10",
       "Cocktails Under $15",
-      "1-for-1 Deals",
-      "House Pour Wine",
-      "Premium Spirits"
+      "1-for-1 Deals"
     ];
     
     // Get only collections with at least one deal
