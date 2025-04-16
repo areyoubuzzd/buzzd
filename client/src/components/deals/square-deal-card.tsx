@@ -60,7 +60,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     return {
       currentPrice: happyHourPrice ? `$${happyHourPrice}` : 'Special Price',
       originalPrice: standardPrice ? `$${standardPrice}` : null,
-      dealHeadline: drinkName ? `$${happyHourPrice} ${drinkName}` : `$${happyHourPrice} Special`
+      dealHeadline: drinkName ? `$${happyHourPrice} ${drinkName}` : `$${happyHourPrice}`
     };
   }, [deal]);
 
@@ -137,7 +137,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
             {/* Overlay with all information - covering 45% of the card from bottom */}
             <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-3">
               {/* Deal headline using Fredoka One font - extra bold */}
-              <h2 className="font-['Fredoka_One'] text-base text-white leading-5 mb-1.5 line-clamp-2">
+              <h2 className="font-['Fredoka_One'] text-sm text-white leading-tight mb-1.5 line-clamp-1 truncate">
                 {dealHeadline}
               </h2>
               
