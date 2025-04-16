@@ -5,7 +5,7 @@ import FilterBar from "@/components/layout/filter-bar";
 import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
-import DealsList from "@/components/deals/deals-list";
+// Removed import for DealsList which was using dummy data
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FiMapPin, FiEdit2, FiFilter } from "react-icons/fi";
@@ -509,11 +509,7 @@ export default function HomePage() {
         </div>
       )}
       
-      {/* Regular deals list */}
-      <DealsList 
-        location={location} 
-        activeFilter={activeFilter}
-      />
+      {/* Removed regular deals list to avoid showing dummy data */}
       
       {/* Inline WhatsApp Contact */}
       <div 
