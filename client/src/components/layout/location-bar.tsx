@@ -50,12 +50,12 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
   const [currentLocation, setCurrentLocation] = useState<string>("");
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-  const [placeholderText, setPlaceholderText] = useState<string>("Search by location or drink type");
+  const [placeholderText, setPlaceholderText] = useState<string>("Enter any area, road or location");
   const [selectedFilters, setSelectedFilters] = useState<(typeof SEARCH_SUGGESTIONS[0])[]>([]);
   
   // Rotate placeholder text to show different options
   useEffect(() => {
-    const placeholders = ["Beer", "Tanjong Pagar", "1-for-1 deals", "Whisky", "Orchard Road"];
+    const placeholders = ["Tanjong Pagar", "Orchard Road", "Holland Village", "Bukit Timah", "Raffles Place", "any location name"];
     let index = 0;
     
     const intervalId = setInterval(() => {
@@ -148,53 +148,26 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
     e.preventDefault();
     setShowSuggestions(false);
     
-    // In a real app, you'd process this search term
-    // For now, just update the current location/search term
+    // Process free text location search
     if (searchInput) {
-      console.log(`Searching for: ${searchInput}`);
+      console.log(`Searching for location: ${searchInput}`);
       
-      // If it looks like a location or postal code
-      // First check if it's one of our predefined locations
-      const locationSuggestion = SEARCH_SUGGESTIONS.find(
-        suggestion => suggestion.type === 'location' && 
-        suggestion.label.toLowerCase().includes(searchInput.toLowerCase())
-      );
+      // Treat any input as a location search
+      setCurrentLocation(searchInput);
       
-      if (locationSuggestion) {
-        // Simulate location change from predefined location
-        setCurrentLocation(locationSuggestion.label);
-        
-        // Dispatch event to update the location displayed in the home page
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
-            detail: { roadName: locationSuggestion.label } 
-          }));
-        }
-        
-        // Use Singapore coordinates with a slight offset for simulation
-        // In a real app, you'd use geocoding here
-        onLocationChange({ 
-          lat: 1.3521 + (Math.random() * 0.02 - 0.01),
-          lng: 103.8198 + (Math.random() * 0.02 - 0.01)
-        });
-      } else {
-        // Treat as a custom location (could be postal code or any text)
-        setCurrentLocation(searchInput);
-        
-        // Dispatch event to update the location displayed in the home page
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
-            detail: { roadName: searchInput } 
-          }));
-        }
-        
-        // For a real app, we would geocode this text to get coordinates
-        // For now, use Singapore coordinates with slight variation
-        onLocationChange({ 
-          lat: 1.3521 + (Math.random() * 0.02 - 0.01),
-          lng: 103.8198 + (Math.random() * 0.02 - 0.01)
-        });
+      // Dispatch event to update the location displayed in the home page
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+          detail: { roadName: searchInput } 
+        }));
       }
+      
+      // For a real app, we would geocode this text to get coordinates
+      // For now, use Singapore coordinates with slight variation
+      onLocationChange({ 
+        lat: 1.3521 + (Math.random() * 0.02 - 0.01),
+        lng: 103.8198 + (Math.random() * 0.02 - 0.01)
+      });
     }
     
     setSearchInput("");
@@ -280,8 +253,16 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
               <PopoverContent className="p-0 w-[350px]" align="start">
                 <Command>
                   <CommandList>
-                    <CommandEmpty>No results found.</CommandEmpty>
-                    <CommandGroup heading="Locations">
+                    <CommandEmpty>
+                      <div className="p-4 text-center">
+                        <p className="text-sm text-gray-500 mb-2">No matching suggestions found.</p>
+                        <p className="text-xs text-primary">Type any location name and press Enter to search.</p>
+                      </div>
+                    </CommandEmpty>
+                    <CommandGroup heading="Suggested Locations">
+                      <div className="px-2 py-1.5">
+                        <p className="text-xs text-gray-500 italic mb-2">You can search for any location, area or postal code in Singapore</p>
+                      </div>
                       {SEARCH_SUGGESTIONS
                         .filter(s => s.type === 'location')
                         .filter(s => !searchInput || s.label.toLowerCase().includes(searchInput.toLowerCase()))
