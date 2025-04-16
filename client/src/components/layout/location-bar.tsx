@@ -106,9 +106,28 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
       // This is a placeholder for actual reverse geocoding
       // In a real app, you'd use Google Maps Geocoding API or similar
       
-      // Use hardcoded values for now - this would use Google Maps API in production
-      const postalCode = "138634"; 
-      const roadName = "Bukit Timah Road";
+      // Use different sample locations based on coordinates to simulate real geocoding
+      // This makes the demo feel more realistic
+      let postalCode, roadName;
+      
+      // Use slight variations to determine different locations
+      if (latitude > 1.36) {
+        postalCode = "238835";
+        roadName = "Orchard Road";
+      } else if (latitude < 1.34) {
+        postalCode = "049483";
+        roadName = "Raffles Place";
+      } else if (longitude > 103.85) {
+        postalCode = "018989";
+        roadName = "Marina Bay";
+      } else if (longitude < 103.80) {
+        postalCode = "117439";
+        roadName = "Holland Village";
+      } else {
+        postalCode = "138634";
+        roadName = "Bukit Timah Road";
+      }
+      
       console.log("Setting current location to:", roadName);
       setCurrentLocation(roadName);
       

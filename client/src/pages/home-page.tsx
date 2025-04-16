@@ -117,7 +117,21 @@ export default function HomePage() {
             
             <button 
               onClick={() => {
+                // Scroll up to the search bar
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Generate random coordinates to simulate a location change
+                const randomOffset = () => (Math.random() * 0.04) - 0.02;
+                const newLat = 1.3521 + randomOffset();
+                const newLng = 103.8198 + randomOffset();
+                
+                // First update the location
+                handleLocationChange({
+                  lat: newLat,
+                  lng: newLng
+                });
+                
+                // Then focus the search box
                 setTimeout(() => {
                   const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
                   if (searchInput) {
