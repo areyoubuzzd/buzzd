@@ -32,6 +32,41 @@ interface RestaurantCardProps {
 }
 
 // Helper function to check if a deal is active now
+// Format time from "17:00" or "1700" to "5:00 PM"
+function formatTimeForDisplay(timeStr: string): string {
+  let hours = 0;
+  let minutes = 0;
+  
+  if (timeStr.includes(':')) {
+    const [hoursStr, minutesStr] = timeStr.split(':');
+    hours = parseInt(hoursStr);
+    minutes = parseInt(minutesStr);
+  } else {
+    // Format like "1700"
+    if (timeStr.length <= 2) {
+      // Just hours like "9" or "17"
+      hours = parseInt(timeStr);
+      minutes = 0;
+    } else if (timeStr.length === 3) {
+      // Format like "930" (9:30)
+      hours = parseInt(timeStr.substring(0, 1));
+      minutes = parseInt(timeStr.substring(1));
+    } else {
+      // Format like "0930" or "1700"
+      hours = parseInt(timeStr.substring(0, 2));
+      minutes = parseInt(timeStr.substring(2));
+    }
+  }
+  
+  // Format with AM/PM
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // Convert 0 to 12
+  const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+  
+  return `${hours}:${minutesStr} ${ampm}`;
+}
+
 function isWithinHappyHour(deal: Deal): boolean {
   if (!deal) return false;
   
@@ -168,12 +203,125 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
   // State for user distance
   const [userDistance, setUserDistance] = useState<number | null>(null);
   
-  // Check if any deal is active now
-  const isActive = useMemo(() => {
+  // Get happy hour status and times
+  const happyHourInfo = useMemo(() => {
     console.log(`Checking active status for ${name}, deals:`, activeDeals);
-    if (!activeDeals || activeDeals.length === 0) return false;
-    return activeDeals.some(deal => isWithinHappyHour(deal));
+    if (!activeDeals || activeDeals.length === 0) {
+      return { isActive: false, endTime: null, startTime: null, hasHappyHourToday: false };
+    }
+    
+    // Check which deals are active now
+    const now = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const currentDay = days[now.getDay()];
+    
+    // Get all deals valid today
+    const dealsForToday = activeDeals.filter(deal => {
+      // Daily
+      if (deal.valid_days.toLowerCase() === 'daily' || deal.valid_days.toLowerCase() === 'all days') {
+        return true;
+      }
+      // Weekends
+      if (deal.valid_days.toLowerCase() === 'weekends' && (currentDay === 'Sat' || currentDay === 'Sun')) {
+        return true;
+      }
+      // Weekdays
+      if (deal.valid_days.toLowerCase() === 'weekdays' && currentDay !== 'Sat' && currentDay !== 'Sun') {
+        return true;
+      }
+      // Ranges like "Mon-Fri"
+      if (deal.valid_days.includes('-')) {
+        const [startDay, endDay] = deal.valid_days.split('-').map(d => d.trim());
+        const startIdx = days.findIndex(d => d === startDay);
+        const endIdx = days.findIndex(d => d === endDay);
+        const currentIdx = now.getDay();
+        
+        if (startIdx <= endIdx) {
+          return currentIdx >= startIdx && currentIdx <= endIdx;
+        } else {
+          // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
+          return currentIdx >= startIdx || currentIdx <= endIdx;
+        }
+      }
+      // Comma-separated lists like "Mon, Wed, Fri"
+      if (deal.valid_days.includes(',')) {
+        const validDays = deal.valid_days.split(',').map(d => d.trim());
+        return validDays.includes(currentDay);
+      }
+      // Single day
+      return deal.valid_days.trim() === currentDay;
+    });
+    
+    // Check if any deals are active now
+    const activeDealsNow = dealsForToday.filter(deal => isWithinHappyHour(deal));
+    const isActive = activeDealsNow.length > 0;
+    
+    // Find the earliest start time and latest end time for today's deals
+    let latestEndTime = null;
+    let earliestStartTime = null;
+    
+    if (dealsForToday.length > 0) {
+      if (isActive) {
+        // For active deals, find the latest end time
+        latestEndTime = dealsForToday
+          .filter(deal => isWithinHappyHour(deal))
+          .sort((a, b) => {
+            // Convert end times to minutes and compare
+            let aEndMinutes = 0;
+            let bEndMinutes = 0;
+            
+            if (a.hh_end_time.includes(':')) {
+              const [hours, minutes] = a.hh_end_time.split(':').map(Number);
+              aEndMinutes = hours * 60 + minutes;
+            } else {
+              aEndMinutes = parseInt(a.hh_end_time.substring(0, 2)) * 60 + parseInt(a.hh_end_time.substring(2) || '0');
+            }
+            
+            if (b.hh_end_time.includes(':')) {
+              const [hours, minutes] = b.hh_end_time.split(':').map(Number);
+              bEndMinutes = hours * 60 + minutes;
+            } else {
+              bEndMinutes = parseInt(b.hh_end_time.substring(0, 2)) * 60 + parseInt(b.hh_end_time.substring(2) || '0');
+            }
+            
+            return bEndMinutes - aEndMinutes; // Sort descending
+          })[0].hh_end_time;
+      } else {
+        // For inactive deals, find the earliest start time
+        earliestStartTime = dealsForToday
+          .sort((a, b) => {
+            // Convert start times to minutes and compare
+            let aStartMinutes = 0;
+            let bStartMinutes = 0;
+            
+            if (a.hh_start_time.includes(':')) {
+              const [hours, minutes] = a.hh_start_time.split(':').map(Number);
+              aStartMinutes = hours * 60 + minutes;
+            } else {
+              aStartMinutes = parseInt(a.hh_start_time.substring(0, 2)) * 60 + parseInt(a.hh_start_time.substring(2) || '0');
+            }
+            
+            if (b.hh_start_time.includes(':')) {
+              const [hours, minutes] = b.hh_start_time.split(':').map(Number);
+              bStartMinutes = hours * 60 + minutes;
+            } else {
+              bStartMinutes = parseInt(b.hh_start_time.substring(0, 2)) * 60 + parseInt(b.hh_start_time.substring(2) || '0');
+            }
+            
+            return aStartMinutes - bStartMinutes; // Sort ascending
+          })[0].hh_start_time;
+      }
+    }
+    
+    return {
+      isActive,
+      endTime: latestEndTime ? formatTimeForDisplay(latestEndTime) : null,
+      startTime: earliestStartTime ? formatTimeForDisplay(earliestStartTime) : null,
+      hasHappyHourToday: dealsForToday.length > 0
+    };
   }, [activeDeals, name]);
+  
+  const { isActive, endTime, startTime, hasHappyHourToday } = happyHourInfo;
   
   // Fetch user location and calculate distance
   useEffect(() => {
@@ -227,11 +375,17 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
             <h3 className="font-medium text-base line-clamp-1">{name}</h3>
             
             {/* Happy Hour status indicator */}
-            <div className="flex items-center gap-1.5 mt-1.5 mb-2">
-              <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-              <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
-                {isActive ? 'Active now' : 'Inactive'}
-              </span>
+            <div className="flex flex-col mt-1.5 mb-2">
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+                <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {isActive ? 'Active' : 'Inactive'}
+                  {isActive && endTime && <span className="ml-1">Ends: {endTime}</span>}
+                </span>
+              </div>
+              {!isActive && hasHappyHourToday && startTime && (
+                <span className="text-xs text-yellow-600 ml-3.5">Starts: {startTime}</span>
+              )}
             </div>
             
             {/* Rating and distance on same line */}
@@ -266,9 +420,12 @@ export function RestaurantCardSkeleton() {
         <div className="h-5 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3" />
         
         {/* Active status */}
-        <div className="flex items-center gap-1.5 mt-1.5 mb-2">
-          <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse"></div>
-          <div className="h-4 bg-gray-200 animate-pulse w-16 rounded-md"></div>
+        <div className="flex flex-col mt-1.5 mb-2">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 animate-pulse w-24 rounded-md"></div>
+          </div>
+          <div className="h-4 bg-gray-200 animate-pulse w-20 rounded-md ml-3.5 mt-0.5"></div>
         </div>
         
         {/* Rating and distance */}
