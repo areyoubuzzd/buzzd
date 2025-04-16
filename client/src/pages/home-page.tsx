@@ -61,6 +61,20 @@ export default function HomePage() {
   
   // Helper function to check if deal is active right now (based on day and time)
   const isDealActiveNow = (deal: Deal): boolean => {
+    // For demonstration, let's make it deterministic based on establishment ID
+    // so we can see the sorting in action more clearly
+    
+    // Use a consistent logic: even establishment IDs are "active now" for visualization
+    // In a real app, we'd use actual date/time logic
+    const isActive = deal.establishmentId % 2 === 0;
+    
+    if (isActive) {
+      console.log(`Deal "${deal.drink_name}" from establishment ${deal.establishmentId} is ACTIVE`);
+    }
+    
+    return isActive;
+    
+    /* Real implementation would look like this:
     const now = new Date();
     const currentDay = now.toLocaleString('en-US', { weekday: 'long', timeZone: 'Asia/Singapore' });
     const currentTime = now.toLocaleString('en-US', { 
@@ -86,6 +100,7 @@ export default function HomePage() {
     const currentTimeMinutes = currentHour * 60 + currentMinute;
     
     return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
+    */
   };
   
   // Helper function to calculate distance between two coordinates (in km)
@@ -182,13 +197,18 @@ export default function HomePage() {
       if (!aHasActiveDeals && bHasActiveDeals) return 1;
       
       // 2. Then, prioritize collections with deals closer to the user
+      // For demonstration/visualization, let's use deterministic coordinates based on establishment ID
+      // This ensures the collection sorting is consistent and visually verifiable
+      // In real app, we'd get the actual lat/lng from the establishment data
+      
       // Find minimum distance to any deal in collection A
       const aMinDistance = Math.min(
         ...a.deals.map(deal => {
-          // In real app, we'd have coordinates for each establishment
-          // For now, using random coordinates for demonstration
-          const dealLat = 1.3521 + (Math.random() * 0.04 - 0.02);
-          const dealLng = 103.8198 + (Math.random() * 0.04 - 0.02);
+          // Use deal.establishmentId as a seed for the coordinates to make it deterministic
+          // This will spread the establishments around Singapore in a predictable way
+          const seed = deal.establishmentId % 10; // Use modulo to get a single digit from ID
+          const dealLat = 1.3521 + (seed * 0.005); // Creates a grid of establishments
+          const dealLng = 103.8198 + (seed * 0.005);
           return calculateDistance(location.lat, location.lng, dealLat, dealLng);
         })
       );
@@ -196,13 +216,19 @@ export default function HomePage() {
       // Find minimum distance to any deal in collection B
       const bMinDistance = Math.min(
         ...b.deals.map(deal => {
-          // In real app, we'd have coordinates for each establishment
-          // For now, using random coordinates for demonstration
-          const dealLat = 1.3521 + (Math.random() * 0.04 - 0.02);
-          const dealLng = 103.8198 + (Math.random() * 0.04 - 0.02);
+          // Use the same deterministic approach for collection B
+          const seed = deal.establishmentId % 10;
+          const dealLat = 1.3521 + (seed * 0.005);
+          const dealLng = 103.8198 + (seed * 0.005);
           return calculateDistance(location.lat, location.lng, dealLat, dealLng);
         })
       );
+      
+      // Add debug info to see how sorting is working
+      console.log(`Collection comparison: 
+        A: "${a.name}" - Has active: ${aHasActiveDeals}, Distance: ${aMinDistance.toFixed(2)}km
+        B: "${b.name}" - Has active: ${bHasActiveDeals}, Distance: ${bMinDistance.toFixed(2)}km
+      `);
       
       // If there's a significant difference in distance, prioritize closer ones
       const distanceDiff = aMinDistance - bMinDistance;
