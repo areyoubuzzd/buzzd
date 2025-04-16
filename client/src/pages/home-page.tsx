@@ -317,17 +317,22 @@ export default function HomePage() {
                   const newLat = 1.3521 + (Math.random() * 0.04 - 0.02);
                   const newLng = 103.8198 + (Math.random() * 0.04 - 0.02);
                   
-                  // Update location and trigger a UI refresh
-                  handleLocationChange({ lat: newLat, lng: newLng });
-                  
-                  // Force a refresh of the deals - important for immediate visual feedback
-                  console.log("Location changed to:", newLocation.trim());
-                  
-                  // Show a confirmation message
+                  // Show a confirmation message first
                   alert(`Location updated to: ${newLocation.trim()}`);
                   
-                  // Force a page refresh to reflect new deals based on location
-                  window.location.reload();
+                  // Log the change
+                  console.log("Location changed to:", newLocation.trim());
+                  
+                  // Update user interface with new location value
+                  setLocation({ lat: newLat, lng: newLng });
+                  
+                  // Wait a moment before triggering the location change
+                  setTimeout(() => {
+                    // Update location and trigger a UI refresh
+                    handleLocationChange({ lat: newLat, lng: newLng });
+                    
+                    // No need to reload the page - this will refresh the data automatically
+                  }, 500);
                 }
               }}
             >
