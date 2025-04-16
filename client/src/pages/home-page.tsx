@@ -137,38 +137,49 @@ export default function HomePage() {
     // Then create a collection for each unique tag
     const collectionList: Collection[] = [];
     
-    // Add "Active Happy Hours Nearby" as the first collection with improved sorting
+    // Helper functions for creating collections
+    const calculateDistance = (establishmentId: number) => {
+      // Use same formula as in square-deal-card for consistent distance calculation
+      const baseDistance = (establishmentId % 10) * 0.5 + 0.1;
+      const userFactor = (location.lat + location.lng) % 1;
+      return baseDistance * (1 + userFactor * 0.2);
+    };
+    
+    const enrichDeal = (deal: any) => ({
+      ...deal,
+      isActive: isDealActiveNow(deal),
+      distance: calculateDistance(deal.establishmentId)
+    });
+    
+    const sortByActiveDistancePrice = (deals: any[]) => {
+      return deals.sort((a, b) => {
+        // 1. Active deals first
+        if (a.isActive && !b.isActive) return -1;
+        if (!a.isActive && b.isActive) return 1;
+        
+        // 2. Then by distance
+        if (a.distance !== b.distance) {
+          return a.distance - b.distance;
+        }
+        
+        // 3. Then by price (cheaper first)
+        return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
+      });
+    };
+    
+    // 1. Add "Active Happy Hours Nearby" as the first collection (up to 5km range)
     collectionList.push({
       name: "Active Happy Hours Nearby",
       description: "Currently active deals closest to you",
       deals: (() => {
         // First, get all deals and indicate if they're active
-        const allDealsWithStatus = allDeals.map(deal => ({
-          ...deal,
-          isActive: isDealActiveNow(deal),
-          distance: (() => {
-            // Calculate distance using same formula as in square-deal-card
-            const establishmentId = deal.establishmentId;
-            const baseDistance = (establishmentId % 10) * 0.5 + 0.1;
-            const userFactor = (location.lat + location.lng) % 1;
-            return baseDistance * (1 + userFactor * 0.2);
-          })()
-        }));
+        const allDealsWithStatus = allDeals.map(enrichDeal);
+        
+        // Filter to include only deals within 5km
+        const dealsWithin5km = allDealsWithStatus.filter(deal => deal.distance <= 5);
         
         // Sort all deals by: active status (active first), then distance, then price
-        const sortedDeals = allDealsWithStatus.sort((a, b) => {
-          // 1. Active deals first
-          if (a.isActive && !b.isActive) return -1;
-          if (!a.isActive && b.isActive) return 1;
-          
-          // 2. Then by distance
-          if (a.distance !== b.distance) {
-            return a.distance - b.distance;
-          }
-          
-          // 3. Then by price (cheaper first)
-          return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
-        });
+        const sortedDeals = sortByActiveDistancePrice(dealsWithin5km);
         
         // Now filter to avoid repeating restaurants
         const includedEstablishments = new Set<number>();
@@ -199,38 +210,79 @@ export default function HomePage() {
       })()
     });
     
-    // Add other predefined collections
+    // 2. Add location-aware fixed collections
+    // Beers under $10 - location aware
     collectionList.push({
       name: "Beers Under $10",
-      description: "Great beer deals under $10",
-      deals: allDeals.filter(deal => 
-        deal.alcohol_category === "Beer" && 
-        deal.happy_hour_price < 10
-      )
+      description: "Great beer deals under $10 near you",
+      deals: (() => {
+        const filteredDeals = allDeals
+          .filter(deal => deal.alcohol_category === "Beer" && deal.happy_hour_price < 10)
+          .map(enrichDeal);
+          
+        return sortByActiveDistancePrice(filteredDeals);
+      })()
     });
     
+    // Cocktails under $15 - location aware
+    collectionList.push({
+      name: "Cocktails Under $15",
+      description: "Affordable cocktail deals near you",
+      deals: (() => {
+        const filteredDeals = allDeals
+          .filter(deal => deal.alcohol_category === "Cocktail" && deal.happy_hour_price < 15)
+          .map(enrichDeal);
+          
+        return sortByActiveDistancePrice(filteredDeals);
+      })()
+    });
+    
+    // 1-for-1 Deals - location aware
     collectionList.push({
       name: "1-for-1 Deals",
-      description: "Buy one get one free!",
-      deals: allDeals.filter(deal => deal.is_one_for_one === true)
+      description: "Buy one get one free deals near you",
+      deals: (() => {
+        const filteredDeals = allDeals
+          .filter(deal => deal.is_one_for_one === true)
+          .map(enrichDeal);
+          
+        return sortByActiveDistancePrice(filteredDeals);
+      })()
     });
     
+    // 3. Additional collections prioritizing active deals but ignoring distance
     collectionList.push({
       name: "House Pour Wine",
       description: "Wine deals at happy hour prices",
-      deals: allDeals.filter(deal => 
-        deal.alcohol_category === "Wine" && 
-        deal.is_house_pour === true
-      )
+      deals: (() => {
+        const filteredDeals = allDeals
+          .filter(deal => deal.alcohol_category === "Wine" && deal.is_house_pour === true)
+          .map(deal => ({ ...deal, isActive: isDealActiveNow(deal) }));
+          
+        // Sort by active status first, then by price
+        return filteredDeals.sort((a, b) => {
+          if (a.isActive && !b.isActive) return -1;
+          if (!a.isActive && b.isActive) return 1;
+          return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
+        });
+      })()
     });
     
     collectionList.push({
       name: "Premium Spirits",
       description: "Top-shelf liquor deals",
-      deals: allDeals.filter(deal => 
-        deal.alcohol_category === "Spirits" && 
-        deal.is_house_pour === false
-      )
+      deals: (() => {
+        const filteredDeals = allDeals
+          .filter(deal => deal.alcohol_category === "Spirits" && deal.is_house_pour === false)
+          .map(deal => ({ ...deal, isActive: isDealActiveNow(deal) }));
+          
+        // Sort by active status first, then by price
+        return filteredDeals.sort((a, b) => {
+          if (a.isActive && !b.isActive) return -1;
+          if (!a.isActive && b.isActive) return 1;
+          return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
+        });
+      })()
     });
     
     // Then create collections from tags
