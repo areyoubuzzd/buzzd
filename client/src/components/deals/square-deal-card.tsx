@@ -15,17 +15,35 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   
   // Calculate the distance between the user and the establishment
   const distance = useMemo(() => {
-    if (deal.establishment?.latitude && deal.establishment?.longitude && userLocation) {
-      const distanceKm = calculateDistance(
-        userLocation.lat,
-        userLocation.lng,
-        deal.establishment.latitude,
-        deal.establishment.longitude
-      );
-      
-      return distanceKm < 1 
-        ? `${Math.round(distanceKm * 1000)}m` 
-        : `${distanceKm.toFixed(1).replace(/\.0$/, '')}km`;
+    // For demonstration we'll use coordinates based on establishment ID
+    // This ensures consistency with the collection sorting logic
+    if (userLocation) {
+      // Get establishment ID to use as seed for coordinates
+      const establishmentId = deal.establishmentId || (deal.establishment && deal.establishment.id);
+      if (establishmentId) {
+        // Use the same coordinate calculation logic as in collection sorting
+        const seed = establishmentId % 10;
+        const dealLat = 1.3521 + (seed * 0.005);
+        const dealLng = 103.8198 + (seed * 0.005);
+        
+        // Calculate distance using these coordinates
+        const distanceKm = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          dealLat,
+          dealLng
+        );
+        
+        console.log(`Distance calculation for deal "${deal.drink_name}" (est ID: ${establishmentId}): 
+          User at ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}
+          Establishment at ${dealLat.toFixed(6)}, ${dealLng.toFixed(6)}
+          Distance: ${distanceKm.toFixed(2)}km
+        `);
+        
+        return distanceKm < 1 
+          ? `${Math.round(distanceKm * 1000)}m` 
+          : `${distanceKm.toFixed(1).replace(/\.0$/, '')}km`;
+      }
     }
     return null;
   }, [deal, userLocation]);
