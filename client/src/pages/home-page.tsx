@@ -299,23 +299,42 @@ export default function HomePage() {
       });
     });
     
+    // Define our priority collection order
+    const priorityCollections = [
+      "Active Happy Hours Nearby",
+      "Beers Under $10",
+      "Cocktails Under $15",
+      "1-for-1 Deals",
+      "House Pour Wine",
+      "Premium Spirits"
+    ];
+    
     // Get only collections with at least one deal
     const filteredCollections = collectionList.filter(collection => collection.deals.length > 0);
     
-    // Simplified collection sorting
+    // Improved collection sorting with explicit priorities
     return filteredCollections.sort((a, b) => {
-      // 0. Always put "Active Happy Hours Nearby" first
-      if (a.name === "Active Happy Hours Nearby") return -1;
-      if (b.name === "Active Happy Hours Nearby") return 1;
+      // First check if both are in the priority list
+      const aPriorityIndex = priorityCollections.indexOf(a.name);
+      const bPriorityIndex = priorityCollections.indexOf(b.name);
       
-      // 1. Then, prioritize collections with active deals right now
+      // If both are in priority list, sort by their index in the list
+      if (aPriorityIndex !== -1 && bPriorityIndex !== -1) {
+        return aPriorityIndex - bPriorityIndex;
+      }
+      
+      // If only one is in priority list, that one comes first
+      if (aPriorityIndex !== -1) return -1;
+      if (bPriorityIndex !== -1) return 1;
+      
+      // For non-priority collections, prioritize those with active deals
       const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
       const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
       
       if (aHasActiveDeals && !bHasActiveDeals) return -1;
       if (!aHasActiveDeals && bHasActiveDeals) return 1;
       
-      // 2. Then, sort alphabetically by collection name
+      // Finally, sort alphabetically
       return a.name.localeCompare(b.name);
     });
   }, [dealsData, location]);
