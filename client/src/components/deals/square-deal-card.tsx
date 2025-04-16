@@ -94,8 +94,20 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     }
   }, [deal.alcohol_category]);
 
+  // Handle click to navigate to establishment details
+  const handleCardClick = () => {
+    if (deal.establishmentId || (deal.establishment && deal.establishment.id)) {
+      // Use either direct establishmentId or id from establishment object
+      const establishmentId = deal.establishmentId || deal.establishment.id;
+      setLocation(`/establishments/${establishmentId}`);
+    }
+  };
+
   return (
-    <Card className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow w-[175px] rounded-2xl">
+    <Card 
+      className="overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow w-[175px] rounded-2xl cursor-pointer" 
+      onClick={handleCardClick}
+    >
       <div className="relative h-[245px]">
         {/* Deal image with category-based fallback */}
         <img 
