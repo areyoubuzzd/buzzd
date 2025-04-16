@@ -120,11 +120,11 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
 
 export function RestaurantCardSkeleton() {
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
+    <Card className="overflow-hidden h-full flex flex-col rounded-xl">
       <div className="aspect-square bg-gray-200 animate-pulse w-full" />
-      <CardContent className="p-4 flex-grow">
-        <div className="h-6 bg-gray-200 animate-pulse w-3/4 rounded-md mb-2" />
-        <div className="h-4 bg-gray-200 animate-pulse w-full rounded-md mb-3" />
+      <CardContent className="p-5 flex-grow">
+        <div className="h-6 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3" />
+        <div className="h-4 bg-gray-200 animate-pulse w-full rounded-md mb-4" />
         <div className="h-6 bg-gray-200 animate-pulse w-1/3 rounded-md mb-3" />
         <div className="h-4 bg-gray-200 animate-pulse w-full rounded-md" />
       </CardContent>

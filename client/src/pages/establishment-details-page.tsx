@@ -411,8 +411,8 @@ export default function EstablishmentDetailsPage() {
         ) : (
           <div className="grid gap-4">
             {activeDeals.map(deal => (
-              <Card key={deal.id}>
-                <CardContent className="p-4">
+              <Card key={deal.id} className="rounded-xl">
+                <CardContent className="p-5">
                   <div className="flex justify-between">
                     <div>
                       <h3 className="font-bold">{deal.drink_name}</h3>
@@ -432,8 +432,8 @@ export default function EstablishmentDetailsPage() {
         
         <h2 className="text-xl font-bold mt-6 mb-4">Contact & Location</h2>
         <div className="grid gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
+          <Card className="rounded-xl">
+            <CardContent className="p-5">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <FaMapMarkerAlt className="text-primary h-5 w-5 flex-shrink-0" />
@@ -498,7 +498,7 @@ export default function EstablishmentDetailsPage() {
         </div>
 
         {establishment.latitude && establishment.longitude && (
-          <div className="rounded-lg overflow-hidden h-48 bg-gray-100 mb-6">
+          <div className="rounded-xl overflow-hidden h-48 bg-gray-100 mb-6 shadow-sm">
             <a 
               href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
               target="_blank"

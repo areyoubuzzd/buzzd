@@ -53,7 +53,7 @@ export default function CollectionRow({ title, deals, userLocation, onViewAllCli
         {/* Scrollable container */}
         <div 
           ref={scrollContainerRef}
-          className="flex overflow-x-auto scrollbar-hide py-2 px-4 gap-x-4 sm:gap-x-2 md:gap-x-2 lg:gap-x-1 xl:gap-x-1"
+          className="flex overflow-x-auto scrollbar-hide py-4 px-4 gap-x-4 sm:gap-x-3 md:gap-x-3 lg:gap-x-2 xl:gap-x-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {deals.map((deal) => (
