@@ -15,22 +15,23 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   // Use wouter's useLocation for navigation
   const [, setLocation] = useLocation();
   
-  // Calculate the distance between the user and the establishment - SIMPLIFIED VERSION
+  // Calculate the distance between the user and the establishment using Haversine formula
   const distance = useMemo(() => {
-    // For demonstration, generate a stable distance based on establishment ID
+    // Get coordinates from deal and user
     const establishmentId = deal.establishmentId || (deal.establishment && deal.establishment.id);
-    if (establishmentId && userLocation) {
-      // Use a simplified approach - instead of complex calculations, use a simple formula
-      // This ensures the distance appears to change when user location changes
+    const establishmentLat = deal.establishment?.latitude;
+    const establishmentLng = deal.establishment?.longitude;
+    
+    if (establishmentLat && establishmentLng && userLocation) {
+      // Use the actual Haversine distance calculation
+      const distanceKm = calculateDistance(
+        userLocation.lat, 
+        userLocation.lng, 
+        establishmentLat, 
+        establishmentLng
+      );
       
-      // Get a value between 0.1 and 5.0 based on establishment ID
-      const baseDistance = (establishmentId % 10) * 0.5 + 0.1;
-      
-      // Add a small variation based on user location to make it seem responsive
-      // This is a simplified approach that doesn't use actual geodesic calculations
-      const userFactor = (userLocation.lat + userLocation.lng) % 1; // Get a value between 0 and 1
-      const distanceKm = baseDistance * (1 + userFactor * 0.2); // Vary by up to 20%
-      
+      // Format distance string
       return distanceKm < 1 
         ? `${Math.round(distanceKm * 1000)}m` 
         : `${distanceKm.toFixed(1).replace(/\.0$/, '')}km`;
@@ -203,12 +204,12 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
               
               {/* Status indicator (green for active, red for inactive) */}
               <motion.div 
-                className={`absolute top-2 left-2 w-3 h-3 rounded-full ${isWithinHappyHour(deal) ? 'bg-green-500' : 'bg-red-500'} shadow-md`}
+                className={`absolute top-2 left-2 w-3 h-3 rounded-full ${isWithinHappyHour(deal.valid_days, deal.hh_start_time, deal.hh_end_time) ? 'bg-green-500' : 'bg-red-500'} shadow-md`}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ 
                   scale: 1, 
                   opacity: 1,
-                  boxShadow: isWithinHappyHour(deal) 
+                  boxShadow: isWithinHappyHour(deal.valid_days, deal.hh_start_time, deal.hh_end_time) 
                     ? '0 0 6px 1px rgba(16, 185, 129, 0.7)' 
                     : '0 0 6px 1px rgba(239, 68, 68, 0.7)'
                 }}
