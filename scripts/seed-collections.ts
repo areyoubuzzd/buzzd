@@ -2,92 +2,90 @@
  * Script to seed the collections table with predefined collection metadata
  * Run with: npx tsx scripts/seed-collections.ts
  */
-import { db } from '../server/db';
-import { collections, insertCollectionSchema, InsertCollection } from '../shared/schema';
-import { sql } from 'drizzle-orm';
 
-// Collection metadata with display names, descriptions, and priority
-const collectionsData: InsertCollection[] = [
-  // Priority collections (lower number = higher priority)
+import { db } from '../server/db';
+import { collections } from '../shared/schema';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Collection definitions with proper metadata
+const collectionData = [
+  // Top level collections (these appear first)
   {
-    slug: 'active_happy_hours_nearby',
-    name: 'Active Happy Hours Nearby',
-    description: 'Happy hour deals active right now near your location',
+    slug: 'active_happy_hours',
+    name: 'Active Happy Hours',
+    description: 'Currently active happy hour deals nearby',
     priority: 1,
+    icon: 'clock',
     active: true
   },
   {
-    slug: 'beers_under_10',
-    name: 'Beers Under $10',
-    description: 'Great beer deals under $10',
+    slug: 'all_deals',
+    name: 'All Deals',
+    description: 'Browse all available deals',
     priority: 2,
-    active: true
-  },
-  {
-    slug: 'cocktails_under_15',
-    name: 'Cocktails Under $15',
-    description: 'Great cocktail deals under $15',
-    priority: 3,
-    active: true
-  },
-  {
-    slug: '1-for-1_deal',
-    name: '1-for-1 Deals',
-    description: 'Buy one, get one free deals',
-    priority: 4,
+    icon: 'list',
     active: true
   },
   
   // Beer collections
   {
-    slug: 'beers_under_5',
-    name: 'Beers Under $5',
-    description: 'Fantastic deals on beer under $5',
+    slug: 'beers_under_12',
+    name: 'Beers Under $12',
+    description: 'Affordable beer deals under $12',
     priority: 10,
+    icon: 'beer',
     active: true
   },
   {
-    slug: 'beer_buckets_under_35',
-    name: 'Beer Buckets Under $35',
-    description: 'Beer bucket specials under $35',
+    slug: 'beers_under_15',
+    name: 'Beers Under $15',
+    description: 'Beer deals under $15',
     priority: 11,
+    icon: 'beer',
     active: true
   },
   {
-    slug: 'craft_beer',
-    name: 'Craft Beer Selection',
-    description: 'Special prices on craft beers',
+    slug: 'craft_beers',
+    name: 'Craft Beers',
+    description: 'Special deals on craft beers',
     priority: 12,
+    icon: 'beer',
+    active: true
+  },
+  {
+    slug: 'beer_buckets_under_40',
+    name: 'Beer Buckets Under $40',
+    description: 'Bucket deals for beer lovers',
+    priority: 13,
+    icon: 'package',
     active: true
   },
   
   // Wine collections
   {
-    slug: 'wines_under_12', 
+    slug: 'wines_under_12',
     name: 'Wines Under $12',
-    description: 'Great wine deals under $12',
+    description: 'Affordable wine by the glass',
     priority: 20,
+    icon: 'wine',
     active: true
   },
   {
-    slug: 'wines_under_10',
-    name: 'Wines Under $10',
-    description: 'Excellent wine deals under $10',
+    slug: 'wines_under_15',
+    name: 'Wines Under $15',
+    description: 'Wine deals under $15 per glass',
     priority: 21,
+    icon: 'wine',
     active: true
   },
   {
-    slug: 'wine_deals',
-    name: 'Wine Deals',
-    description: 'Special offers on wine by the glass and bottle',
+    slug: 'bottles_under_100',
+    name: 'Bottles Under $100',
+    description: 'Wine bottle deals under $100',
     priority: 22,
-    active: true
-  },
-  {
-    slug: 'premium_wine',
-    name: 'Premium Wine Selection',
-    description: 'Special prices on premium wines',
-    priority: 23,
+    icon: 'wine',
     active: true
   },
   
@@ -95,61 +93,95 @@ const collectionsData: InsertCollection[] = [
   {
     slug: 'cocktails_under_12',
     name: 'Cocktails Under $12',
-    description: 'Excellent cocktail deals under $12',
+    description: 'Affordable cocktail deals',
     priority: 30,
+    icon: 'cocktail',
     active: true
   },
   {
-    slug: 'cocktail_specials',
-    name: 'Cocktail Specials',
-    description: 'Signature and classic cocktails at special prices',
+    slug: 'cocktails_under_15',
+    name: 'Cocktails Under $15',
+    description: 'Cocktail deals under $15',
     priority: 31,
+    icon: 'cocktail',
+    active: true
+  },
+  {
+    slug: 'signature_cocktails',
+    name: 'Signature Cocktails',
+    description: 'Special deals on signature cocktails',
+    priority: 32,
+    icon: 'sparkles',
     active: true
   },
   
-  // Spirits collections
+  // Spirit collections
   {
-    slug: 'happy_hour_spirits',
-    name: 'Happy Hour Spirits',
-    description: 'Spirits at happy hour prices',
+    slug: 'whisky_deals',
+    name: 'Whisky Deals',
+    description: 'Special deals on whisky',
     priority: 40,
+    icon: 'glass',
     active: true
   },
   {
-    slug: 'bottles_under_100',
-    name: 'Bottles Under $100',
-    description: 'Bottle service under $100',
+    slug: 'gin_deals',
+    name: 'Gin Deals',
+    description: 'Special deals on gin',
     priority: 41,
+    icon: 'glass',
     active: true
   },
   
-  // Special deal collections
+  // Special deal types
   {
-    slug: 'one_for_one_deals',
+    slug: '1for1_deals',
     name: '1-for-1 Deals',
-    description: 'Buy one, get one free deals',
+    description: 'Buy one get one free deals',
     priority: 50,
+    icon: 'plus',
     active: true
   },
   {
-    slug: 'one_for_one_beer',
-    name: '1-for-1 Beer Deals',
-    description: 'Buy one beer, get one free',
-    priority: 51,
-    active: true
-  },
-  {
-    slug: 'freeflow_deal',
+    slug: 'freeflow_deals',
     name: 'Free Flow Deals',
-    description: 'Unlimited drink packages',
-    priority: 52,
+    description: 'All you can drink specials',
+    priority: 51,
+    icon: 'droplets',
     active: true
   },
   {
-    slug: 'weekend_specials',
-    name: 'Weekend Specials',
-    description: 'Special deals available on weekends',
-    priority: 53,
+    slug: 'two_bottle_discounts',
+    name: 'Two Bottle Discounts',
+    description: 'Special discounts on multiple bottles',
+    priority: 52,
+    icon: 'package',
+    active: true
+  },
+  
+  // Location-based collections
+  {
+    slug: 'cbd_deals',
+    name: 'CBD Deals',
+    description: 'Deals in the Central Business District',
+    priority: 60,
+    icon: 'building',
+    active: true
+  },
+  {
+    slug: 'orchard_deals',
+    name: 'Orchard Deals',
+    description: 'Deals along Orchard Road',
+    priority: 61,
+    icon: 'map-pin',
+    active: true
+  },
+  {
+    slug: 'holland_village_deals',
+    name: 'Holland Village Deals',
+    description: 'Deals in Holland Village',
+    priority: 62,
+    icon: 'map-pin',
     active: true
   }
 ];
@@ -159,35 +191,39 @@ const collectionsData: InsertCollection[] = [
  */
 async function seedCollections() {
   try {
-    console.log('Cleaning existing collections data...');
+    // Clear existing collections
+    console.log('Clearing existing collections...');
+    await db.delete(collections);
     
-    // Clear existing data
-    await db.execute(sql`TRUNCATE collections CASCADE`);
+    // Insert new collections
+    console.log(`Inserting ${collectionData.length} collections...`);
     
-    console.log('Inserting seed collections...');
+    // Insert collections in batches to avoid any potential issues
+    const batchSize = 5;
+    for (let i = 0; i < collectionData.length; i += batchSize) {
+      const batch = collectionData.slice(i, i + batchSize);
+      await db.insert(collections).values(batch);
+      console.log(`Inserted collections ${i+1} to ${Math.min(i+batchSize, collectionData.length)}`);
+    }
     
-    // Parse the data with Zod schema to ensure it's valid
-    const validatedData = collectionsData.map(collection => {
-      try {
-        return insertCollectionSchema.parse(collection);
-      } catch (error) {
-        console.error(`Invalid collection data for ${collection.slug}:`, error);
-        return null;
-      }
-    }).filter(Boolean) as InsertCollection[];
+    // Verify the collections were inserted
+    const insertedCollections = await db.select().from(collections);
+    console.log(`Successfully inserted ${insertedCollections.length} collections.`);
     
-    // Insert all collections
-    const result = await db.insert(collections).values(validatedData).returning();
-    
-    console.log(`Successfully seeded ${result.length} collections`);
-    console.log('Collection seeding complete!');
-    
+    return insertedCollections;
   } catch (error) {
     console.error('Error seeding collections:', error);
-  } finally {
-    process.exit();
+    throw error;
   }
 }
 
-// Run the seed function
-seedCollections();
+// Run the seeding process
+seedCollections()
+  .then(() => {
+    console.log('Collections seeding completed successfully!');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Failed to seed collections:', error);
+    process.exit(1);
+  });
