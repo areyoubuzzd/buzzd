@@ -73,16 +73,30 @@ async function importRestaurants() {
       
       // Map to our schema
       try {
-        // Handle different possible column names
-        const restaurantId = restaurant.restaurant_id || restaurant.id || '';
-        const restaurantName = restaurant.restaurant_name || restaurant.name || '';
-        const fullAddress = restaurant.full_address || restaurant.address || '';
-        const areaName = restaurant.area || restaurant.city || '';
-        const postalCode = restaurant.postalCode || restaurant.postal_code || '';
-        const lat = restaurant.latitude || restaurant.lat || 0;
-        const lng = restaurant.longitude || restaurant.lng || 0;
-        const cuisineType = restaurant.cuisine || '';
-        const logo = restaurant.logoUrl || restaurant.logo_url || '';
+        // Normalize column names (remove spaces, handle both formats)
+        const normalizedRestaurant: Record<string, any> = {};
+        // Convert all keys to lowercase and remove spaces/underscores
+        Object.keys(restaurant).forEach(key => {
+          // First store with original key
+          normalizedRestaurant[key] = restaurant[key];
+          
+          // Then store normalized version (remove spaces and trailing/leading spaces)
+          const normalizedKey = key.trim().toLowerCase().replace(/\s+/g, '_');
+          if (normalizedKey !== key) {
+            normalizedRestaurant[normalizedKey] = restaurant[key];
+          }
+        });
+        
+        // Now use the normalized keys
+        const restaurantId = normalizedRestaurant.restaurant_id || normalizedRestaurant.id || '';
+        const restaurantName = normalizedRestaurant.restaurant_name || normalizedRestaurant.name || '';
+        const fullAddress = normalizedRestaurant.full_address || normalizedRestaurant.address || '';
+        const areaName = normalizedRestaurant.area || normalizedRestaurant.city || '';
+        const postalCode = normalizedRestaurant.postalcode || normalizedRestaurant.postal_code || '';
+        const lat = normalizedRestaurant.latitude || normalizedRestaurant.lat || 0;
+        const lng = normalizedRestaurant.longitude || normalizedRestaurant.lng || 0;
+        const cuisineType = normalizedRestaurant.cuisine || '';
+        const logo = normalizedRestaurant.logourl || normalizedRestaurant.logo_url || '';
         
         const establishmentData: Partial<InsertEstablishment> = {
           external_id: restaurantId.toString(),
