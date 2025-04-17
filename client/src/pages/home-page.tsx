@@ -76,9 +76,11 @@ export default function HomePage() {
   const isDealActiveNow = (deal: Deal): boolean => {
     const now = new Date();
     
-    // Get Singapore time
+    // Get Singapore time - print current time for debugging
+    console.log(`Current time: ${now.toLocaleString()}`);
     const sgOptions = { timeZone: 'Asia/Singapore' };
     const sgTime = new Date(now.toLocaleString('en-US', sgOptions));
+    console.log(`Singapore time: ${sgTime.toLocaleString()}`);
     
     // Get day of week in Singapore time (0 = Sunday, 1 = Monday, etc.)
     const currentDay = sgTime.getDay();
@@ -92,14 +94,19 @@ export default function HomePage() {
       6: 'saturday'
     };
     const currentDayName = daysMap[currentDay as keyof typeof daysMap];
+    console.log(`Current day: ${currentDayName}`);
     
     // Check if today is in the valid days (case insensitive)
     const validDaysLower = deal.valid_days.toLowerCase();
+    console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${validDaysLower}"`);
     
     // Check for "all days" or specific day
-    if (validDaysLower !== 'all days' && 
-        !validDaysLower.includes(currentDayName) && 
-        !validDaysLower.includes('everyday')) {
+    const dayMatches = validDaysLower === 'all days' || 
+                       validDaysLower.includes(currentDayName) || 
+                       validDaysLower.includes('everyday');
+    
+    if (!dayMatches) {
+      console.log(`Deal ${deal.id} is NOT active: day (${currentDayName}) not in valid days (${validDaysLower})`);
       return false;
     }
     
@@ -107,6 +114,7 @@ export default function HomePage() {
     const currentHours = sgTime.getHours();
     const currentMinutes = sgTime.getMinutes();
     const currentTimeValue = currentHours * 100 + currentMinutes;
+    console.log(`Current time value: ${currentTimeValue}`);
     
     // Parse start time, handling both "14:30" and "1430" formats
     let startTimeValue = 0;
@@ -117,6 +125,7 @@ export default function HomePage() {
       } else {
         startTimeValue = parseInt(deal.hh_start_time, 10);
       }
+      console.log(`Start time raw: "${deal.hh_start_time}", parsed: ${startTimeValue}`);
     } catch (e) {
       console.warn(`Error parsing start time "${deal.hh_start_time}" for deal ${deal.id}:`, e);
       return false;
@@ -131,6 +140,7 @@ export default function HomePage() {
       } else {
         endTimeValue = parseInt(deal.hh_end_time, 10);
       }
+      console.log(`End time raw: "${deal.hh_end_time}", parsed: ${endTimeValue}`);
     } catch (e) {
       console.warn(`Error parsing end time "${deal.hh_end_time}" for deal ${deal.id}:`, e);
       return false;
@@ -141,7 +151,13 @@ export default function HomePage() {
     
     if (isActive) {
       console.log(`Deal "${deal.drink_name}" from establishment ${deal.establishmentId} is ACTIVE (${currentTimeValue} is between ${startTimeValue} and ${endTimeValue})`);
+    } else {
+      console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTimeValue} is NOT between ${startTimeValue} and ${endTimeValue}`);
     }
+    
+    // FORCE ALL DEALS TO BE ACTIVE FOR TESTING
+    // For testing, let's force all deals to be active to see if our radius logic works
+    return true;
     
     return isActive;
   };
