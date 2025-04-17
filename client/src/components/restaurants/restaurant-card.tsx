@@ -72,11 +72,11 @@ function isWithinHappyHour(deal: Deal): boolean {
   if (!deal) return false;
   
   // Get the current date in the user's local timezone
-  const now = new Date();
+  const currentDate = new Date();
   
   // Get current day name
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const currentDay = days[now.getDay()];
+  const currentDay = days[currentDate.getDay()];
   
   // Check if current day is in valid days
   let isDayValid = false;
@@ -98,7 +98,7 @@ function isWithinHappyHour(deal: Deal): boolean {
     const [startDay, endDay] = deal.valid_days.split('-').map(d => d.trim());
     const startIdx = days.findIndex(d => d === startDay);
     const endIdx = days.findIndex(d => d === endDay);
-    const currentIdx = now.getDay();
+    const currentIdx = currentDate.getDay();
     
     if (startIdx <= endIdx) {
       isDayValid = currentIdx >= startIdx && currentIdx <= endIdx;
@@ -120,8 +120,8 @@ function isWithinHappyHour(deal: Deal): boolean {
   if (!isDayValid) return false;
   
   // Now check if current time is within happy hour
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
+  const currentHour = currentDate.getHours();
+  const currentMinute = currentDate.getMinutes();
   const currentTime = currentHour * 60 + currentMinute; // in minutes since midnight
   
   // Parse happy hour times
@@ -212,12 +212,14 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
     }
     
     // Check which deals are active now
-    const now = new Date();
+    const currentDate = new Date();
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const currentDay = days[now.getDay()];
+    const currentDay = days[currentDate.getDay()];
     
     // Get all deals valid today
     const dealsForToday = activeDeals.filter(deal => {
+      // Log all deal days for debugging
+      console.log(`Deal for ${name}: valid_days="${deal.valid_days}", start_time="${deal.hh_start_time}", current day is "${currentDay}"`);
       // Daily
       if (deal.valid_days.toLowerCase() === 'daily' || deal.valid_days.toLowerCase() === 'all days') {
         return true;
@@ -235,7 +237,7 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
         const [startDay, endDay] = deal.valid_days.split('-').map(d => d.trim());
         const startIdx = days.findIndex(d => d === startDay);
         const endIdx = days.findIndex(d => d === endDay);
-        const currentIdx = now.getDay();
+        const currentIdx = currentDate.getDay();
         
         if (startIdx <= endIdx) {
           return currentIdx >= startIdx && currentIdx <= endIdx;
@@ -257,9 +259,17 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
     const activeDealsNow = dealsForToday.filter(deal => isWithinHappyHour(deal));
     const isActive = activeDealsNow.length > 0;
     
+    // Log for debugging
+    console.log(`${name}: Has ${dealsForToday.length} deals for today, ${activeDealsNow.length} are active now`);
+    
     // Find the earliest start time and latest end time for today's deals
     let latestEndTime = null;
     let earliestStartTime = null;
+    
+    // Get current time in minutes since midnight
+    const currentHour = currentDate.getHours();
+    const currentMinute = currentDate.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
     
     if (dealsForToday.length > 0) {
       if (isActive) {
@@ -288,9 +298,30 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
             return bEndMinutes - aEndMinutes; // Sort descending
           })[0].hh_end_time;
       } else {
-        // For inactive deals, find the earliest start time
-        earliestStartTime = dealsForToday
-          .sort((a, b) => {
+        // For inactive deals, find the next upcoming start time (future deals for today)
+        const upcomingDeals = dealsForToday.filter(deal => {
+          // Convert start time to minutes
+          let startMinutes = 0;
+          if (deal.hh_start_time.includes(':')) {
+            const [hours, minutes] = deal.hh_start_time.split(':').map(Number);
+            startMinutes = hours * 60 + minutes;
+          } else {
+            if (deal.hh_start_time.length <= 2) {
+              startMinutes = parseInt(deal.hh_start_time) * 60;
+            } else if (deal.hh_start_time.length === 3) {
+              startMinutes = parseInt(deal.hh_start_time.substring(0, 1)) * 60 + parseInt(deal.hh_start_time.substring(1));
+            } else {
+              startMinutes = parseInt(deal.hh_start_time.substring(0, 2)) * 60 + parseInt(deal.hh_start_time.substring(2));
+            }
+          }
+          
+          // Only include deals that start in the future
+          return startMinutes > currentTimeInMinutes;
+        });
+        
+        if (upcomingDeals.length > 0) {
+          // Sort by start time (ascending)
+          earliestStartTime = upcomingDeals.sort((a, b) => {
             // Convert start times to minutes and compare
             let aStartMinutes = 0;
             let bStartMinutes = 0;
@@ -311,6 +342,31 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
             
             return aStartMinutes - bStartMinutes; // Sort ascending
           })[0].hh_start_time;
+        } else if (activeDeals && activeDeals.length > 0) {
+          // If no deals starting today, show the earliest start time of any deal
+          earliestStartTime = activeDeals
+            .sort((a, b) => {
+              // Convert start times to minutes and compare
+              let aStartMinutes = 0;
+              let bStartMinutes = 0;
+              
+              if (a.hh_start_time.includes(':')) {
+                const [hours, minutes] = a.hh_start_time.split(':').map(Number);
+                aStartMinutes = hours * 60 + minutes;
+              } else {
+                aStartMinutes = parseInt(a.hh_start_time.substring(0, 2)) * 60 + parseInt(a.hh_start_time.substring(2) || '0');
+              }
+              
+              if (b.hh_start_time.includes(':')) {
+                const [hours, minutes] = b.hh_start_time.split(':').map(Number);
+                bStartMinutes = hours * 60 + minutes;
+              } else {
+                bStartMinutes = parseInt(b.hh_start_time.substring(0, 2)) * 60 + parseInt(b.hh_start_time.substring(2) || '0');
+              }
+              
+              return aStartMinutes - bStartMinutes; // Sort ascending
+            })[0].hh_start_time;
+        }
       }
     }
     
@@ -432,7 +488,7 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
                     </div>
                   </motion.div>
                 )}
-                {!isActive && hasHappyHourToday && startTime && (
+                {!isActive && startTime && (
                   <motion.div 
                     className="flex mt-0.5"
                     initial={{ opacity: 0, x: -10 }}
