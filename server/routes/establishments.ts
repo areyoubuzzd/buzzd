@@ -78,11 +78,31 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: "Establishment not found" });
     }
     
-    const activeDeals = await storage.getActiveDealsForEstablishment(establishmentId);
+    // Get all deals for this establishment
+    const allDeals = await storage.getDealsForEstablishment(establishmentId);
+    
+    // Determine which deals are active right now
+    const dealsWithActiveStatus = allDeals.map(deal => {
+      const isActive = storage.isDealActiveNow(deal);
+      return {
+        ...deal,
+        isActive
+      };
+    });
+    
+    // Sort deals: active deals first, then inactive
+    const sortedDeals = dealsWithActiveStatus.sort((a, b) => {
+      // Sort by active status first (active deals come first)
+      if (a.isActive && !b.isActive) return -1;
+      if (!a.isActive && b.isActive) return 1;
+      
+      // If both have same active status, sort by price (cheaper first)
+      return a.happy_hour_price - b.happy_hour_price;
+    });
     
     res.json({
       establishment,
-      activeDeals
+      activeDeals: sortedDeals
     });
   } catch (error) {
     console.error("Error fetching establishment details:", error);
