@@ -66,6 +66,12 @@ app.use((req, res, next) => {
     next();
   }, (await import('./routes/imageGenerationRoutes')).default);
   
+  // Register collections routes
+  app.use('/api/collections', (req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  }, (await import('./routes/collections')).default);
+  
   // Register rest of the routes
   const server = await registerRoutes(app);
 

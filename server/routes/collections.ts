@@ -10,7 +10,14 @@ const router = Router();
 // Get all collections
 router.get('/', async (_req, res) => {
   try {
-    const allCollections = await db.select().from(collections);
+    // Get all collections and sort by priority (lowest first)
+    const allCollections = await db.select()
+      .from(collections)
+      .orderBy(collections.priority);
+    
+    console.log('Returning collections sorted by priority:', 
+      allCollections.map(c => `${c.name} (priority: ${c.priority})`));
+    
     return res.json(allCollections);
   } catch (error) {
     console.error('Error fetching collections:', error);
