@@ -12,6 +12,7 @@ import { FiMapPin, FiEdit2, FiFilter } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { motion } from "framer-motion";
 
 // Updated FilterType to match the new filter-bar component
 type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
@@ -559,102 +560,199 @@ export default function HomePage() {
       
       {/* Collections display */}
       {collections.length > 0 && (
-        <div className="bg-gray-50 py-2">
+        <motion.div 
+          className="bg-gray-50 py-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="container mx-auto px-4">
+            {/* Section title animation */}
+            <motion.h2 
+              className="text-xl font-semibold mb-4 text-gray-900 pt-2"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                type: "spring",
+                duration: 0.6,
+                delay: 0.2
+              }}
+            >
+              Featured Collections
+            </motion.h2>
+            
             {/* First, render the priority collections in exact order */}
-            {collections
-              .filter(collection => {
-                // Normalize collection names for comparison
-                const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
-                return [
-                  "active_happy_hours_nearby",
-                  "beers_under_10", 
-                  "cocktails_under_15",
-                  "1_for_1_deals",
-                  "one_for_one_deals"
-                ].includes(normalizedName);
-              })
-              .sort((a, b) => {
-                // Define the priority order with normalized names
-                const normalizeForPriority = (name: string) => {
-                  const normalized = name.toLowerCase().replace(/[\s-_]+/g, '_');
-                  // Special case for 1-for-1 variations
-                  if (normalized === '1_for_1_deals' || normalized === 'one_for_one_deals') {
-                    return 'one_for_one_deals';
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.2
                   }
-                  return normalized;
-                };
-                
-                const priorityOrder = [
-                  "active_happy_hours_nearby", 
-                  "beers_under_10", 
-                  "cocktails_under_15", 
-                  "one_for_one_deals"
-                ];
-                
-                // Sort by priority index
-                return priorityOrder.indexOf(normalizeForPriority(a.name)) - 
-                       priorityOrder.indexOf(normalizeForPriority(b.name));
-              })
-              .map((collection, index) => (
-                <CollectionRow
-                  key={`priority-${collection.name}-${index}`}
-                  title={collection.name}
-                  description={collection.description}
-                  deals={collection.deals}
-                  userLocation={location}
-                />
-              ))
-            }
+                }
+              }}
+            >
+              {collections
+                .filter(collection => {
+                  // Normalize collection names for comparison
+                  const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
+                  return [
+                    "active_happy_hours_nearby",
+                    "beers_under_10", 
+                    "cocktails_under_15",
+                    "1_for_1_deals",
+                    "one_for_one_deals"
+                  ].includes(normalizedName);
+                })
+                .sort((a, b) => {
+                  // Define the priority order with normalized names
+                  const normalizeForPriority = (name: string) => {
+                    const normalized = name.toLowerCase().replace(/[\s-_]+/g, '_');
+                    // Special case for 1-for-1 variations
+                    if (normalized === '1_for_1_deals' || normalized === 'one_for_one_deals') {
+                      return 'one_for_one_deals';
+                    }
+                    return normalized;
+                  };
+                  
+                  const priorityOrder = [
+                    "active_happy_hours_nearby", 
+                    "beers_under_10", 
+                    "cocktails_under_15", 
+                    "one_for_one_deals"
+                  ];
+                  
+                  // Sort by priority index
+                  return priorityOrder.indexOf(normalizeForPriority(a.name)) - 
+                        priorityOrder.indexOf(normalizeForPriority(b.name));
+                })
+                .map((collection, index) => (
+                  <motion.div
+                    key={`priority-${collection.name}-${index}`}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { 
+                        opacity: 1, 
+                        y: 0,
+                        transition: {
+                          type: "spring", 
+                          duration: 0.6
+                        }
+                      }
+                    }}
+                  >
+                    <CollectionRow
+                      title={collection.name}
+                      description={collection.description}
+                      deals={collection.deals}
+                      userLocation={location}
+                    />
+                  </motion.div>
+                ))
+              }
+            </motion.div>
             
             {/* Then, render all other collections */}
-            {collections
-              .filter(collection => {
-                // Normalize collection names for comparison
-                const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
-                return ![
-                  "active_happy_hours_nearby",
-                  "beers_under_10", 
-                  "cocktails_under_15",
-                  "1_for_1_deals",
-                  "one_for_one_deals"
-                ].includes(normalizedName);
-              })
-              .map((collection, index) => (
-                <CollectionRow
-                  key={`other-${collection.name}-${index}`}
-                  title={collection.name}
-                  description={collection.description}
-                  deals={collection.deals}
-                  userLocation={location}
-                />
-              ))
-            }
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.1,
+                    delayChildren: 0.4
+                  }
+                }
+              }}
+            >
+              {collections
+                .filter(collection => {
+                  // Normalize collection names for comparison
+                  const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
+                  return ![
+                    "active_happy_hours_nearby",
+                    "beers_under_10", 
+                    "cocktails_under_15",
+                    "1_for_1_deals",
+                    "one_for_one_deals"
+                  ].includes(normalizedName);
+                })
+                .map((collection, index) => (
+                  <motion.div
+                    key={`other-${collection.name}-${index}`}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { 
+                        opacity: 1, 
+                        y: 0,
+                        transition: {
+                          type: "spring", 
+                          duration: 0.5
+                        }
+                      }
+                    }}
+                  >
+                    <CollectionRow
+                      title={collection.name}
+                      description={collection.description}
+                      deals={collection.deals}
+                      userLocation={location}
+                    />
+                  </motion.div>
+                ))
+              }
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       )}
       
       {/* Removed regular deals list to avoid showing dummy data */}
       
       {/* Inline WhatsApp Contact */}
-      <div 
-        className="fixed bottom-20 left-0 right-0 z-50 bg-white py-3 border-t border-gray-200 shadow-sm" 
+      <motion.div 
+        className="fixed bottom-20 left-0 right-0 z-50 bg-white py-3 border-t border-gray-200 shadow-sm"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 260, 
+          damping: 20,
+          delay: 0.5 
+        }}
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
+            <motion.span 
+              className="text-sm text-gray-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
               Missing a bar or deal?
-            </span>
-            <button
+            </motion.span>
+            <motion.button
               onClick={handleWhatsAppClick}
               className="bg-[#25D366] hover:bg-[#1da851] text-white rounded-lg px-3 py-1 flex items-center"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ 
+                delay: 0.9,
+                x: { type: "spring", stiffness: 300 }
+              }}
             >
               <FaWhatsapp className="h-4 w-4 mr-1" />
               <span className="text-sm">Suggest</span>
-            </button>
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
       
       <Navigation />
     </div>

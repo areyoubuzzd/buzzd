@@ -100,54 +100,140 @@ export default function CollectionRow({ title, deals, description, userLocation,
     }
   };
 
+  // Animation variants for the collection row container
+  const rowVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      } 
+    }
+  };
+
+  // Animation variants for the title
+  const titleVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        type: "spring",
+        duration: 0.6
+      }
+    }
+  };
+
+  // Animation variants for the container
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08
+      }
+    }
+  };
+
+  // Animation variants for the deal card wrapper
+  const cardWrapperVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 20 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 15,
+        stiffness: 300
+      }
+    }
+  };
+
   return (
-    <div className="mb-8">
+    <motion.div 
+      className="mb-8"
+      initial="hidden"
+      animate="visible"
+      variants={rowVariants}
+    >
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
-        <Button 
-          variant="link" 
-          className="text-primary font-medium"
-          onClick={onViewAllClick}
+        <motion.h2 
+          className="text-lg font-semibold text-slate-800"
+          variants={titleVariants}
         >
-          View all
-        </Button>
+          {title}
+        </motion.h2>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <Button 
+            variant="link" 
+            className="text-primary font-medium"
+            onClick={onViewAllClick}
+          >
+            View all
+          </Button>
+        </motion.div>
       </div>
       
       <div className="relative">
         {/* Left scroll button */}
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full shadow-md hover:bg-gray-100 border-none h-8 w-8"
-          onClick={() => scroll('left')}
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
         >
-          <FiChevronLeft className="h-4 w-4" />
-        </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full shadow-md hover:bg-gray-100 border-none h-8 w-8"
+            onClick={() => scroll('left')}
+          >
+            <FiChevronLeft className="h-4 w-4" />
+          </Button>
+        </motion.div>
         
         {/* Scrollable container */}
-        <div 
+        <motion.div 
           ref={scrollContainerRef}
           className="flex overflow-x-auto scrollbar-hide py-4 px-4 gap-x-4 sm:gap-x-3 md:gap-x-3 lg:gap-x-2 xl:gap-x-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          variants={containerVariants}
         >
-          {distributedDeals.map((deal) => (
-            <div key={deal.id} className="flex-shrink-0 w-[150px] xs:w-[155px] sm:w-[175px] md:w-[180px] lg:w-[190px] xl:w-[200px] h-[220px]">
+          {distributedDeals.map((deal, index) => (
+            <motion.div 
+              key={deal.id} 
+              className="flex-shrink-0 w-[150px] xs:w-[155px] sm:w-[175px] md:w-[180px] lg:w-[190px] xl:w-[200px] h-[220px]"
+              variants={cardWrapperVariants}
+              custom={index}
+            >
               <SquareDealCard deal={deal} userLocation={userLocation} />
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         
         {/* Right scroll button */}
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full shadow-md hover:bg-gray-100 border-none h-8 w-8"
-          onClick={() => scroll('right')}
+        <motion.div
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
         >
-          <FiChevronRight className="h-4 w-4" />
-        </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full shadow-md hover:bg-gray-100 border-none h-8 w-8"
+            onClick={() => scroll('right')}
+          >
+            <FiChevronRight className="h-4 w-4" />
+          </Button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
