@@ -230,6 +230,75 @@ const cloudinaryUploader = {
       console.error('Cloudinary connection test failed:', error);
       return false;
     }
+  },
+
+  /**
+   * Get all images from a folder
+   * @param {string} folderPath - Path to the folder in Cloudinary
+   * @returns {Promise<Array>} - Array of image resources in the folder
+   */
+  async getImagesFromFolder(folderPath) {
+    try {
+      // Use the resources API to get all images in the specified folder
+      const result = await cloudinary.api.resources({
+        type: 'upload',
+        prefix: folderPath,
+        max_results: 100 // Adjust based on your needs
+      });
+      
+      console.log(`Found ${result.resources.length} images in folder: ${folderPath}`);
+      return result.resources;
+    } catch (error) {
+      console.error(`Error fetching images from folder ${folderPath}:`, error);
+      // Return empty array instead of throwing to avoid breaking the UI
+      return [];
+    }
+  },
+  
+  /**
+   * Get a random image URL from a folder for a specific drink
+   * @param {string} category - Alcohol category (beer, wine, whisky, etc.)
+   * @param {string} drinkName - Name of the drink (e.g., "Heineken")
+   * @param {string} servingStyle - 'bottle' or 'glass'
+   * @returns {Promise<string|null>} - Random image URL or null if none found
+   */
+  async getRandomDrinkImageUrl(category, drinkName, servingStyle = 'glass') {
+    try {
+      if (!category || !drinkName) {
+        return null;
+      }
+      
+      const formattedCategory = category.toLowerCase().replace(/\s+/g, '_');
+      const formattedDrink = drinkName.toLowerCase().replace(/\s+/g, '_');
+      
+      // Folder path for this specific drink
+      const folderPath = `home/brands/${formattedCategory}/${formattedDrink}/${servingStyle}`;
+      
+      // Get all images in the folder
+      const images = await this.getImagesFromFolder(folderPath);
+      
+      if (images.length === 0) {
+        console.log(`No images found for ${drinkName} ${servingStyle}. Using default.`);
+        // Try the category default as fallback
+        const defaultFolderPath = `home/brands/${formattedCategory}/${servingStyle}/default`;
+        const defaultImages = await this.getImagesFromFolder(defaultFolderPath);
+        
+        if (defaultImages.length === 0) {
+          return null;
+        }
+        
+        // Pick a random image from the defaults
+        const randomDefaultImage = defaultImages[Math.floor(Math.random() * defaultImages.length)];
+        return randomDefaultImage.secure_url;
+      }
+      
+      // Pick a random image from the results
+      const randomImage = images[Math.floor(Math.random() * images.length)];
+      return randomImage.secure_url;
+    } catch (error) {
+      console.error(`Error getting random drink image: ${error.message}`);
+      return null;
+    }
   }
 };
 

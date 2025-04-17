@@ -187,4 +187,37 @@ router.post('/api/cloudinary/default', upload.single('image'), async (req, res) 
   }
 });
 
+// Get a random image for a specific drink
+router.get('/api/cloudinary/random-drink-image', async (req, res) => {
+  try {
+    const { category, drinkName, servingStyle = 'glass' } = req.query;
+    
+    if (!category || !drinkName) {
+      return res.status(400).json({ 
+        error: 'Missing required parameters', 
+        message: 'Both category and drinkName are required' 
+      });
+    }
+    
+    // Get a random image URL for this drink
+    const imageUrl = await cloudinaryUploader.getRandomDrinkImageUrl(
+      category,
+      drinkName,
+      servingStyle
+    );
+    
+    if (!imageUrl) {
+      return res.status(404).json({ 
+        error: 'No images found',
+        message: `No images found for ${drinkName} ${servingStyle} in category ${category}` 
+      });
+    }
+    
+    res.json({ imageUrl });
+  } catch (error) {
+    console.error('Error getting random drink image:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
