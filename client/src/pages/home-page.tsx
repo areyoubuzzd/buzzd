@@ -46,10 +46,24 @@ type Deal = {
   }
 };
 
+// Collection from API
+interface ApiCollection {
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  priority: number;
+  active: boolean;
+}
+
+// Collection model for display
 type Collection = {
   name: string;
   deals: Deal[];
   description?: string;
+  slug?: string;
+  priority?: number;
 };
 
 export default function HomePage() {
@@ -69,6 +83,13 @@ export default function HomePage() {
   const { data: dealsData } = useQuery<Deal[]>({
     queryKey: ['/api/deals/collections/all', { lat: location.lat, lng: location.lng }],
     staleTime: 60000, // 1 minute
+    retry: 2
+  });
+  
+  // Fetch collections metadata from the API
+  const { data: apiCollections } = useQuery<ApiCollection[]>({
+    queryKey: ['/api/collections'],
+    staleTime: 300000, // 5 minutes
     retry: 2
   });
   
@@ -209,12 +230,15 @@ export default function HomePage() {
     return distance;
   };
   
-  // Generate collections from deals data
+  // Generate collections from deals data and API collections
   const collections = useMemo<Collection[]>(() => {
     if (!dealsData || dealsData.length === 0) return [];
     
     // Create a copy of the deals data to work with
     const allDeals = [...dealsData];
+    
+    console.log("API Collections available:", apiCollections?.map(c => 
+      `${c.name} (slug: ${c.slug}, priority: ${c.priority})`));
     
     // Reuse the existing isDealActiveNow function from above
     
