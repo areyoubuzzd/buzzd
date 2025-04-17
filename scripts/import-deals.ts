@@ -121,6 +121,29 @@ async function importDeals() {
         // Calculate savings and savings percentage
         const savings = standardPrice - happyHourPrice;
         const savingsPercentage = standardPrice > 0 ? Math.round((savings / standardPrice) * 100) : 0;
+        
+        // Fix time format to ensure HH:MM (24-hour) format
+        function formatTimeCorrectly(timeStr: string | null | undefined): string {
+          if (!timeStr) return '16:00'; // Default
+          
+          // Remove any spaces
+          timeStr = timeStr.trim();
+          
+          // Handle case where time is just a single digit for hour ("9:00")
+          if (timeStr.match(/^\d:\d\d$/)) {
+            return `0${timeStr}`;
+          }
+          
+          // Handle case where time has no leading zero for midnight ("0:00")
+          if (timeStr === '0:00') {
+            return '00:00';
+          }
+          
+          return timeStr;
+        }
+        
+        // Normalize valid days to lowercase
+        const validDays = (normalizedDeal.valid_days || 'all days').toLowerCase();
                 
         // Map and process fields
         const dealData = {
@@ -133,9 +156,9 @@ async function importDeals() {
           happy_hour_price: happyHourPrice,
           savings: savings,
           savings_percentage: savingsPercentage,
-          valid_days: normalizedDeal.valid_days || 'All Days',
-          hh_start_time: normalizedDeal.hh_start_time || '16:00',
-          hh_end_time: normalizedDeal.hh_end_time || '19:00',
+          valid_days: validDays,
+          hh_start_time: formatTimeCorrectly(normalizedDeal.hh_start_time),
+          hh_end_time: formatTimeCorrectly(normalizedDeal.hh_end_time),
           description: normalizedDeal.description || '',
           collections: normalizedDeal.collections || '',
         };
