@@ -146,11 +146,42 @@ export default function HomePage() {
       return nowTime >= startTime && nowTime <= endTime;
     };
     
-    // Calculate distance based on establishment ID (simplified for demo)
-    const calculateDistance = (establishmentId: number): number => {
-      const baseDistance = (establishmentId % 10) * 0.5 + 0.1;
+    // Calculate distance based on establishment location data if distance is not already provided
+    const calculateDistance = (deal: Deal): number => {
+      // First check if the deal has a distance property from the server
+      if ('distance' in deal && typeof deal.distance === 'number') {
+        return deal.distance;
+      }
+      
+      // If no server-provided distance, calculate based on client data
+      // Get establishment coordinates
+      const est = deal.establishment;
+      if (est && est.latitude && est.longitude) {
+        // Calculate haversine distance
+        return calculateHaversineDistance(
+          location.lat, location.lng,
+          est.latitude, est.longitude
+        );
+      }
+      
+      // Fallback if no proper coordinates
+      const baseDistance = (deal.establishmentId % 10) * 0.5 + 0.1;
       const userFactor = (location.lat + location.lng) % 1;
       return baseDistance * (1 + userFactor * 0.2);
+    };
+    
+    // Calculate haversine distance between two points in km
+    const calculateHaversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+      const R = 6371; // Radius of the earth in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c; // Distance in km
+      return distance;
     };
     
     // Enrich deals with active status and distance
@@ -158,7 +189,7 @@ export default function HomePage() {
       return deals.map(deal => ({
         ...deal,
         isActive: isDealActiveNow(deal),
-        distance: calculateDistance(deal.establishmentId)
+        distance: calculateDistance(deal)
       }));
     };
     
