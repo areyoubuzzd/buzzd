@@ -104,6 +104,16 @@ router.get('/collections/all', async (req, res) => {
     const longitude = req.query.lng ? parseFloat(req.query.lng as string) : null;
     const radius = req.query.radius ? parseFloat(req.query.radius as string) : 5; // Default 5km radius
     
+    // Debug location parameters
+    console.log('Location parameters received:', {
+      lat: req.query.lat, 
+      parsedLat: latitude,
+      lng: req.query.lng, 
+      parsedLng: longitude,
+      radius: radius,
+      urlParameters: req.url
+    });
+    
     // Use SQL to calculate Haversine distance if coordinates are provided
     const haversine = latitude !== null && longitude !== null
       ? sql`
