@@ -102,8 +102,10 @@ async function importDeals() {
           }
         });
         
-        // Get establishment_id from restaurant_id
-        const restaurantId = normalizedDeal.restaurant_id || '';
+        // Get establishment_id from restaurant_id or establishment_id field
+        const restaurantId = normalizedDeal.restaurant_id || normalizedDeal.establishment_id || '';
+        
+        console.log(`Deal for restaurant ID: "${restaurantId}"`);
         
         if (!restaurantId || !idMapping.has(restaurantId.toString())) {
           console.warn(`Skipping deal for unknown restaurant ID: ${restaurantId}`);
@@ -140,8 +142,8 @@ async function importDeals() {
           continue;
         }
         
-        // Insert into database
-        const [inserted] = await db.insert(deals).values(dealData as InsertDeal).returning();
+        // Insert into database - fix the type issue by providing an array with a single element
+        const [inserted] = await db.insert(deals).values([dealData as InsertDeal][0]).returning();
         
         console.log(`Imported deal: ${inserted.drink_name} for ${restaurantId} (DB ID: ${establishmentId})`);
       } catch (error) {
