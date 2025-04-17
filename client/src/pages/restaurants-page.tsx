@@ -38,45 +38,52 @@ function isWithinHappyHour(deal: Deal): boolean {
   
   // Get current day name
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const daysLowercase = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
   const currentDay = days[now.getDay()];
+  const currentDayLowercase = currentDay.toLowerCase();
   
   // Check if current day is in valid days
   let isDayValid = false;
   
+  // Normalize the valid_days string to lowercase for case-insensitive comparison
+  const validDaysLower = deal.valid_days.toLowerCase();
+  
   // Handle the "Daily" case
-  if (deal.valid_days.toLowerCase() === 'daily' || deal.valid_days.toLowerCase() === 'all days') {
+  if (validDaysLower === 'daily' || validDaysLower === 'all days') {
     isDayValid = true;
   } 
   // Handle "Weekends" case
-  else if (deal.valid_days.toLowerCase() === 'weekends') {
+  else if (validDaysLower === 'weekends') {
     isDayValid = currentDay === 'Sat' || currentDay === 'Sun';
   }
   // Handle "Weekdays" case
-  else if (deal.valid_days.toLowerCase() === 'weekdays') {
+  else if (validDaysLower === 'weekdays') {
     isDayValid = currentDay !== 'Sat' && currentDay !== 'Sun';
   }
-  // Handle ranges like "Mon-Fri"
-  else if (deal.valid_days.includes('-')) {
-    const [startDay, endDay] = deal.valid_days.split('-').map(d => d.trim());
-    const startIdx = days.findIndex(d => d === startDay);
-    const endIdx = days.findIndex(d => d === endDay);
+  // Handle ranges like "Mon-Fri" or "mon-fri"
+  else if (validDaysLower.includes('-')) {
+    const [startDay, endDay] = validDaysLower.split('-').map(d => d.trim());
+    const startIdx = daysLowercase.indexOf(startDay);
+    const endIdx = daysLowercase.indexOf(endDay);
     const currentIdx = now.getDay();
     
-    if (startIdx <= endIdx) {
-      isDayValid = currentIdx >= startIdx && currentIdx <= endIdx;
-    } else {
-      // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
-      isDayValid = currentIdx >= startIdx || currentIdx <= endIdx;
+    if (startIdx !== -1 && endIdx !== -1) {
+      if (startIdx <= endIdx) {
+        isDayValid = currentIdx >= startIdx && currentIdx <= endIdx;
+      } else {
+        // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
+        isDayValid = currentIdx >= startIdx || currentIdx <= endIdx;
+      }
     }
   }
   // Handle comma-separated lists like "Mon, Wed, Fri"
-  else if (deal.valid_days.includes(',')) {
-    const validDays = deal.valid_days.split(',').map(d => d.trim());
-    isDayValid = validDays.includes(currentDay);
+  else if (validDaysLower.includes(',')) {
+    const validDays = validDaysLower.split(',').map(d => d.trim());
+    isDayValid = validDays.includes(currentDayLowercase);
   }
   // Handle single day
   else {
-    isDayValid = deal.valid_days.trim() === currentDay;
+    isDayValid = validDaysLower.trim() === currentDayLowercase;
   }
   
   if (!isDayValid) return false;
