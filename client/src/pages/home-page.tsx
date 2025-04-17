@@ -827,6 +827,81 @@ export default function HomePage() {
       }
     }
     
+    // We'll now create collections based on the API collections and matching the tags in deals
+  
+  // If we have API collections data, use it as the primary source for organizing deals
+  if (apiCollections && apiCollections.length > 0) {
+    console.log(`Using ${apiCollections.length} collections from the API`);
+    
+    // Sort API collections by priority (ascending)
+    const sortedApiCollections = [...apiCollections].sort((a, b) => a.priority - b.priority);
+    
+    // For each API collection, create a matching collection with deals
+    for (const apiCollection of sortedApiCollections) {
+      // Skip inactive collections
+      if (!apiCollection.active) {
+        console.log(`Skipping inactive collection: ${apiCollection.name}`);
+        continue;
+      }
+      
+      // Handle special collections
+      if (apiCollection.slug === 'active_happy_hours') {
+        // We already have Active Happy Hours collection
+        if (result.some(c => c.name.toLowerCase().includes('active happy'))) {
+          console.log('Skipping Active Happy Hours - already created');
+          continue;
+        }
+      }
+      
+      // Get deals for this collection
+      let dealsForCollection: Deal[] = [];
+      
+      if (apiCollection.slug === 'all_deals') {
+        // For all deals, just include all deals
+        dealsForCollection = enrichDeals(allDeals);
+      } else if (apiCollection.slug === 'active_happy_hours') {
+        // For active happy hours, use the existing active deals logic
+        // This is already handled in the activeHappyHoursDeals calculation
+        dealsForCollection = activeHappyHoursDeals;
+      } else {
+        // For other collections, filter deals by matching the collection tag
+        dealsForCollection = allDeals.filter(deal => 
+          deal.collections && 
+          deal.collections.split(',')
+            .map(tag => tag.trim())
+            .includes(apiCollection.slug)
+        );
+        
+        // Enrich and sort these deals
+        if (dealsForCollection.length > 0) {
+          dealsForCollection = sortDeals(enrichDeals(dealsForCollection));
+        }
+      }
+      
+      // Only add the collection if it has deals
+      if (dealsForCollection.length > 0) {
+        result.push({
+          name: apiCollection.name,
+          description: apiCollection.description || `${apiCollection.name} deals near you`,
+          deals: dealsForCollection,
+          slug: apiCollection.slug,
+          priority: apiCollection.priority
+        });
+      } else {
+        console.log(`Collection ${apiCollection.name} has no deals, skipping`);
+      }
+    }
+    
+    // Sort result by priority again to ensure correct order
+    result.sort((a, b) => {
+      const aPriority = (a as any).priority || 999;
+      const bPriority = (b as any).priority || 999;
+      return aPriority - bPriority;
+    });
+    
+  } else {
+    // We don't have API collections, use tag-based collections as fallback
+    
     // Sort tag collections - active deals first, then alphabetically
     const sortedTagCollections = tagCollections.sort((a, b) => {
       // Check if any deals in collection A are active
@@ -847,30 +922,9 @@ export default function HomePage() {
       return a.name.localeCompare(b.name);
     });
     
-    // If we have API collections, use those first, then the tag collections
-    if (apiBasedCollections.length > 0) {
-      // Sort API collections by priority (ascending)
-      apiBasedCollections.sort((a, b) => (a.priority || 999) - (b.priority || 999));
-      
-      // IMPORTANT: Only keep the first 4 default collections we created manually,
-      // then use the API-based collections, and finally any remaining tag collections
-      const manualCollections = result.slice(0, Math.min(4, result.length));
-      
-      // Reset the result array to our filtered manual collections
-      result.length = 0;
-      
-      // First add our prioritized manual collections
-      result.push(...manualCollections);
-      
-      // Then add the API-based collections
-      result.push(...apiBasedCollections);
-      
-      // Finally add any tag collections that aren't already covered
-      result.push(...sortedTagCollections);
-    } else {
-      // No API collections available, fall back to manual + tag collections
-      result.push(...sortedTagCollections);
-    }
+    // Add all tag collections
+    result.push(...sortedTagCollections);
+  }
     
     return result;
   }, [dealsData, location, apiCollections]);
