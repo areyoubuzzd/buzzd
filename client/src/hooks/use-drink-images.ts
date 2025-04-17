@@ -15,8 +15,13 @@ export function useDrinkImage(drinkName: string | null | undefined, category?: s
     
     // Generate random image URL
     if (drinkName) {
-      setImageUrl(getRandomDrinkImageUrl(drinkName, maxImages));
+      console.log(`===== Generating image for drink: "${drinkName}" =====`);
+      console.log(`Max images: ${maxImages}`);
+      const url = getRandomDrinkImageUrl(drinkName, maxImages);
+      console.log(`Generated URL: ${url}`);
+      setImageUrl(url);
     } else {
+      console.log('No drink name provided, using default image');
       setImageUrl(getDefaultDrinkImageUrl());
     }
   }, [drinkName, category]);
