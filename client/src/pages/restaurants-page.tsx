@@ -4,6 +4,7 @@ import { RestaurantCard, RestaurantCardSkeleton } from '@/components/restaurants
 import Navigation from '@/components/layout/navigation';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface Deal {
   valid_days: string;
@@ -251,16 +252,41 @@ export default function RestaurantsPage() {
   return (
     <div className="pb-20">
       <div className="bg-primary text-white py-4 px-4 sticky top-0 z-10">
-        <h1 className="text-2xl font-bold mb-2">Restaurants</h1>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <motion.h1
+          className="text-2xl font-bold mb-2"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 400,
+            damping: 15
+          }}
+        >
+          Restaurants
+        </motion.h1>
+        <motion.div 
+          className="relative"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ 
+            delay: 0.1,
+            duration: 0.3
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          </motion.div>
           <Input
             className="bg-white/10 border-0 focus-visible:ring-1 text-white pl-10"
             placeholder="Search restaurants..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
+        </motion.div>
       </div>
       
       <div className="px-4 py-4">
@@ -271,23 +297,58 @@ export default function RestaurantsPage() {
             ))}
           </div>
         ) : error ? (
-          <div className="text-center p-8 text-red-500">
-            <p>Error loading restaurants.</p>
-            <p className="text-sm">{(error as Error).message}</p>
-          </div>
+          <motion.div 
+            className="text-center p-8 text-red-500"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.p 
+              initial={{ y: -10 }}
+              animate={{ y: 0 }}
+              transition={{ delay: 0.1, type: "spring" }}
+            >
+              Error loading restaurants.
+            </motion.p>
+            <motion.p 
+              className="text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {(error as Error).message}
+            </motion.p>
+          </motion.div>
         ) : filteredEstablishments?.length === 0 ? (
-          <div className="text-center p-8 text-gray-500">
+          <motion.div 
+            className="text-center p-8 text-gray-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             <p>No restaurants found matching "{searchQuery}"</p>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {sortedEstablishments?.map((establishment: any) => (
-              <RestaurantCard 
-                key={establishment.id} 
-                establishment={establishment} 
-              />
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {sortedEstablishments?.map((establishment: any, index: number) => (
+              <motion.div
+                key={establishment.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  delay: index * 0.05,
+                  duration: 0.3
+                }}
+              >
+                <RestaurantCard establishment={establishment} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
       
