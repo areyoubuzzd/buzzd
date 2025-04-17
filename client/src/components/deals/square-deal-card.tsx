@@ -204,12 +204,12 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
               
               {/* Status indicator (green for active, red for inactive) */}
               <motion.div 
-                className={`absolute top-2 left-2 w-3 h-3 rounded-full ${isWithinHappyHour(deal.valid_days, deal.hh_start_time, deal.hh_end_time) ? 'bg-green-500' : 'bg-red-500'} shadow-md`}
+                className={`absolute top-2 left-2 w-3 h-3 rounded-full ${isWithinHappyHour(deal) ? 'bg-green-500' : 'bg-red-500'} shadow-md`}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ 
                   scale: 1, 
                   opacity: 1,
-                  boxShadow: isWithinHappyHour(deal.valid_days, deal.hh_start_time, deal.hh_end_time) 
+                  boxShadow: isWithinHappyHour(deal) 
                     ? '0 0 6px 1px rgba(16, 185, 129, 0.7)' 
                     : '0 0 6px 1px rgba(239, 68, 68, 0.7)'
                 }}
