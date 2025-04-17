@@ -211,6 +211,26 @@ export const insertSavedDealSchema = createInsertSchema(savedDeals).omit({
   createdAt: true,
 });
 
+// Collections table for managing displays and metadata
+export const collections = pgTable("collections", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(), // Technical ID like "beers_under_10"
+  name: text("name").notNull(), // Display name like "Beers Under $10"
+  description: text("description"), // Optional description
+  priority: integer("priority"), // For ordering collections (lower = higher priority)
+  icon: text("icon"), // Optional icon name/path
+  active: boolean("active").notNull().default(true), // Whether to show this collection
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Schema for inserting collections
+export const insertCollectionSchema = createInsertSchema(collections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Schema for inserting user deal views
 export const insertUserDealViewSchema = createInsertSchema(userDealViews).omit({
   id: true,
@@ -224,6 +244,7 @@ export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type InsertSavedDeal = z.infer<typeof insertSavedDealSchema>;
 export type InsertUserDealView = z.infer<typeof insertUserDealViewSchema>;
+export type InsertCollection = z.infer<typeof insertCollectionSchema>;
 
 // Define select types
 export type User = typeof users.$inferSelect;
@@ -232,6 +253,7 @@ export type Deal = typeof deals.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type SavedDeal = typeof savedDeals.$inferSelect;
 export type UserDealView = typeof userDealViews.$inferSelect;
+export type Collection = typeof collections.$inferSelect;
 
 // Extended types for API responses
 export type DealWithEstablishment = Deal & {
