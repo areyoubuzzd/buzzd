@@ -47,23 +47,26 @@ export function getRandomDrinkImageUrl(
   // Generate a random image index, avoiding previously used indices if possible
   const imageIndex = getUniqueRandomIndex(formattedName, maxImages);
   
-  // Build the Cloudinary URL - Adjusted to match folder structure
-  // Check if this is 'Heineken Pint' specifically which we know exists
-  if (drinkName.toLowerCase() === 'heineken pint') {
-    const url = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/drinks/heineken_pint/${imageIndex}.jpg`;
-    
-    console.log(`Special handling for Heineken Pint: ${url}`);
-    return url;
+  // Since we found the folder exists but has no images, let's use default beer images for now
+  // This is a temporary solution until images are uploaded to the Cloudinary folders
+  
+  console.log(`Generating fallback image for ${drinkName} - no images found in Cloudinary folder`);
+  
+  // Use default images based on drink category
+  if (drinkName.toLowerCase().includes('pint') || 
+      drinkName.toLowerCase().includes('beer') || 
+      drinkName.toLowerCase().includes('bottle')) {
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/beer.jpg`;
+  } else if (drinkName.toLowerCase().includes('wine')) {
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/wine.jpg`;
+  } else if (drinkName.toLowerCase().includes('cocktail') || 
+            drinkName.toLowerCase().includes('margarita') || 
+            drinkName.toLowerCase().includes('mojito')) {
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/cocktail.jpg`;
+  } else {
+    // Generic drink image as fallback
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/generic_drink.jpg`;
   }
-  
-  // Standard path for other drinks
-  const url = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/drinks/${formattedName}/${imageIndex}.jpg`;
-  
-  // Debug to see what URLs are being generated
-  console.log(`Generating Cloudinary URL for drink: ${drinkName} (formatted as: ${formattedName}), index: ${imageIndex}`);
-  console.log(`Full URL: ${url}`);
-  
-  return url;
 }
 
 /**
