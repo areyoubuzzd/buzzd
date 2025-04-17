@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import Navigation from '@/components/layout/navigation';
 import { calculateDistance, formatDistance, getCurrentPosition, DEFAULT_POSITION } from '@/lib/distance-utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Establishment {
   id: number;
@@ -201,6 +202,51 @@ const getHappyHourSummary = (deals: Deal[]): { validDays: string, timeRange: str
     timeRange: `${firstDeal.hh_start_time} - ${firstDeal.hh_end_time}`,
     isActive: isWithinHappyHour(firstDeal)
   };
+};
+
+// Animation variants
+const cardContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { 
+    y: 20, 
+    opacity: 0 
+  },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 24
+    }
+  },
+  hover: { 
+    scale: 1.02,
+    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+    transition: { 
+      type: "spring",
+      stiffness: 400,
+      damping: 10
+    }
+  },
+  tap: { 
+    scale: 0.98,
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    transition: {
+      type: "spring",
+      stiffness: 500,
+      damping: 15
+    }
+  }
 };
 
 export default function EstablishmentDetailsPage() {
@@ -410,47 +456,116 @@ export default function EstablishmentDetailsPage() {
         {activeDeals.length === 0 ? (
           <p className="text-gray-500">No active deals at this time.</p>
         ) : (
-          <div className="grid gap-4">
-            {activeDeals.map(deal => (
-              <Card key={deal.id} className="rounded-xl">
-                <CardContent className="p-5">
-                  <div className="mb-2">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold">{deal.drink_name}</h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500 line-through">${deal.standard_price.toFixed(2)}</span>
-                        <span className="font-bold text-primary">${deal.happy_hour_price.toFixed(2)}</span>
+          <motion.div 
+            className="grid gap-4"
+            variants={cardContainerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <AnimatePresence>
+              {activeDeals.map((deal, index) => (
+                <motion.div
+                  key={deal.id}
+                  layout
+                  custom={index}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
+                  whileTap="tap"
+                  transition={{
+                    layout: { type: "spring", stiffness: 300, damping: 30 },
+                    delay: index * 0.05
+                  }}
+                  className="rounded-xl overflow-hidden bg-card shadow-sm border border-border"
+                >
+                  <div className="p-5">
+                    <div className="mb-2">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold">{deal.drink_name}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500 line-through">${deal.standard_price.toFixed(2)}</span>
+                          <span className="font-bold text-primary">${deal.happy_hour_price.toFixed(2)}</span>
+                        </div>
                       </div>
+                      <motion.p 
+                        className="text-xs text-green-600"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 + 0.2 }}
+                      >
+                        Save {deal.savings_percentage}%
+                      </motion.p>
                     </div>
-                    <p className="text-xs text-green-600">Save {deal.savings_percentage}%</p>
+                    {deal.description && (
+                      <motion.div 
+                        className="text-sm text-gray-600 mt-2 border-t pt-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.05 + 0.3 }}
+                      >
+                        {deal.description}
+                      </motion.div>
+                    )}
                   </div>
-                  {deal.description && (
-                    <div className="text-sm text-gray-600 mt-2 border-t pt-2">
-                      {deal.description}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
         
-        <h2 className="text-xl font-bold mt-6 mb-4">Contact & Location</h2>
+        <motion.h2 
+          className="text-xl font-bold mt-6 mb-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          Contact & Location
+        </motion.h2>
         <div className="grid gap-4 mb-6">
-          <Card className="rounded-xl">
-            <CardContent className="p-5">
+          <motion.div 
+            className="rounded-xl overflow-hidden bg-card shadow-sm border border-border"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 300, 
+              damping: 24,
+              delay: 0.6 
+            }}
+            whileHover={{ 
+              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+              y: -2,
+              transition: { 
+                type: "spring",
+                stiffness: 400,
+                damping: 15
+              }
+            }}
+          >
+            <div className="p-5">
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
+                <motion.div 
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
                   <FaMapMarkerAlt className="text-primary h-5 w-5 flex-shrink-0" />
                   <div>
                     <p className="font-medium">Address</p>
                     <p className="text-sm text-gray-600">{establishment.address}</p>
                     <p className="text-sm text-gray-600">{establishment.city} {establishment.postalCode}</p>
                   </div>
-                </div>
+                </motion.div>
                 
                 {establishment.phone && (
-                  <div className="flex items-center gap-2">
+                  <motion.div 
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.8 }}
+                  >
                     <FaPhone className="text-primary h-5 w-5 flex-shrink-0" />
                     <div>
                       <p className="font-medium">Phone</p>
@@ -461,11 +576,16 @@ export default function EstablishmentDetailsPage() {
                         {establishment.phone}
                       </a>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
                 
                 {establishment.website && (
-                  <div className="flex items-center gap-2">
+                  <motion.div 
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.9 }}
+                  >
                     <FaGlobe className="text-primary h-5 w-5 flex-shrink-0" />
                     <div>
                       <p className="font-medium">Website</p>
@@ -478,11 +598,16 @@ export default function EstablishmentDetailsPage() {
                         {establishment.website}
                       </a>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
                 
                 {establishment.latitude && establishment.longitude && (
-                  <div className="flex items-center gap-2">
+                  <motion.div 
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 1.0 }}
+                  >
                     <FaMapMarkedAlt className="text-primary h-5 w-5 flex-shrink-0" />
                     <div>
                       <p className="font-medium">Directions</p>
@@ -495,15 +620,29 @@ export default function EstablishmentDetailsPage() {
                         Open in Google Maps
                       </a>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
         </div>
 
         {establishment.latitude && establishment.longitude && (
-          <div className="rounded-xl overflow-hidden h-48 bg-gray-100 mb-6 shadow-sm">
+          <motion.div 
+            className="rounded-xl overflow-hidden h-48 bg-gray-100 mb-6 shadow-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 300,
+              damping: 24,
+              delay: 1.1
+            }}
+            whileHover={{ 
+              scale: 1.02,
+              transition: { type: "spring", stiffness: 400, damping: 10 }
+            }}
+          >
             <a 
               href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
               target="_blank"
@@ -511,13 +650,25 @@ export default function EstablishmentDetailsPage() {
               className="flex items-center justify-center w-full h-full bg-gray-50 text-gray-700"
             >
               <div className="text-center">
-                <div className="flex justify-center mb-2">
+                <motion.div 
+                  className="flex justify-center mb-2"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 1.3, type: "spring" }}
+                >
                   <FaMapMarkedAlt size={32} />
-                </div>
-                <span className="text-sm font-medium">View on Google Maps</span>
+                </motion.div>
+                <motion.span 
+                  className="text-sm font-medium"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.5 }}
+                >
+                  View on Google Maps
+                </motion.span>
               </div>
             </a>
-          </div>
+          </motion.div>
         )}
       </div>
       
