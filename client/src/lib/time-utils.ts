@@ -3,6 +3,9 @@
  * Handles time calculations and status checks for happy hour deals
  */
 
+// Export the function for checking active status
+export const isDealActiveNow = isWithinHappyHour;
+
 // Map day names to indices for easy comparison - with both uppercase and lowercase versions
 const dayIndices: {[key: string]: number} = {
   // Title case versions
