@@ -181,10 +181,7 @@ export default function HomePage() {
       console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTimeValue} is NOT between ${startTimeValue} and ${endTimeValue}`);
     }
     
-    // FORCE ALL DEALS TO BE ACTIVE FOR TESTING
-    // For testing, let's force all deals to be active to see if our radius logic works
-    return true;
-    
+    // Return whether the deal is active now
     return isActive;
   };
   
@@ -222,11 +219,23 @@ export default function HomePage() {
       // Get establishment coordinates
       const est = deal.establishment;
       if (est && est.latitude && est.longitude) {
+        // Special logging for Moon Rooftop Bar
+        if (deal.establishmentId === 11) {
+          console.log(`MOON ROOFTOP BAR: Calculating distance - Your location: ${location.lat},${location.lng}, Bar location: ${est.latitude},${est.longitude}`);
+        }
+        
         // Calculate haversine distance
-        return calculateHaversineDistance(
+        const calcDistance = calculateHaversineDistance(
           location.lat, location.lng,
           est.latitude, est.longitude
         );
+        
+        // Special logging for Moon Rooftop Bar
+        if (deal.establishmentId === 11) {
+          console.log(`MOON ROOFTOP BAR: Calculated distance = ${calcDistance.toFixed(2)} km`);
+        }
+        
+        return calcDistance;
       }
       
       // Fallback if no proper coordinates
