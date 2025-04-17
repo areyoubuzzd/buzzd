@@ -146,6 +146,19 @@ router.get('/collections/all', async (req, res) => {
     // Execute the query
     const result = await query;
     
+    // Extra debug logging for Moon Rooftop Bar (id 11)
+    const moonDeals = result.filter(item => item.establishment.id === 11);
+    if (moonDeals.length > 0) {
+      console.log(`FOUND ${moonDeals.length} DEALS FROM MOON ROOFTOP BAR (ID 11) IN DATABASE QUERY RESULTS`);
+      
+      // Log the first deal
+      if (moonDeals.length > 0) {
+        console.log("First deal for establishment:", moonDeals[0].deal);
+      }
+    } else {
+      console.log(`Moon Rooftop Bar (id 11) NOT FOUND in database query results`);
+    }
+    
     // Log for debugging
     console.log(`Fetched ${result.length} deals from database`);
     
@@ -173,6 +186,11 @@ router.get('/collections/all', async (req, res) => {
         const calculatedDistance = R * c; // Distance in km
         
         distance = parseFloat(calculatedDistance.toFixed(2));
+        
+        // Special debug for Moon Rooftop Bar (id 11)
+        if (item.establishment.id === 11) {
+          console.log(`Distance from ${lat1},${lon1} to Moon Rooftop Bar (${lat2},${lon2}): ${distance} km`);
+        }
       }
       
       return {

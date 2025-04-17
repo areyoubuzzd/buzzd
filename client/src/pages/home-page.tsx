@@ -326,7 +326,41 @@ export default function HomePage() {
       // Implement tiered radius approach
       // Try to find active deals, expanding the radius if needed
       
-      // Start with deals within 5km
+      // Debug raw deals from the API
+      if (enrichedDeals.length === 0) {
+        console.log(`WARNING: No deals found at all in API response`);
+      } else {
+        console.log(`Received ${enrichedDeals.length} deals from API`);
+        
+        // Log establishment IDs in the response
+        const establishmentIds = Array.from(new Set(enrichedDeals.map(d => d.establishmentId)));
+        console.log(`Establishment IDs in response: ${establishmentIds.join(', ')}`);
+        
+        // Check if Moon Rooftop Bar (ID 11) exists in the data
+        if (establishmentIds.includes(11)) {
+          console.log(`Moon Rooftop Bar (ID 11) IS in the API response data`);
+        } else {
+          console.log(`WARNING: Moon Rooftop Bar (ID 11) IS NOT in the API response data`);
+        }
+      }
+        
+      // Debug all Moon Rooftop Bar deals
+      const allMoonDeals = enrichedDeals.filter(deal => deal.establishmentId === 11);
+      if (allMoonDeals.length > 0) {
+        console.log(`FOUND ${allMoonDeals.length} MOON ROOFTOP BAR DEALS TOTAL:`);
+        allMoonDeals.forEach((deal, index) => {
+          console.log(`MOON DEAL #${index + 1}:`);
+          console.log(`- Name: ${deal.drink_name}`);
+          console.log(`- Distance: ${deal.distance.toFixed(2)} km`);
+          console.log(`- Active: ${deal.isActive}`);
+          console.log(`- Valid days: ${deal.valid_days}`);
+          console.log(`- Happy hour: ${deal.hh_start_time} - ${deal.hh_end_time}`);
+        });
+      } else {
+        console.log(`NO MOON ROOFTOP BAR DEALS FOUND IN RESPONSE DATA`);
+      }
+
+      // Start with deals within 5km (current radius filter)
       const dealsWithin5km = enrichedDeals.filter(deal => deal.distance <= 5);
       const activeDealsWithin5km = dealsWithin5km.filter(deal => deal.isActive);
       
@@ -335,7 +369,7 @@ export default function HomePage() {
       if (moonDealsWithin5km.length > 0) {
         console.log(`MOON DEALS WITHIN 5KM: ${moonDealsWithin5km.length}`);
       } else {
-        console.log(`NO MOON DEALS WITHIN 5KM RADIUS`);
+        console.log(`NO MOON DEALS WITHIN 5KM RADIUS - THIS IS EXPECTED AS MOON IS ~9KM AWAY`);
       }
       
       // If we have active deals within 5km, use those
@@ -354,6 +388,21 @@ export default function HomePage() {
         if (activeDealsWithin10km.length > 0) {
           // We found active deals within 10km
           console.log(`Found ${activeDealsWithin10km.length} active deals within 10km radius`);
+          
+          // Check if Moon Rooftop Bar deals are included in the 10km deals
+          const moonDealsWithin10km = dealsWithin10km.filter(deal => deal.establishmentId === 11);
+          if (moonDealsWithin10km.length > 0) {
+            console.log(`MOON DEALS WITHIN 10KM: ${moonDealsWithin10km.length}`);
+            
+            // Check if any of the Moon deals are active
+            const activeMoonDeals = moonDealsWithin10km.filter(deal => deal.isActive);
+            if (activeMoonDeals.length > 0) {
+              console.log(`ACTIVE MOON DEALS WITHIN 10KM: ${activeMoonDeals.length}`);
+            } else {
+              console.log(`MOON DEALS WITHIN 10KM RADIUS BUT NONE ARE ACTIVE`);
+            }
+          }
+          
           finalDeals = dealsWithin10km;
         } else {
           // No active deals in 10km, expand to 15km
