@@ -43,6 +43,7 @@ interface Deal {
   hh_end_time: string;
   collections?: string;
   imageUrl?: string;
+  description?: string; // Added description field
 }
 
 interface EstablishmentDetailsResponse {
@@ -413,7 +414,7 @@ export default function EstablishmentDetailsPage() {
             {activeDeals.map(deal => (
               <Card key={deal.id} className="rounded-xl">
                 <CardContent className="p-5">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between mb-2">
                     <div>
                       <h3 className="font-bold">{deal.drink_name}</h3>
                       <p className="text-sm text-gray-500">{deal.alcohol_category} {deal.alcohol_subcategory}</p>
@@ -424,6 +425,11 @@ export default function EstablishmentDetailsPage() {
                       <p className="text-xs text-green-600">Save {deal.savings_percentage}%</p>
                     </div>
                   </div>
+                  {deal.description && (
+                    <div className="text-sm text-gray-600 mt-2 border-t pt-2">
+                      {deal.description}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
