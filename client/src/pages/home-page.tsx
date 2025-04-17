@@ -22,17 +22,28 @@ type Deal = {
   id: number;
   establishmentId: number;
   alcohol_category: string;
-  alcohol_subcategory: string;
-  drink_name: string;
-  regular_price: number;
+  alcohol_subcategory?: string | null;
+  alcohol_subcategory2?: string | null;
+  drink_name?: string | null;
+  standard_price: number;        // From API (matches DB schema)
   happy_hour_price: number;
-  is_one_for_one: boolean;
-  is_house_pour: boolean;
+  savings?: number;
+  savings_percentage?: number;
   valid_days: string;
   hh_start_time: string;
   hh_end_time: string;
-  collections?: string;
-  description?: string;
+  collections?: string | null;
+  description?: string | null;
+  distance?: number;
+  establishment?: {
+    id: number;
+    name: string;
+    latitude: number;
+    longitude: number;
+    address?: string;
+    city?: string;
+    [key: string]: any;
+  }
 };
 
 type Collection = {
@@ -328,8 +339,11 @@ export default function HomePage() {
     // =======================================================
     
     const oneForOneDeals = (() => {
-      // Filter to 1-for-1 deals
-      const filteredDeals = allDeals.filter(deal => deal.is_one_for_one === true);
+      // Filter to 1-for-1 deals based on collections or alcohol_subcategory
+      const filteredDeals = allDeals.filter(deal => 
+        (deal.collections && deal.collections.includes("1-for-1_deal")) ||
+        (deal.alcohol_subcategory && deal.alcohol_subcategory.toLowerCase().includes("1-for-1"))
+      );
       
       // Enrich and sort
       return sortDeals(enrichDeals(filteredDeals));
