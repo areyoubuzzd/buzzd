@@ -45,29 +45,38 @@ async function loadSheetData(): Promise<any[]> {
     console.log(`Connecting to Google Sheets document ID: ${SPREADSHEET_ID}`);
     console.log(`Loading data from tab: ${TAB_NAME}`);
     
-    // Initialize the sheet
+    // Initialize the sheet - using v4 API
     const doc = new GoogleSpreadsheet(SPREADSHEET_ID);
 
     // Auth with service account
     await doc.useServiceAccountAuth({
-      client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, '\n'), // Fix escaped newlines
+      client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL!,
+      private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY!.replace(/\\n/g, '\n'), // Fix escaped newlines
     });
 
-    // Load spreadsheet
+    // Load spreadsheet info
     await doc.loadInfo();
     console.log(`Spreadsheet title: ${doc.title}`);
 
     // Get the specified sheet
-    const sheet = doc.sheetsByTitle[TAB_NAME];
-    if (!sheet) {
-      console.error(`Sheet "${TAB_NAME}" not found. Available sheets: ${Object.keys(doc.sheetsByTitle).join(', ')}`);
+    let sheet;
+    // Try to get by title first
+    if (doc.sheetsByTitle && doc.sheetsByTitle[TAB_NAME]) {
+      sheet = doc.sheetsByTitle[TAB_NAME];
+    } else if (doc.sheetsByIndex && doc.sheetsByIndex.length > 0) {
+      // If not found by title, try to get the first sheet
+      sheet = doc.sheetsByIndex[0];
+      console.log(`Sheet "${TAB_NAME}" not found by title, using first sheet: "${sheet.title}"`);
+    } else {
+      console.error(`No sheets found in the spreadsheet`);
       process.exit(1);
     }
 
-    // Load rows
+    // Load sheet rows
+    await sheet.loadHeaderRow();
     const rows = await sheet.getRows();
-    console.log(`Loaded ${rows.length} rows from "${TAB_NAME}" sheet`);
+    console.log(`Loaded ${rows.length} rows from "${sheet.title}" sheet`);
+    console.log(`Headers: ${sheet.headerValues.join(', ')}`);
 
     // Convert to array of objects
     const data = rows.map(row => {
