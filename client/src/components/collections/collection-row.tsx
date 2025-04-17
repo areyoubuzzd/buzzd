@@ -141,19 +141,6 @@ export default function CollectionRow({ title, deals, description, userLocation,
         >
           {title}
         </motion.h2>
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          <Button 
-            variant="link" 
-            className="text-primary font-medium"
-            onClick={onViewAllClick}
-          >
-            View all
-          </Button>
-        </motion.div>
       </div>
       
       <div className="relative">
