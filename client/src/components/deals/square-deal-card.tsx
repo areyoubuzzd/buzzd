@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { calculateDistance } from "@/lib/location-utils";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
+import { isWithinHappyHour } from "@/lib/time-utils";
 
 interface SquareDealCardProps {
   deal: any;
@@ -198,6 +199,20 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
                 src={deal.imageUrl || getDefaultImage} 
                 alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
                 className="w-full h-full object-cover"
+              />
+              
+              {/* Status indicator (green for active, red for inactive) */}
+              <motion.div 
+                className={`absolute top-2 left-2 w-3 h-3 rounded-full ${isWithinHappyHour(deal) ? 'bg-green-500' : 'bg-red-500'} shadow-md`}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ 
+                  scale: 1, 
+                  opacity: 1,
+                  boxShadow: isWithinHappyHour(deal) 
+                    ? '0 0 6px 1px rgba(16, 185, 129, 0.7)' 
+                    : '0 0 6px 1px rgba(239, 68, 68, 0.7)'
+                }}
+                transition={{ delay: 0.3, duration: 0.3 }}
               />
               
               {/* Savings badge */}
