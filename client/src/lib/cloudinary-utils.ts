@@ -110,9 +110,16 @@ export function getRandomDrinkImageUrl(
   
   // Build the image path using the specific drink name
   const imagePath = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
-  console.log(`Using specific drink image path: ${imagePath}`);
+  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePath}`;
   
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePath}`;
+  console.log(`Drink: ${drinkName}`);
+  console.log(`Category: ${drinkCategory}`);
+  console.log(`Folder name: ${folderName}`);
+  console.log(`Image index: ${imageIndex}`);
+  console.log(`Final image path: ${imagePath}`);
+  console.log(`Full Cloudinary URL: ${fullUrl}`);
+  
+  return fullUrl;
 }
 
 /**
