@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { FaStar, FaWalking, FaClock } from 'react-icons/fa';
 import { calculateDistance, formatDistance, getCurrentPosition, DEFAULT_POSITION } from '@/lib/distance-utils';
+import { motion } from 'framer-motion';
 
 interface Deal {
   valid_days: string;
@@ -365,102 +366,182 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
 
   return (
     <Link href={`/establishments/${id}`}>
-      <Card className="overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 h-full flex flex-col rounded-xl">
-        <div 
-          className="aspect-square bg-cover bg-center w-full"
-          style={{ backgroundImage: `url(${imageUrlToUse})` }}
-        />
-        <CardContent className="p-5 flex-grow">
-          <div>
-            <h3 className="font-medium text-base line-clamp-1">{name}</h3>
-            
-            {/* Status badges */}
-            <div className="mt-1.5 mb-2">
-              {/* Active/Inactive status */}
-              <div className="flex items-center">
-                <div className={`w-2 h-2 rounded-full mr-1.5 ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-                <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {isActive ? 'Active' : 'Inactive'}
-                </span>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 20
+        }}
+        whileHover={{ 
+          scale: 1.03, 
+          transition: { duration: 0.2 } 
+        }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <Card className="overflow-hidden cursor-pointer h-full flex flex-col rounded-xl">
+          <motion.div 
+            className="aspect-square bg-cover bg-center w-full"
+            style={{ backgroundImage: `url(${imageUrlToUse})` }}
+            whileHover={{ 
+              scale: 1.05,
+              transition: { duration: 0.3 }
+            }}
+          />
+          <CardContent className="p-5 flex-grow">
+            <motion.div>
+              <motion.h3 
+                className="font-medium text-base line-clamp-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                {name}
+              </motion.h3>
+              
+              {/* Status badges */}
+              <div className="mt-1.5 mb-2">
+                {/* Active/Inactive status */}
+                <motion.div 
+                  className="flex items-center"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <div className={`w-2 h-2 rounded-full mr-1.5 ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+                  <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </motion.div>
+                
+                {/* Time display */}
+                {isActive && endTime && (
+                  <motion.div 
+                    className="flex mt-0.5"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.25 }}
+                  >
+                    <div className="w-2 mr-1.5"></div>
+                    <div className="flex items-center">
+                      <FaClock className="h-2 w-2 text-green-600 mr-1" />
+                      <span className="text-xs text-green-600">
+                        Ends: {endTime}
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+                {!isActive && hasHappyHourToday && startTime && (
+                  <motion.div 
+                    className="flex mt-0.5"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.25 }}
+                  >
+                    <div className="w-2 mr-1.5"></div>
+                    <div className="flex items-center">
+                      <FaClock className="h-2 w-2 text-yellow-600 mr-1" />
+                      <span className="text-xs text-yellow-600">
+                        Starts: {startTime}
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
               </div>
               
-              {/* Time display */}
-              {isActive && endTime && (
-                <div className="flex mt-0.5">
-                  <div className="w-2 mr-1.5"></div>
-                  <div className="flex items-center">
-                    <FaClock className="h-2 w-2 text-green-600 mr-1" />
-                    <span className="text-xs text-green-600">
-                      Ends: {endTime}
-                    </span>
-                  </div>
-                </div>
-              )}
-              {!isActive && hasHappyHourToday && startTime && (
-                <div className="flex mt-0.5">
-                  <div className="w-2 mr-1.5"></div>
-                  <div className="flex items-center">
-                    <FaClock className="h-2 w-2 text-yellow-600 mr-1" />
-                    <span className="text-xs text-yellow-600">
-                      Starts: {startTime}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Rating and distance on same line */}
-            <div className="flex gap-2 items-center">
-              {rating && (
-                <Badge variant="outline" className="flex items-center gap-1 bg-yellow-50 text-yellow-700 border-yellow-200">
-                  <FaStar className="h-3 w-3" />
-                  <span>{rating.toFixed(1)}</span>
-                </Badge>
-              )}
-              
-              {userDistance !== null && (
-                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
-                  <FaWalking className="h-3 w-3" />
-                  {formatDistance(userDistance)}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              {/* Rating and distance on same line */}
+              <motion.div 
+                className="flex gap-2 items-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {rating && (
+                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                    <Badge variant="outline" className="flex items-center gap-1 bg-yellow-50 text-yellow-700 border-yellow-200">
+                      <FaStar className="h-3 w-3" />
+                      <span>{rating.toFixed(1)}</span>
+                    </Badge>
+                  </motion.div>
+                )}
+                
+                {userDistance !== null && (
+                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                    <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                      <FaWalking className="h-3 w-3" />
+                      {formatDistance(userDistance)}
+                    </Badge>
+                  </motion.div>
+                )}
+              </motion.div>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </Link>
   );
 }
 
 export function RestaurantCardSkeleton() {
   return (
-    <Card className="overflow-hidden h-full flex flex-col rounded-xl">
-      <div className="aspect-square bg-gray-200 animate-pulse w-full" />
-      <CardContent className="p-5 flex-grow">
-        {/* Restaurant name */}
-        <div className="h-5 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3" />
-        
-        {/* Active status */}
-        <div className="mt-1.5 mb-2">
-          <div className="flex items-center">
-            <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse mr-1.5"></div>
-            <div className="h-4 bg-gray-200 animate-pulse w-16 rounded-md"></div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 260,
+        damping: 20
+      }}
+    >
+      <Card className="overflow-hidden h-full flex flex-col rounded-xl">
+        <div className="aspect-square bg-gray-200 animate-pulse w-full" />
+        <CardContent className="p-5 flex-grow">
+          {/* Restaurant name */}
+          <motion.div 
+            className="h-5 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          />
+          
+          {/* Active status */}
+          <div className="mt-1.5 mb-2">
+            <motion.div 
+              className="flex items-center"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse mr-1.5"></div>
+              <div className="h-4 bg-gray-200 animate-pulse w-16 rounded-md"></div>
+            </motion.div>
+            <motion.div 
+              className="flex mt-0.5"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <div className="w-2 mr-1.5"></div>
+              <div className="flex items-center">
+                <div className="h-2 w-2 bg-gray-200 animate-pulse rounded-full mr-1"></div>
+                <div className="h-4 bg-gray-200 animate-pulse w-20 rounded-md"></div>
+              </div>
+            </motion.div>
           </div>
-          <div className="flex mt-0.5">
-            <div className="w-2 mr-1.5"></div>
-            <div className="flex items-center">
-              <div className="h-2 w-2 bg-gray-200 animate-pulse rounded-full mr-1"></div>
-              <div className="h-4 bg-gray-200 animate-pulse w-20 rounded-md"></div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Rating and distance */}
-        <div className="flex gap-2 mt-2">
-          <div className="h-6 bg-gray-200 animate-pulse w-16 rounded-full" />
-          <div className="h-6 bg-gray-200 animate-pulse w-16 rounded-full" />
-        </div>
-      </CardContent>
-    </Card>
+          
+          {/* Rating and distance */}
+          <motion.div 
+            className="flex gap-2 mt-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="h-6 bg-gray-200 animate-pulse w-16 rounded-full" />
+            <div className="h-6 bg-gray-200 animate-pulse w-16 rounded-full" />
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
