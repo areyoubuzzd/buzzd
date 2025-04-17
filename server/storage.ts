@@ -682,8 +682,18 @@ export class DatabaseStorage implements IStorage {
         return { ...deal, isActive: isHappyHourNow };
       });
       
-      // Return all deals with their active status
-      return dealsWithActiveStatus;
+      // Sort the deals by active status (active deals first) before returning
+      const sortedDeals = dealsWithActiveStatus.sort((a, b) => {
+        // First sort by active status - active deals first
+        if (a.isActive && !b.isActive) return -1;
+        if (!a.isActive && b.isActive) return 1;
+        
+        // If both have the same active status, sort by price (cheaper first)
+        return a.happy_hour_price - b.happy_hour_price;
+      });
+      
+      // Return all deals sorted by active status
+      return sortedDeals;
     } catch (error) {
       console.error("Error fetching deals for establishment:", error);
       return [];
