@@ -324,6 +324,20 @@ export default function HomePage() {
     // Keep track of which collection names we've already used (case-insensitive)
     const usedCollectionNames = new Set<string>();
     
+    // Map of API collection slugs to match them with appropriate deals
+    const apiCollectionMap = new Map<string, ApiCollection>();
+    
+    // Build a map of API collections for easy lookup by slug
+    if (apiCollections && apiCollections.length > 0) {
+      // Log available API collections
+      console.log("Available API collections:", apiCollections.map(c => c.name).join(", "));
+      
+      // Create a map for quick slug lookup
+      apiCollections.forEach(collection => {
+        apiCollectionMap.set(collection.slug, collection);
+      });
+    }
+    
     // =======================================================
     // 1. Create "Active Happy Hours Nearby" collection (always first)
     // =======================================================
@@ -625,6 +639,194 @@ export default function HomePage() {
       }
     });
     
+    // Generate collections from API-provided collection data
+    const apiBasedCollections: Collection[] = [];
+    
+    // Only try to generate API-based collections if we have apiCollections data
+    if (apiCollections && apiCollections.length > 0 && apiCollectionMap.size > 0) {
+      console.log("Generating collections from API data with priority order");
+      
+      // Sort API collections by priority value (ascending)
+      const sortedApiCollections = [...apiCollections].sort((a, b) => a.priority - b.priority);
+      
+      // For each collection in the API, try to create a matching collection
+      for (const apiCollection of sortedApiCollections) {
+        // Skip inactive collections
+        if (!apiCollection.active) {
+          console.log(`Skipping inactive collection: ${apiCollection.name}`);
+          continue;
+        }
+        
+        // Skip if we already have a collection with this name (case insensitive)
+        const collectionNameLower = apiCollection.name.toLowerCase();
+        if (usedCollectionNames.has(collectionNameLower)) {
+          console.log(`Skipping duplicate collection: ${apiCollection.name}`);
+          continue;
+        }
+        
+        // Create a filter function to find deals for this collection
+        const getDealsForCollection = (): Deal[] => {
+          const slug = apiCollection.slug;
+          
+          // Different slugs need different filtering logic
+          if (slug === 'active_happy_hours') {
+            // Already handled with activeHappyHoursDeals
+            return [];
+          }
+          
+          if (slug === 'all_deals') {
+            // Return all deals
+            return sortDeals(enrichDeals(allDeals));
+          }
+          
+          if (slug === 'beers_under_12') {
+            // Filter to beer deals under $12
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "beer" && deal.happy_hour_price < 12
+            )));
+          }
+          
+          if (slug === 'beers_under_15') {
+            // Filter to beer deals under $15
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "beer" && deal.happy_hour_price < 15
+            )));
+          }
+          
+          if (slug === 'craft_beers') {
+            // Filter to craft beers
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "beer" && 
+              deal.alcohol_subcategory?.toLowerCase().includes('craft') 
+            )));
+          }
+          
+          if (slug === 'beer_buckets_under_40') {
+            // Filter to beer buckets under $40
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "beer" && 
+              deal.alcohol_subcategory?.toLowerCase().includes('bucket') &&
+              deal.happy_hour_price < 40
+            )));
+          }
+          
+          if (slug === 'wines_under_12') {
+            // Filter to wine deals under $12
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "wine" && deal.happy_hour_price < 12
+            )));
+          }
+          
+          if (slug === 'wines_under_15') {
+            // Filter to wine deals under $15 
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "wine" && deal.happy_hour_price < 15
+            )));
+          }
+          
+          if (slug === 'bottles_under_100') {
+            // Filter to bottle deals under $100
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_subcategory?.toLowerCase().includes('bottle') && 
+              deal.happy_hour_price < 100
+            )));
+          }
+          
+          if (slug === 'cocktails_under_12') {
+            // Filter to cocktail deals under $12
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "cocktail" && deal.happy_hour_price < 12
+            )));
+          }
+          
+          if (slug === 'cocktails_under_15') {
+            // Filter to cocktail deals under $15
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "cocktail" && deal.happy_hour_price < 15
+            )));
+          }
+          
+          if (slug === 'signature_cocktails') {
+            // Filter to signature cocktails
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "cocktail" && 
+              deal.alcohol_subcategory?.toLowerCase().includes('signature')
+            )));
+          }
+          
+          if (slug === 'whisky_deals') {
+            // Filter to whisky deals
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "spirits" && 
+              (deal.alcohol_subcategory?.toLowerCase().includes('whisky') ||
+               deal.alcohol_subcategory?.toLowerCase().includes('whiskey'))
+            )));
+          }
+          
+          if (slug === 'gin_deals') {
+            // Filter to gin deals
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              deal.alcohol_category.toLowerCase() === "spirits" && 
+              deal.alcohol_subcategory?.toLowerCase().includes('gin')
+            )));
+          }
+          
+          if (slug === 'one_for_one_deals') {
+            // Filter to 1-for-1 deals
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              (deal.collections && deal.collections.includes("1-for-1_deal")) ||
+              (deal.alcohol_subcategory && deal.alcohol_subcategory.toLowerCase().includes("1-for-1"))
+            )));
+          }
+          
+          if (slug === 'free_flow_deals') {
+            // Filter to free flow deals
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              (deal.collections && deal.collections.includes("free_flow")) ||
+              (deal.alcohol_subcategory && deal.alcohol_subcategory.toLowerCase().includes("free flow"))
+            )));
+          }
+          
+          if (slug === 'two_bottle_discounts') {
+            // Filter to two bottle discount deals
+            return sortDeals(enrichDeals(allDeals.filter(deal => 
+              (deal.collections && deal.collections.includes("two_bottle_discount")) ||
+              (deal.alcohol_subcategory && deal.alcohol_subcategory.toLowerCase().includes("two bottle"))
+            )));
+          }
+          
+          // For location-specific collections, we'd need establishment data
+          // Let's try to do our best based on the collections field
+          
+          // Default case - check if any deals have this collection tag
+          return sortDeals(enrichDeals(allDeals.filter(deal => 
+            deal.collections && 
+            deal.collections.split(',')
+              .map(t => t.trim().toLowerCase())
+              .some(t => t === slug)
+          )));
+        };
+        
+        // Get deals for this collection
+        const dealsForCollection = getDealsForCollection();
+        
+        // Only add collection if it has deals
+        if (dealsForCollection.length > 0) {
+          apiBasedCollections.push({
+            name: apiCollection.name,
+            description: apiCollection.description,
+            slug: apiCollection.slug,
+            priority: apiCollection.priority,
+            deals: dealsForCollection
+          });
+          
+          // Mark this collection name as used
+          usedCollectionNames.add(apiCollection.name.toLowerCase());
+          usedCollectionNames.add(apiCollection.slug.toLowerCase());
+        }
+      }
+    }
+    
     // Sort tag collections - active deals first, then alphabetically
     const sortedTagCollections = tagCollections.sort((a, b) => {
       // Check if any deals in collection A are active
@@ -645,11 +847,33 @@ export default function HomePage() {
       return a.name.localeCompare(b.name);
     });
     
-    // Add all tag collections after our priority collections
-    result.push(...sortedTagCollections);
+    // If we have API collections, use those first, then the tag collections
+    if (apiBasedCollections.length > 0) {
+      // Sort API collections by priority (ascending)
+      apiBasedCollections.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+      
+      // IMPORTANT: Only keep the first 4 default collections we created manually,
+      // then use the API-based collections, and finally any remaining tag collections
+      const manualCollections = result.slice(0, Math.min(4, result.length));
+      
+      // Reset the result array to our filtered manual collections
+      result.length = 0;
+      
+      // First add our prioritized manual collections
+      result.push(...manualCollections);
+      
+      // Then add the API-based collections
+      result.push(...apiBasedCollections);
+      
+      // Finally add any tag collections that aren't already covered
+      result.push(...sortedTagCollections);
+    } else {
+      // No API collections available, fall back to manual + tag collections
+      result.push(...sortedTagCollections);
+    }
     
     return result;
-  }, [dealsData, location]);
+  }, [dealsData, location, apiCollections]);
 
   useEffect(() => {
     // Store the current page in sessionStorage for proper back navigation
