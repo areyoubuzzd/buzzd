@@ -10,6 +10,7 @@ import Navigation from '@/components/layout/navigation';
 import LocationBar from '@/components/location-bar';
 import { Input } from '@/components/ui/input';
 import DealCard from '@/components/deals/deal-card';
+import SquareDealCard from '@/components/deals/square-deal-card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -277,13 +278,15 @@ export default function BeerPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              {beerDeals.map((deal: Deal) => (
-                <DealCard 
-                  key={deal.id}
-                  deal={deal}
-                  userLocation={location}
-                />
-              ))}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {beerDeals.map((deal: Deal) => (
+                  <SquareDealCard 
+                    key={deal.id}
+                    deal={deal}
+                    userLocation={location}
+                  />
+                ))}
+              </div>
             </motion.div>
           )}
         </div>
