@@ -800,7 +800,7 @@ export default function HomePage() {
         // Only add collection if it has deals
         if (dealsForCollection.length > 0) {
           apiBasedCollections.push({
-            name: apiCollection.name,
+            name: getFriendlyCollectionName(apiCollection.slug),
             description: apiCollection.description,
             slug: apiCollection.slug,
             priority: apiCollection.priority,
@@ -867,8 +867,8 @@ export default function HomePage() {
       // Only add the collection if it has deals
       if (dealsForCollection.length > 0) {
         result.push({
-          name: apiCollection.name,
-          description: apiCollection.description || `${apiCollection.name} deals near you`,
+          name: getFriendlyCollectionName(apiCollection.slug),
+          description: apiCollection.description || `${getFriendlyCollectionName(apiCollection.slug)} deals near you`,
           deals: dealsForCollection,
           slug: apiCollection.slug,
           priority: apiCollection.priority
