@@ -307,12 +307,36 @@ export default function HomePage() {
     const activeHappyHoursDeals = (() => {
       const enrichedDeals = enrichDeals(allDeals);
       
+      // Debug Moon Rooftop Bar deals
+      const moonDeals = enrichedDeals.filter(deal => deal.establishmentId === 11);
+      if (moonDeals.length > 0) {
+        console.log(`FOUND ${moonDeals.length} MOON ROOFTOP BAR DEALS:`);
+        moonDeals.forEach((deal, index) => {
+          console.log(`MOON DEAL #${index + 1}:`);
+          console.log(`- Name: ${deal.drink_name}`);
+          console.log(`- Distance: ${deal.distance.toFixed(2)} km`);
+          console.log(`- Active: ${deal.isActive}`);
+          console.log(`- Valid days: ${deal.valid_days}`);
+          console.log(`- Happy hour: ${deal.hh_start_time} - ${deal.hh_end_time}`);
+        });
+      } else {
+        console.log(`NO MOON ROOFTOP BAR DEALS FOUND IN RESPONSE DATA`);
+      }
+      
       // Implement tiered radius approach
       // Try to find active deals, expanding the radius if needed
       
       // Start with deals within 5km
       const dealsWithin5km = enrichedDeals.filter(deal => deal.distance <= 5);
       const activeDealsWithin5km = dealsWithin5km.filter(deal => deal.isActive);
+      
+      // Debug Moon within 5km
+      const moonDealsWithin5km = dealsWithin5km.filter(deal => deal.establishmentId === 11);
+      if (moonDealsWithin5km.length > 0) {
+        console.log(`MOON DEALS WITHIN 5KM: ${moonDealsWithin5km.length}`);
+      } else {
+        console.log(`NO MOON DEALS WITHIN 5KM RADIUS`);
+      }
       
       // If we have active deals within 5km, use those
       // Otherwise expand to 10km
