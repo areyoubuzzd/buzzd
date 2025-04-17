@@ -482,8 +482,6 @@ export default function HomePage() {
         onOpenFilters={handleOpenFilters} 
       />
       
-      <FilterBar activeFilter={activeFilter} onFilterChange={handleFilterChange} />
-      
       {/* Inline location display as text with edit icon */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
