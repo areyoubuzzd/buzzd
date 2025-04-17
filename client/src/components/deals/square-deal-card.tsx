@@ -5,6 +5,7 @@ import { calculateDistance } from "@/lib/location-utils";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { isWithinHappyHour } from "@/lib/time-utils";
+import { useDrinkImage } from "@/hooks/use-drink-images";
 
 interface SquareDealCardProps {
   deal: any;
@@ -76,28 +77,8 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
     };
   }, [deal]);
 
-  // Get the appropriate default image based on alcohol category
-  const getDefaultImage = useMemo(() => {
-    const category = deal.alcohol_category?.toLowerCase() || '';
-    
-    if (category.includes('beer')) {
-      return '/images/defaults/beer-default.jpg';
-    } else if (category.includes('wine')) {
-      return '/images/defaults/wine-default.jpg';
-    } else if (category.includes('whisky') || category.includes('whiskey')) {
-      return '/images/defaults/whisky-default.jpg';
-    } else if (category.includes('cocktail')) {
-      return '/images/defaults/cocktail-default.jpg';
-    } else if (category.includes('gin')) {
-      return '/images/defaults/gin-default.jpg';
-    } else if (category.includes('vodka')) {
-      return '/images/defaults/vodka-default.jpg';
-    } else if (category.includes('rum')) {
-      return '/images/defaults/rum-default.jpg';
-    } else {
-      return '/images/defaults/drink-default.jpg';
-    }
-  }, [deal.alcohol_category]);
+  // Get the Cloudinary image URL for this drink
+  const { imageUrl } = useDrinkImage(deal.drink_name, deal.alcohol_category);
 
   // Handle click to navigate to establishment details
   const handleCardClick = (e: React.MouseEvent) => {
@@ -195,9 +176,9 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         >
           <Card className="overflow-hidden h-full rounded-xl cursor-pointer">
             <div className="relative h-full">
-              {/* Deal image with category-based fallback */}
+              {/* Deal image from Cloudinary */}
               <img 
-                src={deal.imageUrl || getDefaultImage} 
+                src={deal.imageUrl || imageUrl || `/images/defaults/drink-default.jpg`} 
                 alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
                 className="w-full h-full object-cover"
               />
