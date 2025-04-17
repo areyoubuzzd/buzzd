@@ -2,7 +2,7 @@ import express from 'express';
 import { storage } from '../storage';
 import { db } from '../db';
 import { deals, establishments } from '@shared/schema';
-import { eq, and, asc, sql, gte, lte } from 'drizzle-orm';
+import { eq, and, asc, sql } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -150,7 +150,7 @@ router.get('/collections/all', async (req, res) => {
     console.log(`Fetched ${result.length} deals from database`);
     
     // Transform to DealWithEstablishment format with distance
-    const dealsWithDistances = result.map(item => {
+    const dealsWithEstablishments = result.map(item => {
       // Calculate distance manually if coordinates are provided
       let distance = null;
       if (latitude !== null && longitude !== null) {
@@ -181,21 +181,6 @@ router.get('/collections/all', async (req, res) => {
         distance
       };
     });
-    
-    // Filter out deals that are farther than the radius (the box query is approximate)
-    let dealsWithEstablishments = dealsWithDistances;
-    if (latitude !== null && longitude !== null) {
-      dealsWithEstablishments = dealsWithDistances.filter(deal => 
-        deal.distance !== null && deal.distance <= radius
-      );
-      
-      // Sort by distance (closest first)
-      dealsWithEstablishments.sort((a, b) => {
-        if (a.distance === null) return 1;
-        if (b.distance === null) return -1;
-        return a.distance - b.distance;
-      });
-    }
     
     // If no deals found, return empty array instead of error
     if (dealsWithEstablishments.length === 0) {
