@@ -41,6 +41,17 @@ const drinkImageMap: Record<string, string[]> = {
   // Add more mappings as more image sets are added to Cloudinary
 };
 
+// Debug function to test if a Cloudinary image exists
+async function doesImageExist(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok;
+  } catch (error) {
+    console.error('Error checking image existence:', error);
+    return false;
+  }
+}
+
 export function getRandomDrinkImageUrl(
   drinkName: string, 
   maxImages: number = 5, 
@@ -51,43 +62,29 @@ export function getRandomDrinkImageUrl(
     return getDefaultDrinkImageUrl(width, height);
   }
 
+  // Special case for "Heineken Pint" - hardcoded for now to ensure it works
+  if (drinkName.toLowerCase() === 'heineken pint') {
+    // Choose one of the images we know exists
+    const heineken_options = [
+      'Heineken_pint1_zoq54g',
+      'Heineken_pint2_qaseup',
+      'Heineken_pint4_vfaq0c', 
+      'Heineken_pint5_lp3d2i'
+    ];
+    
+    const randomIndex = Math.floor(Math.random() * heineken_options.length);
+    const imageId = heineken_options[randomIndex];
+    
+    console.log(`Direct Heineken Pint image selected: ${imageId}`);
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${imageId}`;
+  }
+  
   const lowerCaseDrinkName = drinkName.toLowerCase();
   
-  // Check if we have specific images for this drink
-  if (drinkImageMap[lowerCaseDrinkName] && drinkImageMap[lowerCaseDrinkName].length > 0) {
-    // Get a random image ID from the available ones
-    const imageArray = drinkImageMap[lowerCaseDrinkName];
-    const randomIndex = Math.floor(Math.random() * imageArray.length);
-    const imageId = imageArray[randomIndex];
-    
-    console.log(`Using Cloudinary image ID for ${drinkName}: ${imageId}`);
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imageId}`;
-  }
-  
-  console.log(`No specific images found for ${drinkName} - using category fallback`);
-  
-  // Use default images based on drink category
-  if (lowerCaseDrinkName.includes('pint') || 
-      lowerCaseDrinkName.includes('beer') || 
-      lowerCaseDrinkName.includes('bottle')) {
-    // Look for beer-specific sample images
-    const sampleImage = 'samples/cup-on-a-table';
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${sampleImage}`;
-  } else if (lowerCaseDrinkName.includes('wine')) {
-    // Use a wine-appropriate sample
-    const sampleImage = 'samples/cup-on-a-table';
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${sampleImage}`;
-  } else if (lowerCaseDrinkName.includes('cocktail') || 
-            lowerCaseDrinkName.includes('margarita') || 
-            lowerCaseDrinkName.includes('mojito')) {
-    // Use a cocktail-appropriate sample
-    const sampleImage = 'samples/cup-on-a-table';
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${sampleImage}`;
-  } else {
-    // Generic drink image as fallback
-    const sampleImage = 'samples/cup-on-a-table';
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${sampleImage}`;
-  }
+  // All other drink types use the sample cup image as fallback
+  console.log(`Using default image for ${drinkName}`);
+  const sampleImage = 'samples/cup-on-a-table';
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${sampleImage}`;
 }
 
 /**
