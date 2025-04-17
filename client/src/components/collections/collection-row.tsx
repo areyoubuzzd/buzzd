@@ -154,7 +154,7 @@ export default function CollectionRow({ title, deals, description, userLocation,
 
   return (
     <motion.div 
-      className="mb-8"
+      className="mb-4"
       initial="hidden"
       animate="visible"
       variants={rowVariants}

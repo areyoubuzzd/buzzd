@@ -5,6 +5,7 @@ import Navigation from '@/components/layout/navigation';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { FaWhatsapp } from 'react-icons/fa';
 
 interface Deal {
   valid_days: string;
@@ -151,6 +152,12 @@ function isWithinHappyHour(deal: Deal): boolean {
 export default function RestaurantsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [userPosition, setUserPosition] = useState<{ lat: number, lng: number } | null>(null);
+  
+  // WhatsApp button handler
+  const handleWhatsAppClick = () => {
+    const whatsappUrl = "https://wa.me/6587654321?text=Hello%2C%20I'd%20like%20to%20list%20my%20restaurant%20or%20update%20a%20deal%20in%20the%20app.";
+    window.open(whatsappUrl, "_blank");
+  };
   
   // Store the current page in sessionStorage for proper back navigation
   useEffect(() => {
@@ -351,6 +358,31 @@ export default function RestaurantsPage() {
           </motion.div>
         )}
       </div>
+      
+      {/* WhatsApp integration for restaurant listing/deal updates */}
+      <motion.div 
+        className="fixed bottom-20 right-4 z-50"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 260, 
+          damping: 20,
+          delay: 0.3 
+        }}
+      >
+        <motion.button
+          onClick={handleWhatsAppClick}
+          className="bg-[#25D366] hover:bg-[#1da851] text-white rounded-full p-3 shadow-lg"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <FaWhatsapp className="h-6 w-6" />
+        </motion.button>
+      </motion.div>
       
       <Navigation />
     </div>
