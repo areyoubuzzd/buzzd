@@ -77,7 +77,9 @@ function isWithinHappyHour(deal: Deal): boolean {
   
   // Log current time for debugging
   console.log("Current time: " + currentDate.toLocaleString());
-  console.log("Current day: " + currentDate.toLocaleDateString('en-US', { weekday: 'lowercase' }));
+  // Use a proper format and then manually convert to lowercase
+  const currentDayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  console.log("Current day: " + currentDayName);
   
   // Use the centralized utility to check if the current day is valid
   // This function handles all case-sensitivity issues and special formats
