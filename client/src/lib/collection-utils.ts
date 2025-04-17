@@ -145,15 +145,26 @@ export function dealBelongsToCollection(deal: any, collectionTag: string): boole
  * The most important collections should be displayed first
  */
 export const collectionPriorities: string[] = [
-  'active_happy_hours',
-  'all_deals',
-  '1for1_deals',
-  'beers_under_12',
-  'cocktails_under_15',
-  'wines_under_15',
-  'whisky_deals',
-  'gin_deals',
-  'freeflow_deals'
+  'active_happy_hours',    // Priority 1
+  'beers_under_12',        // Priority 10
+  'wines_under_12',        // Priority 11
+  'craft_beers',           // Priority 12
+  'cocktails_under_12',    // Priority 12
+  '1for1_deals',           // Priority 15
+  'freeflow_deals',        // Priority 16
+  'two_bottle_discounts',  // Priority 17
+  'wines_under_15',        // Priority 20
+  'cocktails_under_15',    // Priority 20
+  'signature_cocktails',   // Priority 21
+  'bottles_under_100',     // Priority 21
+  'beer_buckets_under_40', // Priority 23
+  'beers_under_15',        // Priority 25
+  'whisky_deals',          // Priority 40
+  'gin_deals',             // Priority 41
+  'all_deals',             // Priority 60
+  'cbd_deals',             // Priority 60
+  'orchard_deals',         // Priority 61
+  'holland_village_deals'  // Priority 62
 ];
 
 /**
