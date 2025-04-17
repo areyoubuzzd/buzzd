@@ -339,7 +339,7 @@ export default function HomePage() {
     }
     
     // =======================================================
-    // 1. Create "Active Happy Hours Nearby" collection (always first)
+    // 1. Create "Happy Hours Nearby" collection (always first)
     // =======================================================
     
     const activeHappyHoursDeals = (() => {
@@ -475,18 +475,12 @@ export default function HomePage() {
       return uniqueDeals.slice(0, 25);
     })();
     
-    // Only add if it has deals
-    if (activeHappyHoursDeals.length > 0) {
-      result.push({
-        name: "Happy Hours Nearby",
-        description: "Deals closest to your location",
-        deals: activeHappyHoursDeals
-      });
-      
-      // Remember we've used this name (both formats)
-      usedCollectionNames.add("happy hours nearby");
-      usedCollectionNames.add("happy_hours_nearby");
-    }
+    // Keeping activeHappyHoursDeals for API-based collections but not adding it directly
+    // We'll only add it if it comes from the API collections
+    
+    // Remember we've used this name (both formats)
+    usedCollectionNames.add("happy hours nearby");
+    usedCollectionNames.add("happy_hours_nearby");
     
     // =======================================================
     // 2. Create "Beers Under $10" collection (always second)
@@ -661,8 +655,9 @@ export default function HomePage() {
           }
           
           if (slug === 'all_deals') {
-            // Return all deals
-            return sortDeals(enrichDeals(allDeals));
+            // Return all deals up to 50
+            const sortedAllDeals = sortDeals(enrichDeals(allDeals));
+            return sortedAllDeals.slice(0, 50);
           }
           
           if (slug === 'beers_under_12') {
@@ -843,8 +838,9 @@ export default function HomePage() {
       let dealsForCollection: Deal[] = [];
       
       if (apiCollection.slug === 'all_deals') {
-        // For all deals, just include all deals
-        dealsForCollection = enrichDeals(allDeals);
+        // For all deals, just include all deals up to 50
+        const sortedAllDeals = sortDeals(enrichDeals(allDeals));
+        dealsForCollection = sortedAllDeals.slice(0, 50);
       } else if (apiCollection.slug === 'active_happy_hours') {
         // For active happy hours, use the existing active deals logic
         // This is already handled in the activeHappyHoursDeals calculation
