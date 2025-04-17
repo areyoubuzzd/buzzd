@@ -85,6 +85,11 @@ router.get('/search', async (req, res) => {
 /**
  * Get all deals with collections
  * This endpoint fetches all deals with their collections for the Collections UI
+ * 
+ * Query Parameters:
+ * - lat: latitude of user location (optional)
+ * - lng: longitude of user location (optional)
+ * - radius: radius in kilometers (optional, default: 5km)
  */
 router.get('/collections/all', async (req, res) => {
   try {
@@ -94,23 +99,59 @@ router.get('/collections/all', async (req, res) => {
     // Set proper content type
     res.setHeader('Content-Type', 'application/json');
     
-    // Fetch all deals joined with establishments
-    const result = await db
+    // Get location params if provided
+    const latitude = req.query.lat ? parseFloat(req.query.lat as string) : null;
+    const longitude = req.query.lng ? parseFloat(req.query.lng as string) : null;
+    const radius = req.query.radius ? parseFloat(req.query.radius as string) : 5; // Default 5km radius
+    
+    // Use SQL to calculate Haversine distance if coordinates are provided
+    const haversine = latitude !== null && longitude !== null
+      ? sql`
+        6371 * acos(
+          cos(radians(${latitude})) * 
+          cos(radians(${establishments.latitude})) * 
+          cos(radians(${establishments.longitude}) - radians(${longitude})) + 
+          sin(radians(${latitude})) * 
+          sin(radians(${establishments.latitude}))
+        )
+      `.as('distance')
+      : sql`0`.as('distance');
+    
+    // Base query
+    let query = db
       .select({
         deal: deals,
-        establishment: establishments
+        establishment: establishments,
+        distance: haversine
       })
       .from(deals)
-      .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
-      .orderBy(asc(deals.alcohol_category));
+      .innerJoin(establishments, eq(deals.establishmentId, establishments.id));
+    
+    // Add distance filter if coordinates are provided
+    if (latitude !== null && longitude !== null) {
+      query = query.where(
+        sql`${haversine} <= ${radius}`
+      );
+    }
+    
+    // Add ordering - first by distance if coordinates are provided, then by category
+    if (latitude !== null && longitude !== null) {
+      query = query.orderBy(asc(haversine), asc(deals.alcohol_category));
+    } else {
+      query = query.orderBy(asc(deals.alcohol_category));
+    }
+    
+    // Execute the query
+    const result = await query;
     
     // Log for debugging
     console.log(`Fetched ${result.length} deals from database`);
     
-    // Transform to DealWithEstablishment format
+    // Transform to DealWithEstablishment format with distance
     const dealsWithEstablishments = result.map(item => ({
       ...item.deal,
-      establishment: item.establishment
+      establishment: item.establishment,
+      distance: item.distance // Include the calculated distance
     }));
     
     // If no deals found, return empty array instead of error

@@ -54,9 +54,9 @@ export default function HomePage() {
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
   const [userRoadName, setUserRoadName] = useState<string>(""); // Added road name state
 
-  // Fetch all deals for collections
+  // Fetch all deals for collections with location parameters
   const { data: dealsData } = useQuery<Deal[]>({
-    queryKey: ['/api/deals/collections/all'],
+    queryKey: ['/api/deals/collections/all', { lat: location.lat, lng: location.lng }],
     staleTime: 60000, // 1 minute
     retry: 2
   });
@@ -452,9 +452,11 @@ export default function HomePage() {
     setLocation(newLocation);
     
     // Reset deals data to force a refresh based on new location
-    // This is key to making the location change work properly
-    // In a real app with an API, we'd refetch the data with new coordinates
-    queryClient.invalidateQueries({ queryKey: ['/api/deals/collections/all'] });
+    // We pass the location coordinates as part of the query key to ensure
+    // the cache is properly invalidated and data is refetched
+    queryClient.invalidateQueries({ 
+      queryKey: ['/api/deals/collections/all', { lat: newLocation.lat, lng: newLocation.lng }]
+    });
     
     // Simulate different number of deals
     setTotalDealsFound(Math.floor(Math.random() * 20) + 10);
