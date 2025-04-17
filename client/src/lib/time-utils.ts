@@ -123,62 +123,85 @@ export function parseDaysOfWeek(dayRangeStr: string): number[] {
 
 /**
  * Check if a given time is within a happy hour range
- * @param hh_start_time Start time of happy hour (format: HH:MM or HHMM)
- * @param hh_end_time End time of happy hour (format: HH:MM or HHMM)
- * @param valid_days Days when happy hour is valid (e.g., "Mon-Fri")
- * @param currentTime Optional current time to check against (defaults to now in Singapore time)
- * @returns Boolean indicating if current time is within happy hour
+ * This function supports two different call patterns:
+ * 1. With a deal object: isWithinHappyHour(deal)
+ * 2. With individual parameters: isWithinHappyHour(valid_days, hh_start_time, hh_end_time)
  */
 export function isWithinHappyHour(
-  hh_start_time: string, 
-  hh_end_time: string, 
-  valid_days: string,
+  deal: any | string, 
+  hh_start_time?: string, 
+  hh_end_time?: string,
   currentTime = getSingaporeTime()
 ): boolean {
   try {
+    // Determine if we're using the deal object or individual parameters
+    let startTime: string;
+    let endTime: string;
+    let validDays: string;
+    
+    if (typeof deal === 'object' && deal !== null) {
+      // Deal object passed in - extract the properties
+      validDays = deal.valid_days;
+      startTime = deal.hh_start_time;
+      endTime = deal.hh_end_time;
+      
+      // Log for debugging
+      console.log(`Start time raw: "${startTime}", parsed: ${parseTimeToMinutes(startTime)}`);
+      console.log(`End time raw: "${endTime}", parsed: ${parseTimeToMinutes(endTime)}`);
+      
+      // Current time for logging
+      const currentTimeMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+      console.log(`Current time value: ${currentTimeMinutes}`);
+    } else {
+      // Individual parameters passed in
+      validDays = deal as string; // First parameter is valid_days
+      startTime = hh_start_time || '';
+      endTime = hh_end_time || '';
+    }
+    
     // Handle null or undefined inputs
-    if (!hh_start_time || !hh_end_time || !valid_days) {
-      console.warn('Invalid happy hour inputs:', { hh_start_time, hh_end_time, valid_days });
+    if (!startTime || !endTime || !validDays) {
+      console.warn('Invalid happy hour inputs:', { startTime, endTime, validDays });
       return false;
     }
     
     // Standardize time format (convert "1400" to "14:00" if needed)
-    let startTime = String(hh_start_time);
-    let endTime = String(hh_end_time);
+    let standardizedStartTime = String(startTime);
+    let standardizedEndTime = String(endTime);
     
-    if (/^\d{3,4}$/.test(startTime)) {
+    if (/^\d{3,4}$/.test(standardizedStartTime)) {
       // Convert "1400" to "14:00"
-      const hours = startTime.length === 3 
-        ? startTime.substring(0, 1) 
-        : startTime.substring(0, 2);
-      const minutes = startTime.length === 3 
-        ? startTime.substring(1, 3) 
-        : startTime.substring(2, 4);
-      startTime = `${hours}:${minutes}`;
+      const hours = standardizedStartTime.length === 3 
+        ? standardizedStartTime.substring(0, 1) 
+        : standardizedStartTime.substring(0, 2);
+      const minutes = standardizedStartTime.length === 3 
+        ? standardizedStartTime.substring(1, 3) 
+        : standardizedStartTime.substring(2, 4);
+      standardizedStartTime = `${hours}:${minutes}`;
     }
     
-    if (/^\d{3,4}$/.test(endTime)) {
+    if (/^\d{3,4}$/.test(standardizedEndTime)) {
       // Convert "1900" to "19:00"
-      const hours = endTime.length === 3 
-        ? endTime.substring(0, 1) 
-        : endTime.substring(0, 2);
-      const minutes = endTime.length === 3 
-        ? endTime.substring(1, 3) 
-        : endTime.substring(2, 4);
-      endTime = `${hours}:${minutes}`;
+      const hours = standardizedEndTime.length === 3 
+        ? standardizedEndTime.substring(0, 1) 
+        : standardizedEndTime.substring(0, 2);
+      const minutes = standardizedEndTime.length === 3 
+        ? standardizedEndTime.substring(1, 3) 
+        : standardizedEndTime.substring(2, 4);
+      standardizedEndTime = `${hours}:${minutes}`;
     }
     
     // Check if today is a valid day using our case-insensitive utility
-    if (!isValidDay(valid_days, currentTime)) {
+    if (!isValidDay(validDays, currentTime)) {
       return false;
     }
     
     // Parse start and end times
-    const [startHourStr, startMinuteStr] = startTime.split(':');
-    const [endHourStr, endMinuteStr] = endTime.split(':');
+    const [startHourStr, startMinuteStr] = standardizedStartTime.split(':');
+    const [endHourStr, endMinuteStr] = standardizedEndTime.split(':');
     
     if (!startHourStr || !endHourStr) {
-      console.warn('Invalid time format:', { startTime, endTime });
+      console.warn('Invalid time format:', { standardizedStartTime, standardizedEndTime });
       return false;
     }
     
@@ -200,15 +223,62 @@ export function isWithinHappyHour(
     // Check if current time is within range
     if (startTimeMinutes <= endTimeMinutes) {
       // Normal range (e.g., 12:00 - 18:00)
-      return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
+      const isActive = currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
+      
+      // Log additional info
+      if (typeof deal === 'object' && deal.drink_name) {
+        if (isActive) {
+          console.log(`Deal "${deal.drink_name}" from establishment ${deal.establishmentId} is ACTIVE (${currentTimeMinutes} is between ${startTimeMinutes} and ${endTimeMinutes})`);
+        } else {
+          console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTimeMinutes} is NOT between ${startTimeMinutes} and ${endTimeMinutes}`);
+        }
+      }
+      
+      return isActive;
     } else {
       // Overnight range (e.g., 22:00 - 02:00)
-      return currentTimeMinutes >= startTimeMinutes || currentTimeMinutes <= endTimeMinutes;
+      const isActive = currentTimeMinutes >= startTimeMinutes || currentTimeMinutes <= endTimeMinutes;
+      
+      // Log additional info
+      if (typeof deal === 'object' && deal.drink_name) {
+        if (isActive) {
+          console.log(`Deal "${deal.drink_name}" is ACTIVE (overnight: ${currentTimeMinutes} is outside ${endTimeMinutes}-${startTimeMinutes})`);
+        } else {
+          console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTimeMinutes} is not in overnight range (outside ${startTimeMinutes}-${endTimeMinutes})`);
+        }
+      }
+      
+      return isActive;
     }
   } catch (error) {
-    console.error('Error checking happy hour status:', error, { hh_start_time, hh_end_time, valid_days });
+    console.error('Error checking happy hour status:', error);
     return false;
   }
+}
+
+/**
+ * Helper function to parse time string to minutes since midnight
+ */
+function parseTimeToMinutes(timeStr: string): number {
+  // Handle "1400" format
+  if (/^\d{3,4}$/.test(timeStr)) {
+    const hours = timeStr.length === 3 
+      ? parseInt(timeStr.substring(0, 1), 10)
+      : parseInt(timeStr.substring(0, 2), 10);
+    const minutes = timeStr.length === 3 
+      ? parseInt(timeStr.substring(1, 3), 10)
+      : parseInt(timeStr.substring(2, 4), 10);
+    return hours * 60 + minutes;
+  }
+  
+  // Handle "14:00" format
+  if (timeStr.includes(':')) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+  
+  // Default fallback
+  return 0;
 }
 
 /**
