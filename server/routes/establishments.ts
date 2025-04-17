@@ -79,20 +79,20 @@ router.get('/:id', async (req, res) => {
     }
     
     // Get all deals for this establishment
-    const allDeals = await storage.getDealsForEstablishment(establishmentId);
+    const allDeals = await storage.getActiveDealsForEstablishment(establishmentId);
     
-    // Determine which deals are active right now
-    const dealsWithActiveStatus = allDeals.map(deal => {
-      const isActive = storage.isDealActiveNow(deal);
-      return {
-        ...deal,
-        isActive
-      };
-    });
+    // We'll handle the sorting manually
+    // First filter deals that are active today (using the isDealActiveNow method)
+    // Because the getActiveDealsForEstablishment already contains this status
+    // Filter out deals without isActive property
+    const dealsWithStatus = allDeals.filter(deal => 'isActive' in deal);
     
     // Sort deals: active deals first, then inactive
-    const sortedDeals = dealsWithActiveStatus.sort((a, b) => {
+    const sortedDeals = dealsWithStatus.sort((dealA, dealB) => {
       // Sort by active status first (active deals come first)
+      const a = dealA as typeof dealA & { isActive: boolean };
+      const b = dealB as typeof dealB & { isActive: boolean };
+      
       if (a.isActive && !b.isActive) return -1;
       if (!a.isActive && b.isActive) return 1;
       

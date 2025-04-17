@@ -1199,6 +1199,81 @@ export class MemStorage implements IStorage {
    * Get all active deals for a specific establishment
    * This method is used in the deal-to-restaurant workflow
    */
+  /**
+   * Helper method to check if a deal is currently active
+   * Based on the current time and day
+   */
+  isDealActiveNow(deal: Deal): boolean {
+    try {
+      // Get current Singapore time for day/time validation
+      const singaporeTime = getSingaporeTime();
+      const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
+      const currentTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
+      // Convert current time to a numeric value for easier comparison (e.g., "13:45" -> 1345)
+      const currentTimeValue = parseInt(currentTime.replace(':', ''));
+      
+      // Get the current day of the week in the format used in the valid_days field
+      const dayMap: Record<number, string> = {
+        0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat'
+      };
+      const currentDayStr = dayMap[currentDay].toLowerCase();
+      
+      // Check if today is a weekday (for "Weekdays" deals)
+      const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
+      
+      // Check if the deal is valid for today's day of the week
+      const validDays = deal.valid_days.toLowerCase();
+      const isValidDay = validDays.includes('all days') || 
+                         validDays.includes(currentDayStr) || 
+                         (validDays.includes('weekdays') && isWeekday) ||
+                         validDays.includes('everyday');
+      
+      if (!isValidDay) {
+        return false;
+      }
+      
+      // Convert happy hour start and end times to numeric values for comparison
+      const startTime = deal.hh_start_time;
+      const endTime = deal.hh_end_time;
+      const startTimeValue = parseInt(startTime.replace(':', ''));
+      const endTimeValue = parseInt(endTime.replace(':', ''));
+      
+      // Check if the deal is active at the current time
+      if (startTimeValue <= endTimeValue) {
+        // Normal case: start time is before end time (e.g., 12:00 - 14:00)
+        return currentTimeValue >= startTimeValue && currentTimeValue <= endTimeValue;
+      } else {
+        // Special case: happy hour spans midnight (e.g., 22:00 - 02:00)
+        return currentTimeValue >= startTimeValue || currentTimeValue <= endTimeValue;
+      }
+    } catch (error) {
+      console.error("Error checking if deal is active:", error);
+      return false;
+    }
+  }
+  
+  /**
+   * Get all deals for a specific establishment
+   * This returns ALL deals, not just active ones
+   */
+  async getDealsForEstablishment(establishmentId: number): Promise<Deal[]> {
+    try {
+      return Array.from(this.deals.values())
+        .filter(deal => deal.establishmentId === establishmentId)
+        .sort((a, b) => {
+          // Sort by alcohol category first
+          const catComp = a.alcohol_category.localeCompare(b.alcohol_category);
+          if (catComp !== 0) return catComp;
+          
+          // Then sort by price
+          return a.happy_hour_price - b.happy_hour_price;
+        });
+    } catch (error) {
+      console.error("Error fetching deals for establishment:", error);
+      return [];
+    }
+  }
+  
   async getActiveDealsForEstablishment(establishmentId: number): Promise<Deal[]> {
     try {
       // Return all deals for the establishment without filtering by time
