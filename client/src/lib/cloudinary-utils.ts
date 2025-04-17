@@ -58,6 +58,12 @@ export function getRandomDrinkImageUrl(
   width: number = 400, 
   height: number = 400
 ): string {
+  console.log(`======== getRandomDrinkImageUrl CALLED ========`);
+  console.log(`Drink name: "${drinkName}"`);
+  console.log(`Max images: ${maxImages}`);
+  console.log(`Width: ${width}, Height: ${height}`);
+  console.log(`Cloudinary cloud name: ${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'NOT SET'}`);
+  
   if (!drinkName) {
     return getDefaultDrinkImageUrl(width, height);
   }
