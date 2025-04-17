@@ -15,73 +15,48 @@ interface CollectionRowProps {
 export default function CollectionRow({ title, deals, description, userLocation, onViewAllClick }: CollectionRowProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Distribute deals so same restaurants aren't adjacent
+  // Distribute deals so same drinks aren't adjacent (but all deals are included)
   const distributedDeals = useMemo(() => {
     // If no deals or just one deal, return as is
     if (!deals || deals.length <= 1) return deals;
     
-    // Create a map of establishment IDs to their deals
-    const establishmentDeals = new Map<number, any[]>();
-    
-    // Group deals by establishment
-    deals.forEach(deal => {
-      const estId = deal.establishment?.id;
-      if (!estId) return; // Skip if no establishment id
-      
-      if (!establishmentDeals.has(estId)) {
-        establishmentDeals.set(estId, []);
-      }
-      establishmentDeals.get(estId)?.push(deal);
-    });
-    
-    // If only one establishment, return original list
-    if (establishmentDeals.size === 1) return deals;
-    
-    // Distribute deals from different establishments
+    // Create a copy of deals to work with
+    const dealsToDistribute = [...deals];
     const result: any[] = [];
-    const remainingDeals = new Map(establishmentDeals);
     
-    // Keep track of the last establishment ID to avoid adjacent deals from same place
-    let lastEstId: number | null = null;
+    // Keep track of the last drink name to avoid identical adjacent drinks
+    let lastDrinkName: string | null = null;
     
-    while (remainingDeals.size > 0) {
-      // Find an establishment that's different from the last one
-      let nextEstId: number | null = null;
+    // While we still have deals to distribute
+    while (dealsToDistribute.length > 0) {
+      // Find index of a deal with a drink name different from the last one
+      let selectedIndex = -1;
       
-      // If we have more than one establishment left, pick one different from last
-      if (remainingDeals.size > 1 && lastEstId !== null) {
-        // Array approach to avoid Map iteration issues
-        const estIds = Array.from(remainingDeals.keys());
-        for (const estId of estIds) {
-          if (estId !== lastEstId) {
-            nextEstId = estId;
-            break;
-          }
-        }
+      // If this is the first deal, or we only have one deal left, just take the first one
+      if (lastDrinkName === null || dealsToDistribute.length === 1) {
+        selectedIndex = 0;
       } else {
-        // Just take the first one
-        nextEstId = Array.from(remainingDeals.keys())[0];
-      }
-      
-      if (nextEstId === null) break;
-      
-      // Get deals for this establishment
-      const estDeals = remainingDeals.get(nextEstId) || [];
-      if (estDeals.length > 0) {
-        // Add one deal from this establishment
-        result.push(estDeals.shift());
+        // Try to find a deal with a different drink name
+        selectedIndex = dealsToDistribute.findIndex(deal => {
+          // Find a drink with a different name than the last one
+          return deal.drink_name !== lastDrinkName;
+        });
         
-        // If no more deals for this establishment, remove it
-        if (estDeals.length === 0) {
-          remainingDeals.delete(nextEstId);
-        } else {
-          // Update the remaining deals
-          remainingDeals.set(nextEstId, estDeals);
+        // If we couldn't find a different drink, just take the first one
+        if (selectedIndex === -1) {
+          selectedIndex = 0;
         }
-        
-        // Update last establishment ID
-        lastEstId = nextEstId;
       }
+      
+      // Add the selected deal to the result
+      const selectedDeal = dealsToDistribute[selectedIndex];
+      result.push(selectedDeal);
+      
+      // Update the last drink name
+      lastDrinkName = selectedDeal.drink_name;
+      
+      // Remove the selected deal from the list
+      dealsToDistribute.splice(selectedIndex, 1);
     }
     
     return result;

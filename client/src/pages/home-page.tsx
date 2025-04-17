@@ -492,14 +492,14 @@ export default function HomePage() {
     // Only add if it has deals
     if (activeHappyHoursDeals.length > 0) {
       result.push({
-        name: "Active Happy Hours Nearby",
-        description: "Currently active deals closest to you",
+        name: "Happy Hours Nearby",
+        description: "Deals closest to your location",
         deals: activeHappyHoursDeals
       });
       
       // Remember we've used this name (both formats)
-      usedCollectionNames.add("active happy hours nearby");
-      usedCollectionNames.add("active_happy_hours_nearby");
+      usedCollectionNames.add("happy hours nearby");
+      usedCollectionNames.add("happy_hours_nearby");
     }
     
     // =======================================================
