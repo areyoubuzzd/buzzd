@@ -470,17 +470,19 @@ export class DatabaseStorage implements IStorage {
       const singaporeTime = getSingaporeTime();
       const currentDay = singaporeTime.getDay(); // 0-6, where 0 is Sunday
       const currentTime = singaporeTime.toTimeString().substring(0, 5); // Format: "HH:MM"
+      // Convert current time to a numeric value for easier comparison (e.g., "13:45" -> 1345)
+      const currentTimeValue = parseInt(currentTime.replace(':', ''));
       
       // Get the current day of the week in the format used in the valid_days field
       const dayMap: Record<number, string> = {
-        0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+        0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat'
       };
-      const currentDayStr = dayMap[currentDay];
+      const currentDayStr = dayMap[currentDay].toLowerCase();
       
       // Check if today is a weekday (for "Weekdays" deals)
       const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
       
-      // Get all deals for the establishment - using select() without parameters to select all fields
+      // Get all deals for the establishment
       const dealsForEstablishment = await db
         .select()
         .from(deals)
@@ -494,35 +496,122 @@ export class DatabaseStorage implements IStorage {
         console.log('No deals found for establishment:', establishmentId);
       }
       
-      // For now, we'll just return all deals without time filtering to ensure
-      // the restaurant details page displays something rather than being empty
-      return dealsForEstablishment;
-      
-      /* 
-      // Proper filtering based on current day/time will be implemented in a future update
-      // This is commented out to ensure the establishment details page works properly
-      
-      return dealsForEstablishment.filter(deal => {
-        // Check if the deal is available on the current day
-        const isValidDay = 
-          deal.valid_days.includes(currentDayStr) || 
-          (deal.valid_days.includes('Weekdays') && isWeekday) ||
-          deal.valid_days.includes('Everyday');
+      // Process each deal to determine if it's active now
+      // Return all deals but mark each with "isActive" flag
+      const dealsWithActiveStatus = dealsForEstablishment.map(deal => {
+        // Check if the deal is valid for today
+        let isValidDay = false;
         
-        // Check if current time is within happy hour
-        // We need to handle cases where happy hour spans midnight
-        let isHappyHourNow = false;
-        if (deal.hh_start_time <= deal.hh_end_time) {
-          // Normal case: start time is before end time (e.g., 17:00 - 19:00)
-          isHappyHourNow = currentTime >= deal.hh_start_time && currentTime <= deal.hh_end_time;
-        } else {
-          // Special case: happy hour spans midnight (e.g., 22:00 - 02:00)
-          isHappyHourNow = currentTime >= deal.hh_start_time || currentTime <= deal.hh_end_time;
+        // Handle various day format cases
+        const validDaysLower = deal.valid_days.toLowerCase();
+        
+        // Case: "all days" or "daily"
+        if (validDaysLower === 'all days' || validDaysLower === 'daily') {
+          isValidDay = true;
+          console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${deal.valid_days}"`);
+        }
+        // Case: "weekdays" 
+        else if (validDaysLower === 'weekdays') {
+          isValidDay = isWeekday;
+          console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${deal.valid_days}"`);
+          console.log(`Is weekday: ${isWeekday}`);
+        }
+        // Case: "weekends"
+        else if (validDaysLower === 'weekends') {
+          isValidDay = !isWeekday;
+          console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${deal.valid_days}"`);
+          console.log(`Is weekend: ${!isWeekday}`);
+        }
+        // Case: day ranges like "mon-fri", "thu-sun"
+        else if (validDaysLower.includes('-')) {
+          const [startDay, endDay] = validDaysLower.split('-').map(d => d.trim());
+          
+          // Find the indices of the days in our ordered array
+          const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+          const startIdx = dayOrder.indexOf(startDay);
+          const endIdx = dayOrder.indexOf(endDay);
+          const currentIdx = dayOrder.indexOf(currentDayStr);
+          
+          // Make sure all required days are found
+          if (startIdx !== -1 && endIdx !== -1 && currentIdx !== -1) {
+            // Range check
+            if (startIdx <= endIdx) {
+              // Normal range (e.g., mon-fri)
+              isValidDay = currentIdx >= startIdx && currentIdx <= endIdx;
+            } else {
+              // Wrapping range (e.g., fri-mon) - includes fri, sat, sun, mon
+              isValidDay = currentIdx >= startIdx || currentIdx <= endIdx;
+            }
+            console.log(`Range check: ${startIdx} <= ${currentIdx} <= ${endIdx} => ${isValidDay}`);
+          }
+          console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${deal.valid_days}"`);
+        }
+        // Case: comma-separated list like "mon, wed, fri"
+        else if (validDaysLower.includes(',')) {
+          const validDays = validDaysLower.split(',').map(d => d.trim());
+          isValidDay = validDays.includes(currentDayStr);
+          console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${deal.valid_days}"`);
+        }
+        // Case: single day
+        else {
+          isValidDay = validDaysLower.trim() === currentDayStr;
+          console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${deal.valid_days}"`);
         }
         
-        return isValidDay && isHappyHourNow;
+        // If the day isn't valid, no need to check the time
+        if (!isValidDay) {
+          return { ...deal, isActive: false };
+        }
+        
+        // Now check the time
+        console.log(`Current time value: ${currentTimeValue}`);
+        
+        // Parse start and end times to numeric values for comparison
+        let startTimeValue = 0;
+        let endTimeValue = 0;
+        
+        // Format times like "09:00" or "17:30" to 900 or 1730 for easier comparison
+        if (deal.hh_start_time.includes(':')) {
+          startTimeValue = parseInt(deal.hh_start_time.replace(':', ''));
+        } else {
+          startTimeValue = parseInt(deal.hh_start_time);
+        }
+        
+        if (deal.hh_end_time.includes(':')) {
+          endTimeValue = parseInt(deal.hh_end_time.replace(':', ''));
+        } else {
+          endTimeValue = parseInt(deal.hh_end_time);
+        }
+        
+        console.log(`Start time raw: "${deal.hh_start_time}", parsed: ${startTimeValue}`);
+        console.log(`End time raw: "${deal.hh_end_time}", parsed: ${endTimeValue}`);
+        
+        // Check if current time is within happy hour
+        let isHappyHourNow = false;
+        if (startTimeValue <= endTimeValue) {
+          // Normal case: start time is before end time (e.g., 17:00 - 19:00)
+          isHappyHourNow = currentTimeValue >= startTimeValue && currentTimeValue <= endTimeValue;
+          if (isHappyHourNow) {
+            console.log(`Deal "${deal.drink_name}" from establishment ${establishmentId} is ACTIVE (${currentTimeValue} is between ${startTimeValue} and ${endTimeValue})`);
+          } else {
+            console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTimeValue} is NOT between ${startTimeValue} and ${endTimeValue}`);
+          }
+        } else {
+          // Special case: happy hour spans midnight (e.g., 22:00 - 02:00)
+          isHappyHourNow = currentTimeValue >= startTimeValue || currentTimeValue <= endTimeValue;
+          if (isHappyHourNow) {
+            console.log(`Deal "${deal.drink_name}" from establishment ${establishmentId} is ACTIVE (overnight: ${currentTimeValue} is outside ${startTimeValue} to ${endTimeValue})`);
+          } else {
+            console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTimeValue} is NOT outside ${startTimeValue} to ${endTimeValue}`);
+          }
+        }
+        
+        // Return the deal with its active status
+        return { ...deal, isActive };
       });
-      */
+      
+      // Return all deals with their active status
+      return dealsWithActiveStatus;
     } catch (error) {
       console.error("Error fetching deals for establishment:", error);
       return [];
