@@ -27,6 +27,7 @@ interface Establishment {
   latitude?: number;
   longitude?: number;
   activeDeals?: Deal[];
+  hasActiveDeals?: boolean; // Added this property from server response
 }
 
 // Helper function to check if a deal is active now (copy from restaurant-card.tsx)
@@ -212,7 +213,14 @@ export default function RestaurantsPage() {
   };
   
   // Check if a restaurant has active deals
+  // We can use the precomputed hasActiveDeals flag from the server if it exists
   const hasActiveDeals = (establishment: Establishment): boolean => {
+    // First check if the server provided the hasActiveDeals flag
+    if ('hasActiveDeals' in establishment) {
+      return establishment.hasActiveDeals as boolean;
+    }
+    
+    // Fallback to client-side calculation
     if (!establishment.activeDeals || establishment.activeDeals.length === 0) return false;
     return establishment.activeDeals.some(deal => isWithinHappyHour(deal));
   };

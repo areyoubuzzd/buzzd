@@ -14,14 +14,29 @@ router.get('/', async (req, res) => {
     const establishmentsWithDeals = await Promise.all(
       establishments.map(async (establishment) => {
         const activeDeals = await storage.getActiveDealsForEstablishment(establishment.id);
+        // Mark establishment with hasActiveDeals flag
+        const hasActiveDeals = activeDeals.some(deal => 'isActive' in deal && deal.isActive === true);
+        console.log(`Establishment ${establishment.name} has active deals: ${hasActiveDeals}`);
+        
         return {
           ...establishment,
-          activeDeals
+          activeDeals,
+          hasActiveDeals // Add this property to be used for sorting on the client
         };
       })
     );
     
-    res.json(establishmentsWithDeals);
+    // Sort establishments: active deals first, then by name
+    const sortedEstablishments = establishmentsWithDeals.sort((a, b) => {
+      // First sort by active deals status
+      if (a.hasActiveDeals && !b.hasActiveDeals) return -1;
+      if (!a.hasActiveDeals && b.hasActiveDeals) return 1;
+      
+      // Then sort by name
+      return a.name.localeCompare(b.name);
+    });
+    
+    res.json(sortedEstablishments);
   } catch (error) {
     console.error("Error fetching establishments:", error);
     res.status(500).json({ message: "Failed to fetch establishments" });
@@ -48,14 +63,28 @@ router.get('/nearby', async (req, res) => {
     const establishmentsWithDeals = await Promise.all(
       establishments.map(async (establishment) => {
         const activeDeals = await storage.getActiveDealsForEstablishment(establishment.id);
+        // Mark establishment with hasActiveDeals flag
+        const hasActiveDeals = activeDeals.some(deal => 'isActive' in deal && deal.isActive === true);
+        
         return {
           ...establishment,
-          activeDeals
+          activeDeals,
+          hasActiveDeals
         };
       })
     );
     
-    res.json(establishmentsWithDeals);
+    // Sort establishments: active deals first, then by distance (already sorted by distance)
+    const sortedEstablishments = establishmentsWithDeals.sort((a, b) => {
+      // First sort by active deals status
+      if (a.hasActiveDeals && !b.hasActiveDeals) return -1;
+      if (!a.hasActiveDeals && b.hasActiveDeals) return 1;
+      
+      // Distance sorting is already handled by the getEstablishmentsNearby function
+      return 0;
+    });
+    
+    res.json(sortedEstablishments);
   } catch (error) {
     console.error("Error fetching nearby establishments:", error);
     res.status(500).json({ message: "Failed to fetch nearby establishments" });
