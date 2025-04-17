@@ -345,7 +345,7 @@ export default function HomePage() {
     }
     
     // =======================================================
-    // 1. Create "Happy Hours Nearby" collection (always first)
+    // 1. Create "Active Happy Hours" collection (always first)
     // =======================================================
     
     const activeHappyHoursDeals = (() => {
@@ -855,9 +855,7 @@ export default function HomePage() {
         // For other collections, filter deals by matching the collection tag
         dealsForCollection = allDeals.filter(deal => 
           deal.collections && 
-          deal.collections.split(',')
-            .map(tag => tag.trim())
-            .includes(apiCollection.slug)
+          getCollectionTags(deal).includes(apiCollection.slug)
         );
         
         // Enrich and sort these deals
