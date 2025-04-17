@@ -62,29 +62,44 @@ export function getRandomDrinkImageUrl(
     return getDefaultDrinkImageUrl(width, height);
   }
 
-  // Special case for "Heineken Pint" - hardcoded for now to ensure it works
-  if (drinkName.toLowerCase() === 'heineken pint') {
-    // Choose one of the images we know exists
-    const heineken_options = [
-      'Heineken_pint1_zoq54g',
-      'Heineken_pint2_qaseup',
-      'Heineken_pint4_vfaq0c', 
-      'Heineken_pint5_lp3d2i'
-    ];
-    
-    const randomIndex = Math.floor(Math.random() * heineken_options.length);
-    const imageId = heineken_options[randomIndex];
-    
-    console.log(`Direct Heineken Pint image selected: ${imageId}`);
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${imageId}`;
+  const formattedName = formatDrinkNameForCloudinary(drinkName);
+  
+  // Generate a random image index (1-based to match expected naming convention)
+  const imageIndex = Math.floor(Math.random() * maxImages) + 1;
+  
+  // Path to the folder that contains images for this drink type
+  // Format: /home/brands/[drink_category]/[drink_name]/[index].jpg
+  
+  if (drinkName.toLowerCase().includes('heineken')) {
+    // Path for Heineken products
+    const folderPath = `home/brands/beer/heineken`;
+    console.log(`Using folder path for Heineken: ${folderPath}/${imageIndex}.jpg`);
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${folderPath}/${imageIndex}.jpg`;
   }
   
-  const lowerCaseDrinkName = drinkName.toLowerCase();
+  // Determine drink category for folder structure
+  let drinkCategory = 'beer'; // Default category
+  if (drinkName.toLowerCase().includes('wine')) {
+    drinkCategory = 'wine';
+  } else if (drinkName.toLowerCase().includes('cocktail') || 
+             drinkName.toLowerCase().includes('margarita') || 
+             drinkName.toLowerCase().includes('mojito')) {
+    drinkCategory = 'cocktail';
+  } else if (drinkName.toLowerCase().includes('whisky') || 
+             drinkName.toLowerCase().includes('whiskey')) {
+    drinkCategory = 'whisky';
+  } else if (drinkName.toLowerCase().includes('gin')) {
+    drinkCategory = 'gin';
+  } else if (drinkName.toLowerCase().includes('vodka')) {
+    drinkCategory = 'vodka';
+  } else if (drinkName.toLowerCase().includes('rum')) {
+    drinkCategory = 'rum';
+  }
   
-  // All other drink types use the sample cup image as fallback
-  console.log(`Using default image for ${drinkName}`);
-  const sampleImage = 'samples/cup-on-a-table';
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${sampleImage}`;
+  // Use a default image within the category as fallback
+  const imagePath = `home/brands/${drinkCategory}/glass/default/${imageIndex}.jpg`;
+  console.log(`Using category fallback image: ${imagePath}`);
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePath}`;
 }
 
 /**
