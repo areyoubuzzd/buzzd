@@ -234,11 +234,49 @@ export default function HomePage() {
     const activeHappyHoursDeals = (() => {
       const enrichedDeals = enrichDeals(allDeals);
       
-      // Filter to include only deals within 5km
+      // Implement tiered radius approach
+      // Try to find active deals, expanding the radius if needed
+      
+      // Start with deals within 5km
       const dealsWithin5km = enrichedDeals.filter(deal => deal.distance <= 5);
+      const activeDealsWithin5km = dealsWithin5km.filter(deal => deal.isActive);
+      
+      // If we have active deals within 5km, use those
+      // Otherwise expand to 10km
+      let finalDeals: typeof enrichedDeals;
+      
+      if (activeDealsWithin5km.length > 0) {
+        // We found active deals within 5km, use all deals within 5km
+        console.log(`Found ${activeDealsWithin5km.length} active deals within 5km radius`);
+        finalDeals = dealsWithin5km;
+      } else {
+        // No active deals in 5km, expand to 10km
+        const dealsWithin10km = enrichedDeals.filter(deal => deal.distance <= 10);
+        const activeDealsWithin10km = dealsWithin10km.filter(deal => deal.isActive);
+        
+        if (activeDealsWithin10km.length > 0) {
+          // We found active deals within 10km
+          console.log(`Found ${activeDealsWithin10km.length} active deals within 10km radius`);
+          finalDeals = dealsWithin10km;
+        } else {
+          // No active deals in 10km, expand to 15km
+          const dealsWithin15km = enrichedDeals.filter(deal => deal.distance <= 15);
+          const activeDealsWithin15km = dealsWithin15km.filter(deal => deal.isActive);
+          
+          if (activeDealsWithin15km.length > 0) {
+            // We found active deals within 15km
+            console.log(`Found ${activeDealsWithin15km.length} active deals within 15km radius`);
+            finalDeals = dealsWithin15km;
+          } else {
+            // No active deals found even in 15km, just use the original 5km radius
+            console.log('No active deals found within 15km radius, using default 5km radius');
+            finalDeals = dealsWithin5km;
+          }
+        }
+      }
       
       // Sort by active status, distance, and price
-      const sortedDeals = sortDeals(dealsWithin5km);
+      const sortedDeals = sortDeals(finalDeals);
       
       // Filter to avoid repeating restaurants
       const includedEstablishments = new Set<number>();
