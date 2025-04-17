@@ -114,42 +114,34 @@ router.get('/collections/all', async (req, res) => {
       urlParameters: req.url
     });
     
-    // Use SQL to calculate Haversine distance if coordinates are provided
-    const haversine = latitude !== null && longitude !== null
-      ? sql`
-        6371 * acos(
-          cos(radians(${latitude})) * 
-          cos(radians(${establishments.latitude})) * 
-          cos(radians(${establishments.longitude}) - radians(${longitude})) + 
-          sin(radians(${latitude})) * 
-          sin(radians(${establishments.latitude}))
-        )
-      `.as('distance')
-      : sql`0`.as('distance');
-    
-    // Base query
+    // Base query first - we'll add the haversine calculation to each result later
     let query = db
       .select({
         deal: deals,
-        establishment: establishments,
-        distance: haversine
+        establishment: establishments
       })
       .from(deals)
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id));
     
-    // Add distance filter if coordinates are provided
+    // We'll filter by coordinates if provided, but in a different way
     if (latitude !== null && longitude !== null) {
+      // We'll fetch establishments within a rough bounding box first
+      // This is more efficient than calculating haversine for every row
+      const latDelta = radius / 111.0; // Approx 111km per degree of latitude
+      const lngDelta = radius / (111.0 * Math.cos(latitude * Math.PI / 180.0)); // Adjust for longitude
+      
       query = query.where(
-        sql`${haversine} <= ${radius}`
+        and(
+          gte(establishments.latitude, latitude - latDelta),
+          lte(establishments.latitude, latitude + latDelta),
+          gte(establishments.longitude, longitude - lngDelta),
+          lte(establishments.longitude, longitude + lngDelta)
+        )
       );
     }
     
-    // Add ordering - first by distance if coordinates are provided, then by category
-    if (latitude !== null && longitude !== null) {
-      query = query.orderBy(asc(haversine), asc(deals.alcohol_category));
-    } else {
-      query = query.orderBy(asc(deals.alcohol_category));
-    }
+    // Add ordering - by category only (we'll sort by distance later)
+    query = query.orderBy(asc(deals.alcohol_category));
     
     // Execute the query
     const result = await query;
@@ -158,11 +150,37 @@ router.get('/collections/all', async (req, res) => {
     console.log(`Fetched ${result.length} deals from database`);
     
     // Transform to DealWithEstablishment format with distance
-    const dealsWithEstablishments = result.map(item => ({
-      ...item.deal,
-      establishment: item.establishment,
-      distance: item.distance // Include the calculated distance
-    }));
+    const dealsWithEstablishments = result.map(item => {
+      // Calculate distance manually if coordinates are provided
+      let distance = null;
+      if (latitude !== null && longitude !== null) {
+        // Use the haversine formula to calculate distance
+        const R = 6371; // Radius of the earth in km
+        const lat1 = latitude;
+        const lon1 = longitude;
+        const lat2 = item.establishment.latitude;
+        const lon2 = item.establishment.longitude;
+        
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const calculatedDistance = R * c; // Distance in km
+        
+        distance = parseFloat(calculatedDistance.toFixed(2));
+      }
+      
+      return {
+        ...item.deal,
+        establishment: item.establishment,
+        distance
+      };
+    });
     
     // If no deals found, return empty array instead of error
     if (dealsWithEstablishments.length === 0) {
