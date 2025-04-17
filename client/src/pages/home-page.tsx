@@ -13,6 +13,12 @@ import { FaWhatsapp } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { motion } from "framer-motion";
+// Import collection utilities
+import { 
+  getFriendlyCollectionName, 
+  getCollectionTags, 
+  sortCollectionsByPriority 
+} from "@/lib/collection-utils";
 
 // Updated FilterType to match the new filter-bar component
 type FilterType = 'active' | 'one-for-one' | 'high-savings' | 'beer' | 'wine' | 'whisky';
