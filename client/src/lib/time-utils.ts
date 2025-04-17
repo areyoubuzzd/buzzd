@@ -125,9 +125,15 @@ export function isWithinHappyHour(
   currentTime = getSingaporeTime()
 ): boolean {
   try {
+    // Handle null or undefined inputs
+    if (!hh_start_time || !hh_end_time || !valid_days) {
+      console.warn('Invalid happy hour inputs:', { hh_start_time, hh_end_time, valid_days });
+      return false;
+    }
+    
     // Standardize time format (convert "1400" to "14:00" if needed)
-    let startTime = hh_start_time;
-    let endTime = hh_end_time;
+    let startTime = String(hh_start_time);
+    let endTime = String(hh_end_time);
     
     if (/^\d{3,4}$/.test(startTime)) {
       // Convert "1400" to "14:00"
@@ -164,6 +170,11 @@ export function isWithinHappyHour(
     const [startHourStr, startMinuteStr] = startTime.split(':');
     const [endHourStr, endMinuteStr] = endTime.split(':');
     
+    if (!startHourStr || !endHourStr) {
+      console.warn('Invalid time format:', { startTime, endTime });
+      return false;
+    }
+    
     const startHour = parseInt(startHourStr, 10);
     const startMinute = parseInt(startMinuteStr || '0', 10);
     
@@ -188,7 +199,7 @@ export function isWithinHappyHour(
       return currentTimeMinutes >= startTimeMinutes || currentTimeMinutes <= endTimeMinutes;
     }
   } catch (error) {
-    console.error('Error checking happy hour status:', error);
+    console.error('Error checking happy hour status:', error, { hh_start_time, hh_end_time, valid_days });
     return false;
   }
 }
