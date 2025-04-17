@@ -5,7 +5,7 @@ import { setupAuth } from "./auth";
 import { insertDealSchema, insertEstablishmentSchema, insertReviewSchema, insertSavedDealSchema, insertUserDealViewSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheets } from "./services/googleSheetsService";
+import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheets, syncCollectionsFromSheets } from "./services/googleSheetsService";
 import { cloudinaryService } from "./services/cloudinaryService";
 import uploadDealImageRouter from "./routes/upload-deal-image";
 import menuAnalysisRoutes from "./routes/menuAnalysisRoutes_new.js";

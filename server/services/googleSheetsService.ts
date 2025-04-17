@@ -4,6 +4,7 @@ import { db } from '../db';
 import { 
   deals,
   establishments,
+  collections,
   DrinkCategory, 
   WINE_TYPES, 
   SPIRIT_TYPES, 
@@ -415,23 +416,130 @@ export async function syncDealsFromSheets(): Promise<any[]> {
 }
 
 /**
- * Sync both establishments and deals from Google Sheets to database
+ * Get collections data from Google Sheets
+ */
+export async function getCollectionsFromSheets(): Promise<any[]> {
+  try {
+    await doc.loadInfo();
+    // Try to find the collections sheet
+    const collectionsSheet = doc.sheetsByTitle['Collections'] || doc.sheetsByTitle['collections'];
+    
+    if (!collectionsSheet) {
+      console.log('No Collections sheet found in Google Sheets. Returning empty array.');
+      return [];
+    }
+    
+    console.log(`Using sheet: ${collectionsSheet.title} with ${collectionsSheet.rowCount} rows and ${collectionsSheet.columnCount} columns`);
+    
+    // Load the rows from the sheet
+    const rows = await collectionsSheet.getRows();
+    
+    // Log the header row to help with debugging
+    if (rows.length > 0) {
+      const firstRow = rows[0];
+      console.log("Available columns in Collections sheet:", firstRow.toObject());
+    } else {
+      console.log("No data rows found in the Collections sheet.");
+      return [];
+    }
+    
+    // Map the data from the sheet to our collections structure
+    return rows.map((row, index) => {
+      const rowData = row.toObject();
+      console.log(`Collection row ${index + 1} data:`, rowData);
+      
+      // Get collection data, allowing for different column names
+      const slug = rowData.slug || rowData.id || rowData.collection_id || '';
+      const name = rowData.name || rowData.display_name || rowData.title || '';
+      const description = rowData.description || rowData.desc || '';
+      const priority = parseInt(rowData.priority || rowData.order || '99', 10);
+      const icon = rowData.icon || rowData.icon_name || '';
+      const active = (rowData.active || rowData.is_active || 'true').toLowerCase() === 'true';
+      
+      return {
+        slug,
+        name,
+        description,
+        priority,
+        icon,
+        active
+      };
+    });
+  } catch (error) {
+    console.error('Error getting collections from Google Sheets:', error);
+    throw error;
+  }
+}
+
+/**
+ * Sync collections from Google Sheets to database
+ */
+export async function syncCollectionsFromSheets(): Promise<any[]> {
+  try {
+    const collectionsData = await getCollectionsFromSheets();
+    const results = [];
+    
+    for (const collectionData of collectionsData) {
+      // Skip if slug is empty
+      if (!collectionData.slug) {
+        console.log(`Skipping collection with empty slug: ${collectionData.name}`);
+        continue;
+      }
+      
+      // Check if collection already exists by slug
+      const existingCollection = await db.select().from(collections)
+        .where(eq(collections.slug, collectionData.slug));
+      
+      if (existingCollection.length > 0) {
+        // Update existing collection
+        const result = await db.update(collections)
+          .set(collectionData)
+          .where(eq(collections.slug, collectionData.slug))
+          .returning();
+        
+        results.push(result[0]);
+        console.log(`Updated collection: ${collectionData.name} (${collectionData.slug})`);
+      } else {
+        // Insert new collection
+        const result = await db.insert(collections)
+          .values(collectionData)
+          .returning();
+        
+        results.push(result[0]);
+        console.log(`Inserted new collection: ${collectionData.name} (${collectionData.slug})`);
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('Error syncing collections from Google Sheets:', error);
+    throw error;
+  }
+}
+
+/**
+ * Sync all data (establishments, deals, collections) from Google Sheets to database
  */
 export async function syncAllDataFromSheets() {
   try {
     console.log('Starting full database sync from Google Sheets...');
     
     console.log('Syncing establishments...');
-    const establishments = await syncEstablishmentsFromSheets();
-    console.log(`Synced ${establishments.length} establishments`);
+    const establishmentsResult = await syncEstablishmentsFromSheets();
+    console.log(`Synced ${establishmentsResult.length} establishments`);
     
     console.log('Syncing deals...');
     const dealsResult = await syncDealsFromSheets();
     console.log(`Synced ${dealsResult.length} deals`);
     
+    console.log('Syncing collections...');
+    const collectionsResult = await syncCollectionsFromSheets();
+    console.log(`Synced ${collectionsResult.length} collections`);
+    
     return {
-      establishments: establishments.length,
-      deals: dealsResult.length
+      establishments: establishmentsResult.length,
+      deals: dealsResult.length,
+      collections: collectionsResult.length
     };
   } catch (error) {
     console.error('Error during full sync:', error);

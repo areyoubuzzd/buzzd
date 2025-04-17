@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { collections, insertCollectionSchema } from '@shared/schema';
-import { normalizeCollectionName } from '@client/src/lib/collections';
+import { collections, insertCollectionSchema } from '../../shared/schema';
+import { normalizeString } from '../utils/stringUtils';
 import { eq } from 'drizzle-orm';
 import { ZodError } from 'zod';
 
@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
     
     // Normalize the slug if it doesn't come pre-normalized
     if (!data.slug) {
-      data.slug = normalizeCollectionName(data.name);
+      data.slug = normalizeString(data.name);
     }
     
     // Check if collection with this slug already exists

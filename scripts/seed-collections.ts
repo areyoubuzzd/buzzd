@@ -3,7 +3,7 @@
  * Run with: npx tsx scripts/seed-collections.ts
  */
 import { db } from '../server/db';
-import { collections, insertCollectionSchema, InsertCollection } from '@shared/schema';
+import { collections, insertCollectionSchema, InsertCollection } from '../shared/schema';
 import { sql } from 'drizzle-orm';
 
 // Collection metadata with display names, descriptions, and priority
