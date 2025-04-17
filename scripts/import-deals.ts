@@ -114,15 +114,25 @@ async function importDeals() {
         
         const establishmentId = idMapping.get(restaurantId.toString())!;
         
-        // Map other fields
-        const dealData: Partial<InsertDeal> = {
+        // Calculate standard and happy hour prices
+        const standardPrice = parseFloat(normalizedDeal.regular_price || normalizedDeal.standard_price || '0');
+        const happyHourPrice = parseFloat(normalizedDeal.happy_hour_price || '0');
+        
+        // Calculate savings and savings percentage
+        const savings = standardPrice - happyHourPrice;
+        const savingsPercentage = standardPrice > 0 ? Math.round((savings / standardPrice) * 100) : 0;
+                
+        // Map and process fields
+        const dealData = {
           establishmentId,
           alcohol_category: normalizedDeal.alcohol_category || 'Beer',
           alcohol_subcategory: normalizedDeal.alcohol_subcategory || null,
           alcohol_subcategory2: normalizedDeal.alcohol_subcategory2 || null,
           drink_name: normalizedDeal.drink_name || normalizedDeal.product_name || '',
-          standard_price: parseFloat(normalizedDeal.regular_price || normalizedDeal.standard_price || '0'),
-          happy_hour_price: parseFloat(normalizedDeal.happy_hour_price || '0'),
+          standard_price: standardPrice,
+          happy_hour_price: happyHourPrice,
+          savings: savings,
+          savings_percentage: savingsPercentage,
           valid_days: normalizedDeal.valid_days || 'All Days',
           hh_start_time: normalizedDeal.hh_start_time || '16:00',
           hh_end_time: normalizedDeal.hh_end_time || '19:00',
@@ -142,8 +152,8 @@ async function importDeals() {
           continue;
         }
         
-        // Insert into database - fix the type issue by providing an array with a single element
-        const [inserted] = await db.insert(deals).values([dealData as InsertDeal][0]).returning();
+        // Fix type issue in the Drizzle ORM insertion
+        const [inserted] = await db.insert(deals).values(dealData as any).returning();
         
         console.log(`Imported deal: ${inserted.drink_name} for ${restaurantId} (DB ID: ${establishmentId})`);
       } catch (error) {
