@@ -100,10 +100,36 @@ export default function HomePage() {
     const validDaysLower = deal.valid_days.toLowerCase();
     console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${validDaysLower}"`);
     
-    // Check for "all days" or specific day
-    const dayMatches = validDaysLower === 'all days' || 
-                       validDaysLower.includes(currentDayName) || 
-                       validDaysLower.includes('everyday');
+    // Check for "all days" or day ranges like "mon-fri"
+    let dayMatches = false;
+    
+    // Case 1: Direct matches for "all days" or "everyday"
+    if (validDaysLower === 'all days' || 
+        validDaysLower.includes('everyday') || 
+        validDaysLower.includes('all')) {
+      dayMatches = true;
+    } 
+    // Case 2: Exact day name is included
+    else if (validDaysLower.includes(currentDayName)) {
+      dayMatches = true;
+    }
+    // Case 3: Check for day ranges like "mon-fri", "mon-thu", etc.
+    else if (validDaysLower.includes('-')) {
+      const dayParts = validDaysLower.split('-');
+      if (dayParts.length === 2) {
+        // Get numeric day values
+        const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        const startDayValue = days.findIndex(d => dayParts[0].trim().toLowerCase().startsWith(d));
+        const endDayValue = days.findIndex(d => dayParts[1].trim().toLowerCase().startsWith(d));
+        const currentDayValue = currentDay;
+        
+        if (startDayValue !== -1 && endDayValue !== -1) {
+          // Check if current day is within range
+          dayMatches = currentDayValue >= startDayValue && currentDayValue <= endDayValue;
+          console.log(`Range check: ${startDayValue} <= ${currentDayValue} <= ${endDayValue} => ${dayMatches}`);
+        }
+      }
+    }
     
     if (!dayMatches) {
       console.log(`Deal ${deal.id} is NOT active: day (${currentDayName}) not in valid days (${validDaysLower})`);
