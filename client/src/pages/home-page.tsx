@@ -462,27 +462,13 @@ export default function HomePage() {
       // Sort by active status, distance, and price
       const sortedDeals = sortDeals(finalDeals);
       
-      // Filter to avoid repeating restaurants
-      const includedEstablishments = new Set<number>();
+      // Include all deals from all restaurants
+      // No need to filter to just one deal per restaurant
       const uniqueDeals: typeof sortedDeals = [];
       
-      // Exception: If ALL active deals are from the same restaurant, include all of them
-      const activeDeals = sortedDeals.filter(d => d.isActive);
-      const allActiveFromSameRestaurant = activeDeals.length > 0 && 
-        activeDeals.every(d => d.establishmentId === activeDeals[0].establishmentId);
-      
+      // Add all deals to the collection
       for (const deal of sortedDeals) {
-        // If all active deals are from same place, include them all
-        if (deal.isActive && allActiveFromSameRestaurant) {
-          uniqueDeals.push(deal);
-          continue;
-        }
-        
-        // Otherwise only include one deal per restaurant
-        if (!includedEstablishments.has(deal.establishmentId)) {
-          uniqueDeals.push(deal);
-          includedEstablishments.add(deal.establishmentId);
-        }
+        uniqueDeals.push(deal);
       }
       
       // Limit to 25 deals max
