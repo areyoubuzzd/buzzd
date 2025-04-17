@@ -607,7 +607,7 @@ export class DatabaseStorage implements IStorage {
         }
         
         // Return the deal with its active status
-        return { ...deal, isActive };
+        return { ...deal, isActive: isHappyHourNow };
       });
       
       // Return all deals with their active status
