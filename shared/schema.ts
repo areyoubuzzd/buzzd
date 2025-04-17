@@ -87,6 +87,9 @@ export const deals = pgTable("deals", {
   // Collections and categorization
   collections: text("collections"), // Comma-separated collection names
   
+  // Description of the deal
+  description: text("description"), // Detailed description of the deal
+  
   // Media and metadata
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

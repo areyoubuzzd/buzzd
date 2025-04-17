@@ -480,31 +480,19 @@ export class DatabaseStorage implements IStorage {
       // Check if today is a weekday (for "Weekdays" deals)
       const isWeekday = currentDay >= 1 && currentDay <= 5; // Monday to Friday
       
-      // Get all deals for the establishment, explicitly selecting all fields including description
+      // Get all deals for the establishment - using select() without parameters to select all fields
       const dealsForEstablishment = await db
-        .select(
-          deals.id,
-          deals.establishmentId,
-          deals.alcohol_category,
-          deals.alcohol_subcategory,
-          deals.alcohol_subcategory2,
-          deals.drink_name,
-          deals.standard_price,
-          deals.happy_hour_price,
-          deals.savings,
-          deals.savings_percentage,
-          deals.valid_days,
-          deals.hh_start_time,
-          deals.hh_end_time,
-          deals.collections,
-          deals.imageUrl,
-          deals.description, // Explicitly select description
-          deals.createdAt,
-          deals.updatedAt
-        )
+        .select()
         .from(deals)
         .where(eq(deals.establishmentId, establishmentId))
         .orderBy(asc(deals.alcohol_category), asc(deals.happy_hour_price));
+      
+      // For debugging - log the first deal
+      if (dealsForEstablishment.length > 0) {
+        console.log('First deal for establishment:', dealsForEstablishment[0]);
+      } else {
+        console.log('No deals found for establishment:', establishmentId);
+      }
       
       // For now, we'll just return all deals without time filtering to ensure
       // the restaurant details page displays something rather than being empty
