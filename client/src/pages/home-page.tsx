@@ -74,46 +74,76 @@ export default function HomePage() {
   
   // Helper function to check if deal is active right now (based on day and time)
   const isDealActiveNow = (deal: Deal): boolean => {
-    // For demonstration, let's make it deterministic based on establishment ID
-    // so we can see the sorting in action more clearly
+    const now = new Date();
     
-    // Use a consistent logic: even establishment IDs are "active now" for visualization
-    // In a real app, we'd use actual date/time logic
-    const isActive = deal.establishmentId % 2 === 0;
+    // Get Singapore time
+    const sgOptions = { timeZone: 'Asia/Singapore' };
+    const sgTime = new Date(now.toLocaleString('en-US', sgOptions));
     
-    if (isActive) {
-      console.log(`Deal "${deal.drink_name}" from establishment ${deal.establishmentId} is ACTIVE`);
+    // Get day of week in Singapore time (0 = Sunday, 1 = Monday, etc.)
+    const currentDay = sgTime.getDay();
+    const daysMap = {
+      0: 'sunday',
+      1: 'monday',
+      2: 'tuesday',
+      3: 'wednesday', 
+      4: 'thursday',
+      5: 'friday',
+      6: 'saturday'
+    };
+    const currentDayName = daysMap[currentDay as keyof typeof daysMap];
+    
+    // Check if today is in the valid days (case insensitive)
+    const validDaysLower = deal.valid_days.toLowerCase();
+    
+    // Check for "all days" or specific day
+    if (validDaysLower !== 'all days' && 
+        !validDaysLower.includes(currentDayName) && 
+        !validDaysLower.includes('everyday')) {
+      return false;
     }
     
-    return isActive;
+    // Current time in 24-hour format (e.g., 1430 for 2:30pm)
+    const currentHours = sgTime.getHours();
+    const currentMinutes = sgTime.getMinutes();
+    const currentTimeValue = currentHours * 100 + currentMinutes;
     
-    /* Real implementation would look like this:
-    const now = new Date();
-    const currentDay = now.toLocaleString('en-US', { weekday: 'long', timeZone: 'Asia/Singapore' });
-    const currentTime = now.toLocaleString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: false, 
-      timeZone: 'Asia/Singapore' 
-    });
+    // Parse start time, handling both "14:30" and "1430" formats
+    let startTimeValue = 0;
+    try {
+      if (deal.hh_start_time.includes(':')) {
+        const [startHours, startMinutes] = deal.hh_start_time.split(':').map(n => parseInt(n, 10));
+        startTimeValue = startHours * 100 + startMinutes;
+      } else {
+        startTimeValue = parseInt(deal.hh_start_time, 10);
+      }
+    } catch (e) {
+      console.warn(`Error parsing start time "${deal.hh_start_time}" for deal ${deal.id}:`, e);
+      return false;
+    }
     
-    // Check if today is in the valid days
-    const validDays = deal.valid_days.split(',').map(day => day.trim().toLowerCase());
-    if (!validDays.includes(currentDay.toLowerCase())) {
+    // Parse end time, handling both "19:00" and "1900" formats
+    let endTimeValue = 0;
+    try {
+      if (deal.hh_end_time.includes(':')) {
+        const [endHours, endMinutes] = deal.hh_end_time.split(':').map(n => parseInt(n, 10));
+        endTimeValue = endHours * 100 + endMinutes;
+      } else {
+        endTimeValue = parseInt(deal.hh_end_time, 10);
+      }
+    } catch (e) {
+      console.warn(`Error parsing end time "${deal.hh_end_time}" for deal ${deal.id}:`, e);
       return false;
     }
     
     // Check if current time is within happy hour
-    const [startHour, startMinute] = deal.hh_start_time.split(':').map(Number);
-    const [endHour, endMinute] = deal.hh_end_time.split(':').map(Number);
-    const [currentHour, currentMinute] = currentTime.split(':').map(Number);
+    const isActive = currentTimeValue >= startTimeValue && currentTimeValue <= endTimeValue;
     
-    const startTimeMinutes = startHour * 60 + startMinute;
-    const endTimeMinutes = endHour * 60 + endMinute;
-    const currentTimeMinutes = currentHour * 60 + currentMinute;
+    if (isActive) {
+      console.log(`Deal "${deal.drink_name}" from establishment ${deal.establishmentId} is ACTIVE (${currentTimeValue} is between ${startTimeValue} and ${endTimeValue})`);
+    }
     
-    return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
-    */
+    return isActive;
   };
   
   // Helper function to calculate distance between two coordinates (in km)
@@ -137,25 +167,7 @@ export default function HomePage() {
     // Create a copy of the deals data to work with
     const allDeals = [...dealsData];
     
-    // Define a function to check if a deal is active right now
-    const isDealActiveNow = (deal: Deal): boolean => {
-      const now = new Date();
-      const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ...
-      const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const currentDayName = days[currentDay];
-      
-      // Simple check - if the day name is in valid_days
-      if (!deal.valid_days || !deal.valid_days.includes(currentDayName)) {
-        return false;
-      }
-      
-      // Check if current time is within happy hour
-      const nowTime = now.getHours() * 100 + now.getMinutes();
-      const startTime = parseInt(deal.hh_start_time.replace(':', ''));
-      const endTime = parseInt(deal.hh_end_time.replace(':', ''));
-      
-      return nowTime >= startTime && nowTime <= endTime;
-    };
+    // Reuse the existing isDealActiveNow function from above
     
     // Calculate distance based on establishment location data if distance is not already provided
     const calculateDistance = (deal: Deal): number => {
