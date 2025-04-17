@@ -485,8 +485,8 @@ export default function HomePage() {
         }
       }
       
-      // Limit to 20 deals max
-      return uniqueDeals.slice(0, 20);
+      // Limit to 25 deals max
+      return uniqueDeals.slice(0, 25);
     })();
     
     // Only add if it has deals
