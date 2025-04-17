@@ -563,20 +563,38 @@ export default function HomePage() {
           <div className="container mx-auto px-4">
             {/* First, render the priority collections in exact order */}
             {collections
-              .filter(collection => 
-                ["Active Happy Hours Nearby", "Beers Under $10", "Cocktails Under $15", "1-for-1 Deals"]
-                .includes(collection.name)
-              )
+              .filter(collection => {
+                // Normalize collection names for comparison
+                const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
+                return [
+                  "active_happy_hours_nearby",
+                  "beers_under_10", 
+                  "cocktails_under_15",
+                  "1_for_1_deals",
+                  "one_for_one_deals"
+                ].includes(normalizedName);
+              })
               .sort((a, b) => {
-                // Define the priority order
+                // Define the priority order with normalized names
+                const normalizeForPriority = (name: string) => {
+                  const normalized = name.toLowerCase().replace(/[\s-_]+/g, '_');
+                  // Special case for 1-for-1 variations
+                  if (normalized === '1_for_1_deals' || normalized === 'one_for_one_deals') {
+                    return 'one_for_one_deals';
+                  }
+                  return normalized;
+                };
+                
                 const priorityOrder = [
-                  "Active Happy Hours Nearby", 
-                  "Beers Under $10", 
-                  "Cocktails Under $15", 
-                  "1-for-1 Deals"
+                  "active_happy_hours_nearby", 
+                  "beers_under_10", 
+                  "cocktails_under_15", 
+                  "one_for_one_deals"
                 ];
+                
                 // Sort by priority index
-                return priorityOrder.indexOf(a.name) - priorityOrder.indexOf(b.name);
+                return priorityOrder.indexOf(normalizeForPriority(a.name)) - 
+                       priorityOrder.indexOf(normalizeForPriority(b.name));
               })
               .map((collection, index) => (
                 <CollectionRow
@@ -591,10 +609,17 @@ export default function HomePage() {
             
             {/* Then, render all other collections */}
             {collections
-              .filter(collection => 
-                !["Active Happy Hours Nearby", "Beers Under $10", "Cocktails Under $15", "1-for-1 Deals"]
-                .includes(collection.name)
-              )
+              .filter(collection => {
+                // Normalize collection names for comparison
+                const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
+                return ![
+                  "active_happy_hours_nearby",
+                  "beers_under_10", 
+                  "cocktails_under_15",
+                  "1_for_1_deals",
+                  "one_for_one_deals"
+                ].includes(normalizedName);
+              })
               .map((collection, index) => (
                 <CollectionRow
                   key={`other-${collection.name}-${index}`}

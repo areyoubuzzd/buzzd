@@ -16,6 +16,19 @@ export function getCollectionNames(collections?: string | null): string[] {
 }
 
 /**
+ * Normalize a collection name by removing spaces and making lowercase
+ * This helps with matching collection names regardless of format (spaces vs underscores)
+ * @param collectionName - Collection name to normalize
+ * @returns Normalized collection name
+ */
+export function normalizeCollectionName(collectionName: string): string {
+  return collectionName.toLowerCase()
+    .replace(/[\s-]+/g, '_') // Replace spaces and hyphens with underscores
+    .replace(/^1_for_1$/, 'one_for_one') // Special case for "1-for-1" -> "one_for_one"
+    .replace(/^1_for_1_deals?$/, 'one_for_one_deals'); // Special case for "1-for-1 Deals" -> "one_for_one_deals"
+}
+
+/**
  * Check if a deal belongs to a specific collection
  * @param dealCollections - Comma-separated collection names
  * @param collectionName - Collection name to check
@@ -24,8 +37,10 @@ export function getCollectionNames(collections?: string | null): string[] {
 export function isInCollection(dealCollections: string | null | undefined, collectionName: string): boolean {
   if (!dealCollections) return false;
   
-  const collections = getCollectionNames(dealCollections);
-  return collections.includes(collectionName);
+  const collections = getCollectionNames(dealCollections).map(c => normalizeCollectionName(c));
+  const normalizedName = normalizeCollectionName(collectionName);
+  
+  return collections.includes(normalizedName);
 }
 
 /**
@@ -91,41 +106,82 @@ export interface Collection {
 export function getCollectionsWithDeals(deals: any[]): Collection[] {
   // You can define your collection metadata here or fetch from an API
   const collectionsMetadata: Record<string, { name: string, description?: string }> = {
+    // Beer collections
     'beers_under_10': { 
-      name: 'Beers under $10', 
+      name: 'Beers Under $10', 
       description: 'Great beer deals under $10'
     },
     'beers_under_5': { 
-      name: 'Beers under $5', 
+      name: 'Beers Under $5', 
       description: 'Fantastic deals on beer under $5'
     },
-    'one_for_one_beer': { 
-      name: '1-for-1 Beer Deals', 
-      description: 'Buy one beer, get one free'
+    'beer_buckets_under_35': {
+      name: 'Beer Buckets Under $35',
+      description: 'Beer bucket specials under $35'
+    },
+    
+    // Wine collections
+    'wines_under_12': { 
+      name: 'Wines Under $12', 
+      description: 'Great wine deals under $12'
+    },
+    'wines_under_10': { 
+      name: 'Wines Under $10', 
+      description: 'Excellent wine deals under $10'
     },
     'wine_deals': { 
       name: 'Wine Deals', 
       description: 'Special offers on wine by the glass and bottle'
     },
+    'premium_wine': { 
+      name: 'Premium Wine Selection', 
+      description: 'Special prices on premium wines'
+    },
+    
+    // Cocktail collections
+    'cocktails_under_15': { 
+      name: 'Cocktails Under $15', 
+      description: 'Great cocktail deals under $15'
+    },
+    'cocktails_under_12': { 
+      name: 'Cocktails Under $12', 
+      description: 'Excellent cocktail deals under $12'
+    },
     'cocktail_specials': { 
       name: 'Cocktail Specials', 
       description: 'Signature and classic cocktails at special prices'
     },
-    'happy_hour_spirits': { 
-      name: 'Happy Hour Spirits', 
-      description: 'Spirits at happy hour prices'
+    
+    // 1-for-1 collections
+    '1-for-1_deal': { 
+      name: '1-for-1 Deals', 
+      description: 'Buy one, get one free deals'
     },
     'one_for_one_deals': { 
       name: '1-for-1 Deals', 
       description: 'Buy one, get one free deals'
     },
+    'one_for_one_beer': { 
+      name: '1-for-1 Beer Deals', 
+      description: 'Buy one beer, get one free'
+    },
+    
+    // Other special collections
+    'bottles_under_100': {
+      name: 'Bottles Under $100',
+      description: 'Bottle service under $100'
+    },
+    'freeflow_deal': {
+      name: 'Free Flow Deals',
+      description: 'Unlimited drink packages'
+    },
+    'happy_hour_spirits': { 
+      name: 'Happy Hour Spirits', 
+      description: 'Spirits at happy hour prices'
+    },
     'weekend_specials': { 
       name: 'Weekend Specials', 
       description: 'Special deals available on weekends'
-    },
-    'premium_wine': { 
-      name: 'Premium Wine Selection', 
-      description: 'Special prices on premium wines'
     },
     'craft_beer': { 
       name: 'Craft Beer Selection', 
