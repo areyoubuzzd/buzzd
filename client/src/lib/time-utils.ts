@@ -1,133 +1,225 @@
 /**
- * Utility functions for time calculations
+ * Time utilities for the Buzzd app
+ * Handles time calculations and status checks for happy hour deals
  */
 
-export interface Deal {
-  valid_days: string;
-  hh_start_time: string;
-  hh_end_time: string;
+// Map day names to indices for easy comparison
+const dayIndices: {[key: string]: number} = {
+  'Mon': 0, 'Monday': 0,
+  'Tue': 1, 'Tuesday': 1,
+  'Wed': 2, 'Wednesday': 2,
+  'Thu': 3, 'Thursday': 3,
+  'Fri': 4, 'Friday': 4,
+  'Sat': 5, 'Saturday': 5,
+  'Sun': 6, 'Sunday': 6
+};
+
+// Days of the week for display and validation
+export const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+export const shortDaysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/**
+ * Convert a date to Singapore time (GMT+8)
+ * @param date Optional date to convert, defaults to current date/time
+ * @returns Date object in Singapore time
+ */
+export function getSingaporeTime(date = new Date()): Date {
+  const sgTimeString = date.toLocaleString('en-US', { 
+    timeZone: 'Asia/Singapore',
+    hour12: false 
+  });
+  
+  return new Date(sgTimeString);
 }
 
 /**
- * Check if a deal is currently active (within happy hour)
- * @param deal Deal object with valid_days, hh_start_time, and hh_end_time
- * @returns boolean indicating if the deal is currently active
+ * Format a time string from 24-hour format to 12-hour format with AM/PM
+ * @param timeString Time string in 24-hour format (HH:MM)
+ * @returns Formatted time string in 12-hour format (h:MM AM/PM)
  */
-export function isWithinHappyHour(deal: any): boolean {
-  if (!deal || !deal.valid_days || !deal.hh_start_time || !deal.hh_end_time) return false;
-  
-  // Get the current date in the user's local timezone
-  const now = new Date();
-  
-  // Get current day name
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const currentDay = days[now.getDay()];
-  
-  // Check if current day is in valid days
-  let isDayValid = false;
-  
-  // Handle the "Daily" case
-  if (deal.valid_days.toLowerCase() === 'daily' || deal.valid_days.toLowerCase() === 'all days') {
-    isDayValid = true;
-  } 
-  // Handle "Weekends" case
-  else if (deal.valid_days.toLowerCase() === 'weekends') {
-    isDayValid = currentDay === 'Sat' || currentDay === 'Sun';
+export function formatTime(timeString: string): string {
+  // Handle case where time is just a number (e.g. "1400")
+  if (/^\d{3,4}$/.test(timeString)) {
+    // Convert "1400" to "14:00"
+    const hours = timeString.length === 3 
+      ? timeString.substring(0, 1) 
+      : timeString.substring(0, 2);
+    const minutes = timeString.length === 3 
+      ? timeString.substring(1, 3) 
+      : timeString.substring(2, 4);
+    timeString = `${hours}:${minutes}`;
   }
-  // Handle "Weekdays" case
-  else if (deal.valid_days.toLowerCase() === 'weekdays') {
-    isDayValid = currentDay !== 'Sat' && currentDay !== 'Sun';
+  
+  // Parse the time string
+  const [hourStr, minuteStr] = timeString.split(':');
+  let hour = parseInt(hourStr, 10);
+  const minute = minuteStr ? parseInt(minuteStr, 10) : 0;
+  
+  // Convert to 12-hour format
+  const period = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12;
+  hour = hour === 0 ? 12 : hour; // Handle midnight (0) as 12 AM
+  
+  // Format the time
+  return `${hour}:${minute.toString().padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Parse a day range string into an array of day indices
+ * @param dayRangeStr Day range string (e.g. "Mon-Fri", "All Days", "Weekends")
+ * @returns Array of day indices (0 = Monday, 6 = Sunday)
+ */
+export function parseDaysOfWeek(dayRangeStr: string): number[] {
+  // Handle common special cases
+  if (dayRangeStr === 'All Days' || dayRangeStr === 'Everyday' || dayRangeStr === 'Daily') {
+    return [0, 1, 2, 3, 4, 5, 6]; // All days
   }
-  // Handle ranges like "Mon-Fri"
-  else if (deal.valid_days.includes('-')) {
-    const [startDay, endDay] = deal.valid_days.split('-').map(d => d.trim());
-    const startIdx = days.findIndex(d => d === startDay);
-    const endIdx = days.findIndex(d => d === endDay);
-    const currentIdx = now.getDay();
+  
+  if (dayRangeStr === 'Weekdays') {
+    return [0, 1, 2, 3, 4]; // Monday-Friday
+  }
+  
+  if (dayRangeStr === 'Weekends') {
+    return [5, 6]; // Saturday-Sunday
+  }
+  
+  // Handle ranges (e.g. "Mon-Fri")
+  if (dayRangeStr.includes('-')) {
+    const [startDay, endDay] = dayRangeStr.split('-');
+    const startIdx = dayIndices[startDay.trim()];
+    const endIdx = dayIndices[endDay.trim()];
     
-    if (startIdx <= endIdx) {
-      isDayValid = currentIdx >= startIdx && currentIdx <= endIdx;
-    } else {
-      // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
-      isDayValid = currentIdx >= startIdx || currentIdx <= endIdx;
+    if (startIdx !== undefined && endIdx !== undefined) {
+      const days = [];
+      for (let i = startIdx; i <= endIdx; i++) {
+        days.push(i);
+      }
+      return days;
     }
   }
-  // Handle comma-separated lists like "Mon, Wed, Fri"
-  else if (deal.valid_days.includes(',')) {
-    const validDays = deal.valid_days.split(',').map(d => d.trim());
-    isDayValid = validDays.includes(currentDay);
+  
+  // Handle comma-separated days (e.g. "Mon, Wed, Fri")
+  if (dayRangeStr.includes(',')) {
+    return dayRangeStr.split(',')
+      .map(day => dayIndices[day.trim()])
+      .filter(idx => idx !== undefined);
   }
+  
   // Handle single day
-  else {
-    isDayValid = deal.valid_days.trim() === currentDay;
-  }
-  
-  if (!isDayValid) return false;
-  
-  // Now check if current time is within happy hour
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  const currentTime = currentHour * 60 + currentMinute; // in minutes since midnight
-  
-  // Parse happy hour times
-  // Handle different formats like "17:00", "17:00:00", "1700"
-  let startTime = 0;
-  let endTime = 0;
-  
-  // Parse start time
-  if (deal.hh_start_time.includes(':')) {
-    const [hours, minutes] = deal.hh_start_time.split(':').map(Number);
-    startTime = hours * 60 + (minutes || 0);
-  } else {
-    // Format like "1700"
-    const timeStr = deal.hh_start_time;
-    // Handle possible formats
-    if (timeStr.length <= 2) {
-      // Just hours like "9" or "17"
-      startTime = parseInt(timeStr) * 60;
-    } else if (timeStr.length === 3) {
-      // Format like "930" (9:30)
-      const hours = parseInt(timeStr.substring(0, 1));
-      const minutes = parseInt(timeStr.substring(1));
-      startTime = hours * 60 + minutes;
-    } else {
-      // Format like "0930" or "1700"
-      const hours = parseInt(timeStr.substring(0, 2));
-      const minutes = parseInt(timeStr.substring(2));
-      startTime = hours * 60 + minutes;
+  const singleDayIdx = dayIndices[dayRangeStr.trim()];
+  return singleDayIdx !== undefined ? [singleDayIdx] : [];
+}
+
+/**
+ * Check if a given time is within a happy hour range
+ * @param hh_start_time Start time of happy hour (format: HH:MM or HHMM)
+ * @param hh_end_time End time of happy hour (format: HH:MM or HHMM)
+ * @param valid_days Days when happy hour is valid (e.g., "Mon-Fri")
+ * @param currentTime Optional current time to check against (defaults to now in Singapore time)
+ * @returns Boolean indicating if current time is within happy hour
+ */
+export function isWithinHappyHour(
+  hh_start_time: string, 
+  hh_end_time: string, 
+  valid_days: string,
+  currentTime = getSingaporeTime()
+): boolean {
+  try {
+    // Standardize time format (convert "1400" to "14:00" if needed)
+    let startTime = hh_start_time;
+    let endTime = hh_end_time;
+    
+    if (/^\d{3,4}$/.test(startTime)) {
+      // Convert "1400" to "14:00"
+      const hours = startTime.length === 3 
+        ? startTime.substring(0, 1) 
+        : startTime.substring(0, 2);
+      const minutes = startTime.length === 3 
+        ? startTime.substring(1, 3) 
+        : startTime.substring(2, 4);
+      startTime = `${hours}:${minutes}`;
     }
-  }
-  
-  // Parse end time
-  if (deal.hh_end_time.includes(':')) {
-    const [hours, minutes] = deal.hh_end_time.split(':').map(Number);
-    endTime = hours * 60 + (minutes || 0);
-  } else {
-    // Format like "1700"
-    const timeStr = deal.hh_end_time;
-    // Handle possible formats
-    if (timeStr.length <= 2) {
-      // Just hours like "9" or "17"
-      endTime = parseInt(timeStr) * 60;
-    } else if (timeStr.length === 3) {
-      // Format like "930" (9:30)
-      const hours = parseInt(timeStr.substring(0, 1));
-      const minutes = parseInt(timeStr.substring(1));
-      endTime = hours * 60 + minutes;
-    } else {
-      // Format like "0930" or "1700"
-      const hours = parseInt(timeStr.substring(0, 2));
-      const minutes = parseInt(timeStr.substring(2));
-      endTime = hours * 60 + minutes;
+    
+    if (/^\d{3,4}$/.test(endTime)) {
+      // Convert "1900" to "19:00"
+      const hours = endTime.length === 3 
+        ? endTime.substring(0, 1) 
+        : endTime.substring(0, 2);
+      const minutes = endTime.length === 3 
+        ? endTime.substring(1, 3) 
+        : endTime.substring(2, 4);
+      endTime = `${hours}:${minutes}`;
     }
+    
+    // Parse the day range
+    const validDayIndices = parseDaysOfWeek(valid_days);
+    const currentDayIndex = (currentTime.getDay() + 6) % 7; // Adjust to make Monday = 0
+    
+    // Check if today is a valid day
+    if (!validDayIndices.includes(currentDayIndex)) {
+      return false;
+    }
+    
+    // Parse start and end times
+    const [startHourStr, startMinuteStr] = startTime.split(':');
+    const [endHourStr, endMinuteStr] = endTime.split(':');
+    
+    const startHour = parseInt(startHourStr, 10);
+    const startMinute = parseInt(startMinuteStr || '0', 10);
+    
+    const endHour = parseInt(endHourStr, 10);
+    const endMinute = parseInt(endMinuteStr || '0', 10);
+    
+    // Get current hour and minute in Singapore time
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    
+    // Convert all times to minutes for easier comparison
+    const startTimeMinutes = startHour * 60 + startMinute;
+    const endTimeMinutes = endHour * 60 + endMinute;
+    const currentTimeMinutes = currentHour * 60 + currentMinute;
+    
+    // Check if current time is within range
+    if (startTimeMinutes <= endTimeMinutes) {
+      // Normal range (e.g., 12:00 - 18:00)
+      return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
+    } else {
+      // Overnight range (e.g., 22:00 - 02:00)
+      return currentTimeMinutes >= startTimeMinutes || currentTimeMinutes <= endTimeMinutes;
+    }
+  } catch (error) {
+    console.error('Error checking happy hour status:', error);
+    return false;
+  }
+}
+
+/**
+ * Get display-friendly time range string
+ * @param startTime Start time (format: HH:MM or HHMM)
+ * @param endTime End time (format: HH:MM or HHMM)
+ * @returns Formatted time range (e.g. "12:00 PM - 6:00 PM")
+ */
+export function getTimeRangeDisplay(startTime: string, endTime: string): string {
+  return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+}
+
+/**
+ * Get human-readable day range
+ * @param validDays Days string (e.g. "Mon-Fri", "All Days")
+ * @returns Formatted day range string
+ */
+export function getDaysDisplay(validDays: string): string {
+  if (validDays === 'All Days' || validDays === 'Everyday' || validDays === 'Daily') {
+    return 'Every day';
   }
   
-  // Check if current time is within happy hour range
-  if (startTime <= endTime) {
-    // Normal case: e.g. 17:00 - 20:00
-    return currentTime >= startTime && currentTime <= endTime;
-  } else {
-    // Overnight case: e.g. 22:00 - 02:00
-    return currentTime >= startTime || currentTime <= endTime;
+  if (validDays === 'Weekdays') {
+    return 'Mon-Fri';
   }
+  
+  if (validDays === 'Weekends') {
+    return 'Sat-Sun';
+  }
+  
+  return validDays;
 }

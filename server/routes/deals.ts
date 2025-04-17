@@ -2,7 +2,7 @@ import express from 'express';
 import { storage } from '../storage';
 import { db } from '../db';
 import { deals, establishments } from '@shared/schema';
-import { eq, and, asc, sql } from 'drizzle-orm';
+import { eq, and, asc, sql, gte, lte } from 'drizzle-orm';
 
 const router = express.Router();
 
