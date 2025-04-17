@@ -67,38 +67,51 @@ export function getRandomDrinkImageUrl(
   // Generate a random image index (1-based to match expected naming convention)
   const imageIndex = Math.floor(Math.random() * maxImages) + 1;
   
-  // Path to the folder that contains images for this drink type
-  // Format: /home/brands/[drink_category]/[drink_name]/[index].jpg
+  // Format the drink name for the folder structure (lowercase, replace spaces with underscores)
+  // This allows us to have different folders for "Heineken Pint" and "Heineken Bottle"
+  const lowerCaseName = drinkName.toLowerCase();
+  const folderName = lowerCaseName.replace(/\s+/g, '_');
   
-  if (drinkName.toLowerCase().includes('heineken')) {
-    // Path for Heineken products
-    const folderPath = `home/brands/beer/heineken`;
-    console.log(`Using folder path for Heineken: ${folderPath}/${imageIndex}.jpg`);
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${folderPath}/${imageIndex}.jpg`;
-  }
+  // Path to the folder that contains images for this drink type
+  // Format: /home/brands/[drink_category]/[specific_drink_name]/[index].jpg
   
   // Determine drink category for folder structure
-  let drinkCategory = 'beer'; // Default category
-  if (drinkName.toLowerCase().includes('wine')) {
+  let drinkCategory = '';
+  
+  if (lowerCaseName.includes('pint') || 
+      lowerCaseName.includes('beer') || 
+      lowerCaseName.includes('bottle') || 
+      lowerCaseName.includes('heineken') ||
+      lowerCaseName.includes('tiger') ||
+      lowerCaseName.includes('sapporo') ||
+      lowerCaseName.includes('carlsberg')) {
+    drinkCategory = 'beer';
+  } else if (lowerCaseName.includes('wine')) {
     drinkCategory = 'wine';
-  } else if (drinkName.toLowerCase().includes('cocktail') || 
-             drinkName.toLowerCase().includes('margarita') || 
-             drinkName.toLowerCase().includes('mojito')) {
+  } else if (lowerCaseName.includes('cocktail') || 
+             lowerCaseName.includes('margarita') || 
+             lowerCaseName.includes('mojito')) {
     drinkCategory = 'cocktail';
-  } else if (drinkName.toLowerCase().includes('whisky') || 
-             drinkName.toLowerCase().includes('whiskey')) {
+  } else if (lowerCaseName.includes('whisky') || 
+             lowerCaseName.includes('whiskey') ||
+             lowerCaseName.includes('chivas') ||
+             lowerCaseName.includes('singleton')) {
     drinkCategory = 'whisky';
-  } else if (drinkName.toLowerCase().includes('gin')) {
+  } else if (lowerCaseName.includes('gin')) {
     drinkCategory = 'gin';
-  } else if (drinkName.toLowerCase().includes('vodka')) {
+  } else if (lowerCaseName.includes('vodka')) {
     drinkCategory = 'vodka';
-  } else if (drinkName.toLowerCase().includes('rum')) {
+  } else if (lowerCaseName.includes('rum')) {
     drinkCategory = 'rum';
+  } else {
+    // Default to spirits if we can't determine a category
+    drinkCategory = 'spirits';
   }
   
-  // Use a default image within the category as fallback
-  const imagePath = `home/brands/${drinkCategory}/glass/default/${imageIndex}.jpg`;
-  console.log(`Using category fallback image: ${imagePath}`);
+  // Build the image path using the specific drink name
+  const imagePath = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
+  console.log(`Using specific drink image path: ${imagePath}`);
+  
   return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePath}`;
 }
 
