@@ -3,6 +3,7 @@ import { FiClock, FiMapPin } from "react-icons/fi";
 import { Card } from "@/components/ui/card";
 import { calculateDistance } from "@/lib/location-utils";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 
 interface SquareDealCardProps {
   deal: any;
@@ -114,6 +115,67 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
   // Determine establishment ID for the link
   const establishmentId = deal.establishmentId || (deal.establishment && deal.establishment.id);
   
+  // Animation variants
+  const cardVariants = {
+    hidden: { 
+      opacity: 0,
+      y: 50,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { 
+        type: "spring",
+        duration: 0.5
+      }
+    },
+    hover: { 
+      y: -10,
+      scale: 1.05,
+      boxShadow: "0px 10px 20px rgba(0,0,0,0.15)",
+      transition: { 
+        type: "spring", 
+        stiffness: 400, 
+        damping: 17
+      }
+    },
+    tap: { 
+      scale: 0.98,
+      boxShadow: "0px 5px 10px rgba(0,0,0,0.1)",
+      transition: { 
+        type: "spring", 
+        stiffness: 500
+      }
+    }
+  };
+
+  const badgeVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { 
+        delay: 0.2,
+        duration: 0.3,
+        type: "spring" 
+      }
+    }
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        delay: 0.1,
+        duration: 0.4
+      }
+    }
+  };
+
   return (
     <div className="w-full h-full">
       <a 
@@ -121,51 +183,66 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         onClick={handleCardClick}
         className="block text-inherit no-underline h-full"
       >
-        <Card className="overflow-hidden h-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-200 rounded-xl cursor-pointer">
-          <div className="relative h-full">
-            {/* Deal image with category-based fallback */}
-            <img 
-              src={deal.imageUrl || getDefaultImage} 
-              alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
-              className="w-full h-full object-cover"
-            />
-            
-            {/* Savings badge */}
-            <div className="absolute top-2 right-2 bg-primary text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium">
-              {savingsInfo}
-            </div>
-            
-            {/* Overlay with all information - covering 45% of the card from bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-3">
-              {/* Deal headline using Fredoka One font - extra bold */}
-              <h2 className="font-['Fredoka_One'] text-sm text-white leading-tight mb-1.5 line-clamp-1 truncate">
-                {dealHeadline}
-              </h2>
+        <motion.div
+          className="h-full"
+          initial="hidden"
+          animate="visible"
+          whileHover="hover"
+          whileTap="tap"
+          variants={cardVariants}
+        >
+          <Card className="overflow-hidden h-full rounded-xl cursor-pointer">
+            <div className="relative h-full">
+              {/* Deal image with category-based fallback */}
+              <img 
+                src={deal.imageUrl || getDefaultImage} 
+                alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
+                className="w-full h-full object-cover"
+              />
               
-              {/* Restaurant name - Manrope font */}
-              <h3 className="font-['Manrope'] text-xs text-white/95 line-clamp-1 border-t border-white/20 pt-1.5 mb-1">
-                {deal.establishment?.name || 'Restaurant Name'}
-              </h3>
+              {/* Savings badge */}
+              <motion.div 
+                className="absolute top-2 right-2 bg-primary text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+                variants={badgeVariants}
+              >
+                {savingsInfo}
+              </motion.div>
               
-              {/* Time and distance with Manrope font */}
-              <div className="flex items-center justify-between text-[10px] text-white font-['Manrope']">
-                {/* Happy hour time */}
-                <div className="flex items-center">
-                  <FiClock className="h-3 w-3 mr-0.5 text-white" />
-                  <span className="text-white">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
-                </div>
+              {/* Overlay with all information - covering 45% of the card from bottom */}
+              <motion.div 
+                className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black via-black/80 to-transparent px-3 py-3"
+                variants={contentVariants}
+              >
+                {/* Deal headline using Fredoka One font - extra bold */}
+                <h2 className="font-['Fredoka_One'] text-sm text-white leading-tight mb-1.5 line-clamp-1 truncate">
+                  {dealHeadline}
+                </h2>
                 
-                {/* Distance */}
-                {distance && (
+                {/* Restaurant name - Manrope font */}
+                <h3 className="font-['Manrope'] text-xs text-white/95 line-clamp-1 border-t border-white/20 pt-1.5 mb-1">
+                  {deal.establishment?.name || 'Restaurant Name'}
+                </h3>
+                
+                {/* Time and distance with Manrope font */}
+                <div className="flex items-center justify-between text-[10px] text-white font-['Manrope']">
+                  {/* Happy hour time */}
                   <div className="flex items-center">
-                    <FiMapPin className="h-3 w-3 mr-0.5 text-white" />
-                    <span className="text-white">{distance}</span>
+                    <FiClock className="h-3 w-3 mr-0.5 text-white" />
+                    <span className="text-white">{deal.hh_start_time?.substring(0, 5)} - {deal.hh_end_time?.substring(0, 5)}</span>
                   </div>
-                )}
-              </div>
+                  
+                  {/* Distance */}
+                  {distance && (
+                    <div className="flex items-center">
+                      <FiMapPin className="h-3 w-3 mr-0.5 text-white" />
+                      <span className="text-white">{distance}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
       </a>
     </div>
   );

@@ -2,6 +2,7 @@ import { useRef, useMemo } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import SquareDealCard from "@/components/deals/square-deal-card";
+import { motion } from "framer-motion";
 
 interface CollectionRowProps {
   title: string;
