@@ -100,6 +100,11 @@ export default function HomePage() {
     const validDaysLower = deal.valid_days.toLowerCase();
     console.log(`Deal ${deal.id} (${deal.drink_name}) valid days: "${validDaysLower}"`);
     
+    // Special logging for Moon Rooftop Bar deals
+    if (deal.establishmentId === 11) {
+      console.log(`MOON DEAL CHECK: ${deal.drink_name}, valid_days: ${validDaysLower}, start: ${deal.hh_start_time}, end: ${deal.hh_end_time}`);
+    }
+    
     // Check for "all days" or day ranges like "mon-fri"
     let dayMatches = false;
     
@@ -177,6 +182,11 @@ export default function HomePage() {
     
     if (isActive) {
       console.log(`Deal "${deal.drink_name}" from establishment ${deal.establishmentId} is ACTIVE (${currentTimeValue} is between ${startTimeValue} and ${endTimeValue})`);
+      
+      // Special logging for Moon Rooftop Bar deals
+      if (deal.establishmentId === 11) {
+        console.log(`MOON DEAL ACTIVE: ${deal.drink_name} is ACTIVE!`);
+      }
     } else {
       console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTimeValue} is NOT between ${startTimeValue} and ${endTimeValue}`);
     }
