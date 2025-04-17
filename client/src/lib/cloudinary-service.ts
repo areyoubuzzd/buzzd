@@ -5,6 +5,7 @@
 // Use the same cloud name as server side
 const CLOUDINARY_CLOUD_NAME = 'dp2uoj3ts';
 const BASE_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+const API_BASE_URL = '/api/cloudinary';
 
 class CloudinaryService {
   /**
@@ -32,6 +33,41 @@ class CloudinaryService {
     
     // Default image for this category if no brand is specified
     return `${BASE_URL}/home/brands/${normalizedCategory}/${servingStyle}/default/default.png`;
+  }
+
+  /**
+   * Get a random image for a specific drink from the Cloudinary API
+   * This fetches from our custom endpoint that returns a random image from a folder
+   */
+  async getRandomDrinkImageUrl(
+    category: string,
+    drinkName: string,
+    servingStyle: 'bottle' | 'glass' = 'glass'
+  ): Promise<string | null> {
+    try {
+      // Build the URL with query parameters
+      const queryParams = new URLSearchParams({
+        category: this.normalizeString(category),
+        drinkName: this.normalizeString(drinkName),
+        servingStyle
+      });
+
+      // Make the API request to our backend endpoint
+      const response = await fetch(`${API_BASE_URL}/random-drink-image?${queryParams.toString()}`);
+      
+      if (!response.ok) {
+        console.warn(`Failed to get random image for ${drinkName}:`, response.status);
+        // Fall back to the static URL if the random API fails
+        return this.getHeroImageUrl(category, drinkName, servingStyle);
+      }
+
+      const data = await response.json();
+      return data.imageUrl;
+    } catch (error) {
+      console.error('Error fetching random drink image:', error);
+      // Fall back to the static URL method if there's an error
+      return this.getHeroImageUrl(category, drinkName, servingStyle);
+    }
   }
 
   /**
