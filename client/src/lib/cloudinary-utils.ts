@@ -29,6 +29,9 @@ export function formatDrinkNameForCloudinary(drinkName: string): string {
  * @param height Desired image height
  * @returns A Cloudinary URL for a random image of the drink
  */
+// Helper to check if Cloudinary folder paths exist
+const folderExistsCache = new Map<string, boolean>();
+
 export function getRandomDrinkImageUrl(
   drinkName: string, 
   maxImages: number = 5, 
@@ -44,8 +47,23 @@ export function getRandomDrinkImageUrl(
   // Generate a random image index, avoiding previously used indices if possible
   const imageIndex = getUniqueRandomIndex(formattedName, maxImages);
   
-  // Build the Cloudinary URL
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/drinks/${formattedName}/${imageIndex}.jpg`;
+  // Build the Cloudinary URL - Adjusted to match folder structure
+  // Check if this is 'Heineken Pint' specifically which we know exists
+  if (drinkName.toLowerCase() === 'heineken pint') {
+    const url = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/drinks/heineken_pint/${imageIndex}.jpg`;
+    
+    console.log(`Special handling for Heineken Pint: ${url}`);
+    return url;
+  }
+  
+  // Standard path for other drinks
+  const url = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/drinks/${formattedName}/${imageIndex}.jpg`;
+  
+  // Debug to see what URLs are being generated
+  console.log(`Generating Cloudinary URL for drink: ${drinkName} (formatted as: ${formattedName}), index: ${imageIndex}`);
+  console.log(`Full URL: ${url}`);
+  
+  return url;
 }
 
 /**
