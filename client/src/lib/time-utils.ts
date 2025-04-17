@@ -3,20 +3,31 @@
  * Handles time calculations and status checks for happy hour deals
  */
 
-// Map day names to indices for easy comparison
+// Map day names to indices for easy comparison - with both uppercase and lowercase versions
 const dayIndices: {[key: string]: number} = {
+  // Title case versions
   'Mon': 0, 'Monday': 0,
   'Tue': 1, 'Tuesday': 1,
   'Wed': 2, 'Wednesday': 2,
   'Thu': 3, 'Thursday': 3,
   'Fri': 4, 'Friday': 4,
   'Sat': 5, 'Saturday': 5,
-  'Sun': 6, 'Sunday': 6
+  'Sun': 6, 'Sunday': 6,
+  
+  // Lowercase versions
+  'mon': 0, 'monday': 0,
+  'tue': 1, 'tuesday': 1,
+  'wed': 2, 'wednesday': 2,
+  'thu': 3, 'thursday': 3,
+  'fri': 4, 'friday': 4,
+  'sat': 5, 'saturday': 5,
+  'sun': 6, 'sunday': 6
 };
 
 // Days of the week for display and validation
 export const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 export const shortDaysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+export const shortDaysOfWeekLowercase = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 /**
  * Convert a date to Singapore time (GMT+8)
@@ -157,12 +168,8 @@ export function isWithinHappyHour(
       endTime = `${hours}:${minutes}`;
     }
     
-    // Parse the day range
-    const validDayIndices = parseDaysOfWeek(valid_days);
-    const currentDayIndex = (currentTime.getDay() + 6) % 7; // Adjust to make Monday = 0
-    
-    // Check if today is a valid day
-    if (!validDayIndices.includes(currentDayIndex)) {
+    // Check if today is a valid day using our case-insensitive utility
+    if (!isValidDay(valid_days, currentTime)) {
       return false;
     }
     
@@ -233,4 +240,67 @@ export function getDaysDisplay(validDays: string): string {
   }
   
   return validDays;
+}
+
+/**
+ * Validate if the current day is a valid day according to the specified day range
+ * Works with both lowercase and uppercase day formats from the database
+ * 
+ * @param validDaysStr Day range string (e.g. "mon-fri", "Mon-Fri", "all days", "Daily", "weekends")
+ * @param currentDate Optional date to check against (defaults to now)
+ * @returns Boolean indicating if the current day is valid according to the schedule
+ */
+export function isValidDay(validDaysStr: string, currentDate = new Date()): boolean {
+  if (!validDaysStr) return false;
+  
+  // Convert to lowercase for case-insensitive comparison
+  const validDaysLower = validDaysStr.toLowerCase();
+  
+  // Adjust day index to make Sunday = 6, Monday = 0
+  const currentDayIndex = (currentDate.getDay() + 6) % 7;
+  const currentDay = shortDaysOfWeek[currentDayIndex];
+  const currentDayLowercase = shortDaysOfWeekLowercase[currentDayIndex];
+  
+  // Handle common special cases
+  if (validDaysLower === 'daily' || validDaysLower === 'all days' || validDaysLower === 'everyday') {
+    return true;
+  }
+  
+  if (validDaysLower === 'weekends') {
+    return currentDayIndex === 5 || currentDayIndex === 6; // Saturday or Sunday
+  }
+  
+  if (validDaysLower === 'weekdays') {
+    return currentDayIndex >= 0 && currentDayIndex <= 4; // Monday-Friday
+  }
+  
+  // Handle ranges like "mon-fri" or "Mon-Fri"
+  if (validDaysLower.includes('-')) {
+    const [startDay, endDay] = validDaysLower.split('-').map(d => d.trim());
+    const startIdx = shortDaysOfWeekLowercase.indexOf(startDay);
+    const endIdx = shortDaysOfWeekLowercase.indexOf(endDay);
+    
+    // Debug log
+    console.log(`Range check: ${startIdx} <= ${currentDayIndex} <= ${endIdx} => ${
+      startIdx <= currentDayIndex && currentDayIndex <= endIdx
+    }`);
+    
+    if (startIdx !== -1 && endIdx !== -1) {
+      if (startIdx <= endIdx) {
+        return currentDayIndex >= startIdx && currentDayIndex <= endIdx;
+      } else {
+        // Handle wrapping around like "fri-sun" (includes Fri, Sat, Sun)
+        return currentDayIndex >= startIdx || currentDayIndex <= endIdx;
+      }
+    }
+  }
+  
+  // Handle comma-separated lists like "mon, wed, fri"
+  if (validDaysLower.includes(',')) {
+    const validDays = validDaysLower.split(',').map(d => d.trim());
+    return validDays.includes(currentDayLowercase);
+  }
+  
+  // Handle single day
+  return validDaysLower.trim() === currentDayLowercase;
 }

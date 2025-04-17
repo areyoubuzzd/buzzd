@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FaStar, FaWalking, FaClock } from 'react-icons/fa';
 import { calculateDistance, formatDistance, getCurrentPosition, DEFAULT_POSITION } from '@/lib/distance-utils';
 import { motion } from 'framer-motion';
+import { isValidDay, shortDaysOfWeek, shortDaysOfWeekLowercase } from '@/lib/time-utils';
 
 interface Deal {
   valid_days: string;
@@ -74,67 +75,13 @@ function isWithinHappyHour(deal: Deal): boolean {
   // Get the current date in the user's local timezone
   const currentDate = new Date();
   
-  // Get current day name
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const daysLowercase = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-  const currentDay = days[currentDate.getDay()];
-  const currentDayLowercase = currentDay.toLowerCase();
-  
   // Log current time for debugging
   console.log("Current time: " + currentDate.toLocaleString());
-  console.log("Current day: " + currentDayLowercase);
+  console.log("Current day: " + currentDate.toLocaleDateString('en-US', { weekday: 'lowercase' }));
   
-  // Check if current day is in valid days
-  let isDayValid = false;
-  
-  // Normalize the valid_days string to lowercase for case-insensitive comparison
-  const validDaysLower = deal.valid_days.toLowerCase();
-  
-  // Log deal days for debugging
-  console.log(`Deal valid days: "${deal.valid_days}"`);
-  
-  // Handle the "Daily" case
-  if (validDaysLower === 'daily' || validDaysLower === 'all days') {
-    isDayValid = true;
-  } 
-  // Handle "Weekends" case
-  else if (validDaysLower === 'weekends') {
-    isDayValid = currentDay === 'Sat' || currentDay === 'Sun';
-  }
-  // Handle "Weekdays" case
-  else if (validDaysLower === 'weekdays') {
-    isDayValid = currentDay !== 'Sat' && currentDay !== 'Sun';
-  }
-  // Handle ranges like "Mon-Fri" or "mon-fri"
-  else if (validDaysLower.includes('-')) {
-    const [startDay, endDay] = validDaysLower.split('-').map(d => d.trim());
-    const startIdx = daysLowercase.indexOf(startDay);
-    const endIdx = daysLowercase.indexOf(endDay);
-    const currentIdx = currentDate.getDay();
-    
-    // Debug log
-    console.log(`Range check: ${startIdx} <= ${currentIdx} <= ${endIdx}`);
-    
-    if (startIdx !== -1 && endIdx !== -1) {
-      if (startIdx <= endIdx) {
-        isDayValid = currentIdx >= startIdx && currentIdx <= endIdx;
-      } else {
-        // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
-        isDayValid = currentIdx >= startIdx || currentIdx <= endIdx;
-      }
-    }
-  }
-  // Handle comma-separated lists like "Mon, Wed, Fri"
-  else if (validDaysLower.includes(',')) {
-    const validDays = validDaysLower.split(',').map(d => d.trim());
-    isDayValid = validDays.includes(currentDayLowercase);
-  }
-  // Handle single day
-  else {
-    isDayValid = validDaysLower.trim() === currentDayLowercase;
-  }
-  
-  if (!isDayValid) return false;
+  // Use the centralized utility to check if the current day is valid
+  // This function handles all case-sensitivity issues and special formats
+  if (!isValidDay(deal.valid_days, currentDate)) return false;
   
   // Now check if current time is within happy hour
   const currentHour = currentDate.getHours();
@@ -235,49 +182,13 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
     const currentDay = days[currentDate.getDay()];
     const currentDayLowercase = currentDay.toLowerCase();
     
-    // Get all deals valid today
+    // Get all deals valid today - use our centralized utility for consistent validation
     const dealsForToday = activeDeals.filter(deal => {
       // Log all deal days for debugging
       console.log(`Deal for ${name}: valid_days="${deal.valid_days}", start_time="${deal.hh_start_time}", current day is "${currentDay}"`);
       
-      // Normalize the valid_days string to lowercase for case-insensitive comparison
-      const validDaysLower = deal.valid_days.toLowerCase();
-      
-      // Daily
-      if (validDaysLower === 'daily' || validDaysLower === 'all days') {
-        return true;
-      }
-      // Weekends
-      if (validDaysLower === 'weekends' && (currentDay === 'Sat' || currentDay === 'Sun')) {
-        return true;
-      }
-      // Weekdays
-      if (validDaysLower === 'weekdays' && currentDay !== 'Sat' && currentDay !== 'Sun') {
-        return true;
-      }
-      // Ranges like "Mon-Fri" or "mon-fri"
-      if (validDaysLower.includes('-')) {
-        const [startDay, endDay] = validDaysLower.split('-').map(d => d.trim());
-        const startIdx = daysLowercase.indexOf(startDay);
-        const endIdx = daysLowercase.indexOf(endDay);
-        const currentIdx = currentDate.getDay();
-        
-        if (startIdx !== -1 && endIdx !== -1) {
-          if (startIdx <= endIdx) {
-            return currentIdx >= startIdx && currentIdx <= endIdx;
-          } else {
-            // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
-            return currentIdx >= startIdx || currentIdx <= endIdx;
-          }
-        }
-      }
-      // Comma-separated lists like "Mon, Wed, Fri"
-      if (validDaysLower.includes(',')) {
-        const validDays = validDaysLower.split(',').map(d => d.trim());
-        return validDays.includes(currentDayLowercase);
-      }
-      // Single day
-      return validDaysLower.trim() === currentDayLowercase;
+      // Use the centralized utility to check if the current day is valid
+      return isValidDay(deal.valid_days, currentDate);
     });
     
     // Check if any deals are active now
