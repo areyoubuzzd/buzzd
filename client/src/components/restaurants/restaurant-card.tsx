@@ -488,7 +488,7 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
                     </div>
                   </motion.div>
                 )}
-                {!isActive && startTime && (
+                {!isActive && startTime && hasHappyHourToday && (
                   <motion.div 
                     className="flex mt-0.5"
                     initial={{ opacity: 0, x: -10 }}
