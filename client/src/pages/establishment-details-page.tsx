@@ -414,16 +414,15 @@ export default function EstablishmentDetailsPage() {
             {activeDeals.map(deal => (
               <Card key={deal.id} className="rounded-xl">
                 <CardContent className="p-5">
-                  <div className="flex justify-between mb-2">
-                    <div>
+                  <div className="mb-2">
+                    <div className="flex justify-between items-center">
                       <h3 className="font-bold">{deal.drink_name}</h3>
-                      <p className="text-sm text-gray-500">{deal.alcohol_category} {deal.alcohol_subcategory}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500 line-through">${deal.standard_price.toFixed(2)}</span>
+                        <span className="font-bold text-primary">${deal.happy_hour_price.toFixed(2)}</span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500 line-through">${deal.standard_price.toFixed(2)}</p>
-                      <p className="font-bold text-primary">${deal.happy_hour_price.toFixed(2)}</p>
-                      <p className="text-xs text-green-600">Save {deal.savings_percentage}%</p>
-                    </div>
+                    <p className="text-xs text-green-600">Save {deal.savings_percentage}%</p>
                   </div>
                   {deal.description && (
                     <div className="text-sm text-gray-600 mt-2 border-t pt-2">
