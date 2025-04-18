@@ -58,97 +58,39 @@ export function getRandomDrinkImageUrl(
   width: number = 400, 
   height: number = 400
 ): string {
-  console.log(`======== getRandomDrinkImageUrl CALLED ========`);
-  console.log(`Drink name: "${drinkName}"`);
-  console.log(`Max images: ${maxImages}`);
-  console.log(`Width: ${width}, Height: ${height}`);
-  console.log(`Cloudinary cloud name: ${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'NOT SET'}`);
+  console.log(`Generating image URL for "${drinkName}"`);
   
   if (!drinkName) {
     return getDefaultDrinkImageUrl(width, height);
   }
 
-  const formattedName = formatDrinkNameForCloudinary(drinkName);
+  // Map of known image suffixes from the working URL example:
+  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936266/4_rnrfbc.jpg
+  const knownImageTransformations = {
+    '1': 'pmxkxl',
+    '2': 'tcgcin',
+    '3': 'kqvyaz',
+    '4': 'rnrfbc',
+    '5': 'qsofwr'
+  };
   
-  // Generate a random image index (1-based to match expected naming convention)
-  const imageIndex = getUniqueRandomIndex(formattedName, maxImages);
+  // Generate a random image index (1-based)
+  const imageIndex = getUniqueRandomIndex(drinkName.toLowerCase(), maxImages);
   
-  // Format the drink name for the folder structure (lowercase, replace spaces with underscores)
-  // This allows us to have different folders for "Heineken Pint" and "Heineken Bottle"
-  const lowerCaseName = drinkName.toLowerCase();
-  const folderName = formatDrinkNameForCloudinary(drinkName);
+  // Use a version number in the range that's known to work
+  // The example URL used v1744936266
+  const version = 1744936266;
   
-  // Path to the folder that contains images for this drink type
+  // Get the transformation suffix from our map, or use a default if not found
+  const transformationSuffix = knownImageTransformations[imageIndex.toString()] || 'pmxkxl';
   
-  // Determine drink category for folder structure
-  let drinkCategory = '';
+  // Construct the URL in the format that works:
+  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936266/4_rnrfbc.jpg
+  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${imageIndex}_${transformationSuffix}.jpg`;
   
-  if (lowerCaseName.includes('pint') || 
-      lowerCaseName.includes('beer') || 
-      lowerCaseName.includes('bottle') || 
-      lowerCaseName.includes('heineken') ||
-      lowerCaseName.includes('tiger') ||
-      lowerCaseName.includes('sapporo') ||
-      lowerCaseName.includes('carlsberg')) {
-    drinkCategory = 'beer';
-  } else if (lowerCaseName.includes('wine')) {
-    drinkCategory = 'wine';
-  } else if (lowerCaseName.includes('cocktail') || 
-             lowerCaseName.includes('margarita') || 
-             lowerCaseName.includes('mojito')) {
-    drinkCategory = 'cocktail';
-  } else if (lowerCaseName.includes('whisky') || 
-             lowerCaseName.includes('whiskey') ||
-             lowerCaseName.includes('chivas') ||
-             lowerCaseName.includes('singleton')) {
-    drinkCategory = 'whisky';
-  } else if (lowerCaseName.includes('gin')) {
-    drinkCategory = 'gin';
-  } else if (lowerCaseName.includes('vodka')) {
-    drinkCategory = 'vodka';
-  } else if (lowerCaseName.includes('rum')) {
-    drinkCategory = 'rum';
-  } else {
-    // Default to spirits if we can't determine a category
-    drinkCategory = 'spirits';
-  }
-
-  // Let's try these different URL formats to find the one that works:
+  console.log(`Generated Cloudinary URL: ${imageUrl}`);
   
-  // 1. Direct version+index URL (this was working before)
-  // Format: https://res.cloudinary.com/{cloud_name}/image/upload/v{version}/{index}.jpg
-  const version = Math.floor(1744936160 + (Math.random() * 200)); 
-  const directVersionUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${imageIndex}.jpg`;
-  
-  // 2. Transformation public URL - most standard format
-  // Format: https://res.cloudinary.com/{cloud_name}/image/upload/{transformations}/{folder}/{filename}
-  const transformUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/w_${width},h_${height},c_fill/drinks/${folderName}_${imageIndex}`;
-  
-  // 3. Simple public ID URL (just the filename without path)
-  // Format: https://res.cloudinary.com/{cloud_name}/image/upload/{public_id}
-  const simpleUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${folderName}_${imageIndex}`;
-  
-  // 4. Category/folder path format
-  // Format: https://res.cloudinary.com/{cloud_name}/image/upload/{category}/{drink_name}/{index}
-  const folderUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${drinkCategory}/${folderName}/${imageIndex}`;
-  
-  // 5. Full folder path with extension
-  const fullPathUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
-
-  console.log(`Trying multiple Cloudinary URL formats for ${drinkName}:`);
-  console.log(`1. Direct version URL: ${directVersionUrl}`);
-  console.log(`2. Transform URL: ${transformUrl}`);
-  console.log(`3. Simple ID URL: ${simpleUrl}`);
-  console.log(`4. Folder URL: ${folderUrl}`);
-  console.log(`5. Full path URL: ${fullPathUrl}`);
-  
-  // Specific drinks we know the format for:
-  if (lowerCaseName.includes('tiger pint')) {
-    return directVersionUrl; // This format was confirmed working for Tiger Pint
-  }
-  
-  // For other drinks, let's try the transformation URL which is most standard
-  return transformUrl;
+  return imageUrl;
 }
 
 /**
