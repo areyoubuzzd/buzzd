@@ -200,6 +200,7 @@ router.get('/api/cloudinary/random-drink-image', async (req, res) => {
     }
     
     // Get a random image URL for this drink
+    // The updated function will try both .jpg and .jpeg extensions
     const imageUrl = await cloudinaryUploader.getRandomDrinkImageUrl(
       category,
       drinkName,

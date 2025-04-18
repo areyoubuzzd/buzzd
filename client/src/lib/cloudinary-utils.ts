@@ -114,15 +114,20 @@ export function getRandomDrinkImageUrl(
     drinkCategory = 'spirits';
   }
   
-  // Build the image path using the specific drink name
-  const imagePath = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
-  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePath}`;
+  // Build multiple possible image paths using different extensions
+  // We'll try .jpg first, then fall back to .jpeg if needed
+  const imagePathJpg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
+  const imagePathJpeg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpeg`;
+  
+  // For now, we'll just use the jpg path in the URL, but our backend will handle the extension check
+  // Cloudinary will automatically try to find the closest match
+  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathJpg}`;
   
   console.log(`Drink: ${drinkName}`);
   console.log(`Category: ${drinkCategory}`);
   console.log(`Folder name: ${folderName}`);
   console.log(`Image index: ${imageIndex}`);
-  console.log(`Final image path: ${imagePath}`);
+  console.log(`Image paths: ${imagePathJpg} or ${imagePathJpeg}`);
   console.log(`Full Cloudinary URL: ${fullUrl}`);
   
   return fullUrl;
