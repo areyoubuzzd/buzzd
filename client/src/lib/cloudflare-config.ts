@@ -8,6 +8,9 @@
 // Using the actual account ID from the environment variables
 export const CLOUDFLARE_ACCOUNT_ID = import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID as string;
 
+// Add a cache to temporarily store image IDs with custom IDs
+const customIdCache = new Map<string, string>();
+
 // Generate an image delivery URL for a given image ID and variant
 export function getCloudflareImageUrl(
   imageId: string, 
