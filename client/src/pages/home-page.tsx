@@ -106,6 +106,7 @@ export default function HomePage() {
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
   const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to generic name until we get actual location
   const [isLocationSelectOpen, setIsLocationSelectOpen] = useState<boolean>(false); // State to control location selector visibility
+  const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search input field
 
   // Fetch all deals for collections with location parameters
   const { data: dealsData } = useQuery<Deal[]>({
@@ -1080,52 +1081,46 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="flex flex-col">
             <div className="flex items-center justify-between mb-2">
-              <div 
-                className="flex items-center text-sm text-gray-600 cursor-pointer"
-                onClick={() => {
-                  setIsLocationSelectOpen(true);
-                }}
-              >
-                <FiMapPin className="mr-1 h-4 w-4 text-red-500" />
-                <span className="font-medium">{userRoadName || "My Location"}</span>
-              </div>
+              {isLocationSelectOpen ? (
+                <LocationAutocomplete
+                  defaultValue=""
+                  placeholder="Search for a location..."
+                  onLocationSelect={(selectedLocation) => {
+                    // Use the coordinates from the selected location
+                    const newLat = selectedLocation.latitude;
+                    const newLng = selectedLocation.longitude;
+                    
+                    // Update UI with new location value
+                    setLocation({ lat: newLat, lng: newLng });
+                    
+                    // Trigger a location change after a brief delay
+                    setTimeout(() => {
+                      handleLocationChange({ lat: newLat, lng: newLng });
+                    }, 300);
+                    
+                    // Close the location selector
+                    setIsLocationSelectOpen(false);
+                  }}
+                />
+              ) : (
+                <div 
+                  className="flex items-center text-sm text-gray-600 cursor-pointer"
+                  onClick={() => {
+                    setIsLocationSelectOpen(true);
+                  }}
+                >
+                  <FiMapPin className="mr-1 h-4 w-4 text-gray-400" />
+                  <span className="font-medium">{"My Location"}</span>
+                </div>
+              )}
               <div className="text-sm font-medium">
                 {totalDealsFound} deals found
               </div>
             </div>
             
-            {/* Location selection and filter controls */}
-            <div className="flex gap-2 items-center">
-              <div className="w-full">
-                {isLocationSelectOpen && (
-                  <LocationAutocomplete
-                    defaultValue=""
-                    placeholder="Search for a location..."
-                    onLocationSelect={(selectedLocation) => {
-                      // Update the location name
-                      setUserRoadName(selectedLocation.name);
-                      
-                      // Use the coordinates from the selected location
-                      const newLat = selectedLocation.latitude;
-                      const newLng = selectedLocation.longitude;
-                      
-                      // Update UI with new location value
-                      setLocation({ lat: newLat, lng: newLng });
-                      
-                      // Trigger a location change after a brief delay
-                      setTimeout(() => {
-                        handleLocationChange({ lat: newLat, lng: newLng });
-                      }, 300);
-                      
-                      // Close the location selector
-                      setIsLocationSelectOpen(false);
-                    }}
-                  />
-                )}
-              </div>
-              
-              {/* Filter button */}
-              {!isLocationSelectOpen && (
+            {/* Filter button */}
+            {!isLocationSelectOpen && (
+              <div className="flex justify-end">
                 <Button 
                   type="button" 
                   variant="ghost" 
@@ -1136,8 +1131,8 @@ export default function HomePage() {
                 >
                   <FiFilter className="h-4 w-4 text-[#191632]" />
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

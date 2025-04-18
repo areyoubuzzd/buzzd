@@ -30,10 +30,18 @@ export function LocationAutocomplete({
   placeholder = 'Search for a location...',
   defaultValue = '',
 }: LocationAutocompleteProps) {
-  const [searchTerm, setSearchTerm] = useState(defaultValue);
-  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isOpen, setIsOpen] = useState(true);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus the input when mounted
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   // Close dropdown when clicking outside
   useClickOutside(containerRef, () => setIsOpen(false));
@@ -181,18 +189,20 @@ export function LocationAutocomplete({
   };
 
   return (
-    <div ref={containerRef} className={cn("relative w-full max-w-md", className)}>
+    <div ref={containerRef} className={cn("relative w-full", className)}>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <MapPin className="h-5 w-5 text-gray-400" />
+          <MapPin className="h-4 w-4 text-gray-400" />
         </div>
         <input
+          ref={inputRef}
           type="text"
-          className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full pl-8 pr-8 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
           placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onClick={() => setIsOpen(true)}
+          autoFocus
         />
         {searchTerm && (
           <button
@@ -200,7 +210,7 @@ export function LocationAutocomplete({
             className="absolute inset-y-0 right-0 pr-3 flex items-center"
             onClick={handleClear}
           >
-            <X className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+            <X className="h-4 w-4 text-gray-400 hover:text-gray-500" />
           </button>
         )}
       </div>
