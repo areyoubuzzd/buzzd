@@ -6,6 +6,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { isWithinHappyHour } from "@/lib/time-utils";
 import { useDrinkImage } from "@/hooks/use-drink-images";
+import { CloudflareImage } from "@/components/CloudflareImage";
 
 // Get a color for a drink category, used for creating reliable fallback images
 function getCategoryColor(category: string): string {
@@ -202,100 +203,111 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         >
           <Card className="overflow-hidden h-full rounded-xl cursor-pointer">
             <div className="relative h-full">
-              {/* Deal image from Cloudinary */}
-              <img 
-                src={createFallbackSvg(deal.alcohol_category || 'beer')}
-                alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  console.log(`Square card image load error for ${deal.drink_name || deal.alcohol_category}, trying SVG fallback`);
-                  
-                  // Create a multi-step fallback system
-                  const tryFallbacks = async () => {
-                    try {
-                      // Step 1: Try SVG image from the assets folder based on category
-                      const drinkName = deal.drink_name || deal.alcohol_category;
-                      const category = deal.alcohol_category?.toLowerCase() || '';
-                      
-                      // Import local SVG assets dynamically instead of Cloudinary
-                      const { images, getBrandImage, getBackgroundImage } = await import('@/assets/images');
-                      
-                      // Map the category to available SVG files
-                      let svgCategory = 'beer'; // Default
-                      if (category.includes('wine')) {
-                        svgCategory = 'wine';
-                      } else if (category.includes('cocktail')) {
-                        svgCategory = 'cocktail';
-                      } else if (['whisky', 'gin', 'vodka', 'rum'].some(s => category.includes(s))) {
-                        svgCategory = category.includes('whisky') ? 'whisky' : 'spirits';
-                      } else if (category.includes('beer') || category.includes('pint')) {
-                        svgCategory = 'beer';
-                      }
-                      
-                      // Choose an appropriate SVG (background image shows better in square card)
-                      const svgImage = getBackgroundImage(svgCategory);
-                      
-                      // Use a cache-busting timestamp to avoid caching issues
-                      e.currentTarget.src = `${svgImage}?v=${Date.now()}`;
-                      
-                      // If the SVG fails, try known Cloudinary images as a last resort
-                      e.currentTarget.onerror = async () => {
-                        console.log(`SVG fallback failed for ${drinkName}, trying only verified Cloudinary images`);
-                        try {
-                          // Step 2: Try Cloudinary with only verified images
-                          const { getRandomDrinkImageUrl } = await import('@/lib/cloudinary-utils');
-                          
-                          // Only try the specific known drinks that are confirmed to work
-                          let cloudinaryCategory = '';
-                          if (drinkName?.toLowerCase().includes('heineken pint')) cloudinaryCategory = 'heineken pint';
-                          else if (category.includes('wine')) cloudinaryCategory = 'red wine';
-                          else if (drinkName?.toLowerCase().includes('margarita')) cloudinaryCategory = 'margarita';
-                          else if (drinkName?.toLowerCase().includes('negroni')) cloudinaryCategory = 'negroni';
-                          
-                          if (cloudinaryCategory) {
-                            const imageUrl = getRandomDrinkImageUrl(cloudinaryCategory);
-                            // Add a cache buster to the URL
-                            e.currentTarget.src = `${imageUrl}?v=${Date.now()}`;
+              {/* Deal image from Cloudflare */}
+              {deal.imageId ? (
+                <CloudflareImage
+                  imageId={deal.imageId}
+                  variant="public"
+                  alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
+                  category={deal.alcohol_category || 'beer'}
+                  className="w-full h-full object-cover"
+                  fallbackColor="#d6cfc7"
+                />
+              ) : (
+                <img 
+                  src={createFallbackSvg(deal.alcohol_category || 'beer')}
+                  alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log(`Square card image load error for ${deal.drink_name || deal.alcohol_category}, trying SVG fallback`);
+                    
+                    // Create a multi-step fallback system
+                    const tryFallbacks = async () => {
+                      try {
+                        // Step 1: Try SVG image from the assets folder based on category
+                        const drinkName = deal.drink_name || deal.alcohol_category;
+                        const category = deal.alcohol_category?.toLowerCase() || '';
+                        
+                        // Import local SVG assets dynamically instead of Cloudinary
+                        const { images, getBrandImage, getBackgroundImage } = await import('@/assets/images');
+                        
+                        // Map the category to available SVG files
+                        let svgCategory = 'beer'; // Default
+                        if (category.includes('wine')) {
+                          svgCategory = 'wine';
+                        } else if (category.includes('cocktail')) {
+                          svgCategory = 'cocktail';
+                        } else if (['whisky', 'gin', 'vodka', 'rum'].some(s => category.includes(s))) {
+                          svgCategory = category.includes('whisky') ? 'whisky' : 'spirits';
+                        } else if (category.includes('beer') || category.includes('pint')) {
+                          svgCategory = 'beer';
+                        }
+                        
+                        // Choose an appropriate SVG (background image shows better in square card)
+                        const svgImage = getBackgroundImage(svgCategory);
+                        
+                        // Use a cache-busting timestamp to avoid caching issues
+                        e.currentTarget.src = `${svgImage}?v=${Date.now()}`;
+                        
+                        // If the SVG fails, try known Cloudinary images as a last resort
+                        e.currentTarget.onerror = async () => {
+                          console.log(`SVG fallback failed for ${drinkName}, trying only verified Cloudinary images`);
+                          try {
+                            // Step 2: Try Cloudinary with only verified images
+                            const { getRandomDrinkImageUrl } = await import('@/lib/cloudinary-utils');
                             
-                            // Final fallback to default SVG
-                            e.currentTarget.onerror = () => {
-                              console.log('All dynamic images failed, using data URL SVG fallback');
+                            // Only try the specific known drinks that are confirmed to work
+                            let cloudinaryCategory = '';
+                            if (drinkName?.toLowerCase().includes('heineken pint')) cloudinaryCategory = 'heineken pint';
+                            else if (category.includes('wine')) cloudinaryCategory = 'red wine';
+                            else if (drinkName?.toLowerCase().includes('margarita')) cloudinaryCategory = 'margarita';
+                            else if (drinkName?.toLowerCase().includes('negroni')) cloudinaryCategory = 'negroni';
+                            
+                            if (cloudinaryCategory) {
+                              const imageUrl = getRandomDrinkImageUrl(cloudinaryCategory);
+                              // Add a cache buster to the URL
+                              e.currentTarget.src = `${imageUrl}?v=${Date.now()}`;
+                              
+                              // Final fallback to default SVG
+                              e.currentTarget.onerror = () => {
+                                console.log('All dynamic images failed, using data URL SVG fallback');
+                                e.currentTarget.src = createFallbackSvg(category || 'beer');
+                                e.currentTarget.onerror = null; // Prevent infinite loop
+                              };
+                            } else {
+                              // Skip to final default if no specific category matches
+                              console.log('No matching Cloudinary category, using data URL SVG fallback');
                               e.currentTarget.src = createFallbackSvg(category || 'beer');
                               e.currentTarget.onerror = null; // Prevent infinite loop
-                            };
-                          } else {
-                            // Skip to final default if no specific category matches
-                            console.log('No matching Cloudinary category, using data URL SVG fallback');
-                            e.currentTarget.src = createFallbackSvg(category || 'beer');
-                            e.currentTarget.onerror = null; // Prevent infinite loop
+                            }
+                          } catch (err) {
+                            console.error('Error in square card Cloudinary fallback chain:', err);
+                            // Final fallback to beer background SVG if everything else fails
+                            try {
+                              e.currentTarget.src = createFallbackSvg(category || 'beer');
+                              e.currentTarget.onerror = null; // Prevent infinite loop
+                            } catch (innerErr) {
+                              console.error('Critical error in all square card fallbacks', innerErr);
+                            }
                           }
-                        } catch (err) {
-                          console.error('Error in square card Cloudinary fallback chain:', err);
-                          // Final fallback to beer background SVG if everything else fails
-                          try {
-                            e.currentTarget.src = createFallbackSvg(category || 'beer');
-                            e.currentTarget.onerror = null; // Prevent infinite loop
-                          } catch (innerErr) {
-                            console.error('Critical error in all square card fallbacks', innerErr);
-                          }
+                        };
+                      } catch (err) {
+                        console.error('Failed in initial square card fallback chain:', err);
+                        // Emergency fallback if all else fails
+                        try {
+                          const category = deal.alcohol_category?.toLowerCase() || 'beer';
+                          e.currentTarget.src = createFallbackSvg(category);
+                          e.currentTarget.onerror = null; // Prevent infinite loop
+                        } catch (finalErr) {
+                          console.error('Critical fallback error:', finalErr);
                         }
-                      };
-                    } catch (err) {
-                      console.error('Failed in initial square card fallback chain:', err);
-                      // Emergency fallback if all else fails
-                      try {
-                        const category = deal.alcohol_category?.toLowerCase() || 'beer';
-                        e.currentTarget.src = createFallbackSvg(category);
-                        e.currentTarget.onerror = null; // Prevent infinite loop
-                      } catch (finalErr) {
-                        console.error('Critical fallback error:', finalErr);
                       }
-                    }
-                  };
-                  
-                  tryFallbacks();
-                }}
-              />
+                    };
+                    
+                    tryFallbacks();
+                  }}
+                />
+              )}
               
               {/* Status indicator (green for active, red for inactive) */}
               <motion.div 
