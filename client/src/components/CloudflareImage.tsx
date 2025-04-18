@@ -36,7 +36,8 @@ export function CloudflareImage({
   const [isLoading, setIsLoading] = useState(true);
   const [isImageAvailable, setIsImageAvailable] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const accountId = import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID as string;
+  // Fixed Cloudflare account ID for image delivery
+  const accountId = "kx7S-b2sJYbGgWyc5FfQUg";
   
   // For newly uploaded images, Cloudflare might need a moment to process them
   // We'll check if the image is available with a simple fetch
