@@ -179,7 +179,29 @@ export function getRandomDrinkImageUrl(
     return webpImageUrl;
   }
   
-  // For other categories, use the original jpg format
+  // For beer category, use updated path and version 
+  // Format example: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936265/home/brands/beer/heineken_pint/3.jpg
+  else if (category === 'beer') {
+    // For beers, use 1-5 as image numbers
+    randomNumber = Math.floor(Math.random() * 5) + 1;
+    
+    // We have a confirmed working version number for heineken_pint
+    if (formattedDrinkName === 'heineken_pint') {
+      const beerVersion = "v1744936265"; // Version from beer working image
+      const beerImageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${beerVersion}/home/brands/beer/${formattedDrinkName}/${randomNumber}.jpg`;
+      console.log(`Generated beer URL for ${drinkName}: ${beerImageUrl}`);
+      return beerImageUrl;
+    }
+    // For other beers, use standard format without version number as it works
+    else {
+      const beerImageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/brands/beer/${formattedDrinkName}/${randomNumber}.jpg`;
+      console.log(`Generated beer URL for ${drinkName}: ${beerImageUrl}`);
+      return beerImageUrl;
+    }
+  }
+  
+  // For all other categories, use the original jpg format
+  randomNumber = Math.floor(Math.random() * 3) + 1; // Use 1-3 for other categories
   const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/brands/${category}/${formattedDrinkName}/${randomNumber}.jpg`;
   
   console.log(`Generated URL for ${drinkName}: ${imageUrl}`);
