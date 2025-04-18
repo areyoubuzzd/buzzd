@@ -1075,20 +1075,11 @@ export default function HomePage() {
         onOpenFilters={handleOpenFilters} 
       />
       
-      {/* Improved location selector with clickable current location */}
+      {/* Simplified location selector with direct edit functionality */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
           <div className="flex flex-col">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center text-sm text-gray-600">
-                <FiMapPin className="mr-1 h-4 w-4 text-red-500" />
-                <span 
-                  className="font-medium cursor-pointer"
-                  onClick={() => setIsLocationSelectOpen(true)}
-                >
-                  {userRoadName || "Your Location"}
-                </span>
-              </div>
               <div className="text-sm font-medium">
                 {totalDealsFound} deals found
               </div>
@@ -1100,7 +1091,6 @@ export default function HomePage() {
                 {isLocationSelectOpen ? (
                   <LocationAutocomplete
                     defaultValue={userRoadName}
-                    placeholder={userRoadName || "Search location..."}
                     onLocationSelect={(selectedLocation) => {
                       // Update the location name
                       setUserRoadName(selectedLocation.name);
@@ -1123,11 +1113,14 @@ export default function HomePage() {
                   />
                 ) : (
                   <div 
-                    className="flex items-center cursor-pointer p-2 border border-gray-200 rounded-lg bg-white"
+                    className="flex items-center justify-between cursor-pointer p-2 border border-gray-200 rounded-lg bg-white"
                     onClick={() => setIsLocationSelectOpen(true)}
                   >
-                    <FiMapPin className="mr-2 h-4 w-4 text-gray-400" />
-                    <span>{userRoadName || "Select a location"}</span>
+                    <div className="flex items-center">
+                      <FiMapPin className="mr-2 h-4 w-4 text-red-500" />
+                      <span className="font-medium">{userRoadName || "Your Location"}</span>
+                    </div>
+                    <FiEdit2 className="h-3.5 w-3.5 text-gray-400" />
                   </div>
                 )}
               </div>
