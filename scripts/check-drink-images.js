@@ -29,7 +29,13 @@ async function checkDrinkFolders() {
     console.log(`Checking folder: ${folder}`);
     
     try {
+      console.log(`Checking Cloudinary configuration...`);
+      console.log(`Cloud name: ${process.env.CLOUDINARY_CLOUD_NAME}`);
+      console.log(`API key present: ${process.env.CLOUDINARY_API_KEY ? 'Yes' : 'No'}`);
+      console.log(`API secret present: ${process.env.CLOUDINARY_API_SECRET ? 'Yes' : 'No'}`);
+      
       // Get all resources in the folder
+      console.log(`Attempting to get resources for folder: ${folder}`);
       const result = await cloudinary.api.resources({
         type: 'upload',
         prefix: folder,
@@ -52,7 +58,8 @@ async function checkDrinkFolders() {
         console.log('❌ No images found');
       }
     } catch (error) {
-      console.error(`❌ Error checking folder ${folder}:`, error.message);
+      console.error(`❌ Error checking folder ${folder}:`, error);
+      console.error('Full error:', JSON.stringify(error, null, 2));
     }
     
     console.log(''); // Add spacing between folders

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudinary Image Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .image-container {
+            margin-bottom: 40px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .image-container h2 {
+            margin-top: 0;
+        }
+        img {
+            max-width: 100%;
+            border: 1px solid #eee;
+            display: block;
+        }
+        .image-url {
+            word-break: break-all;
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 8px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .success, .error {
+            padding: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            background: #e7f7e7;
+        }
+        .error {
+            color: red;
+            background: #f7e7e7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cloudinary Image Test</h1>
+    
+    <div class="image-container">
+        <h2>Heineken Pint Image 1 (SVG)</h2>
+        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.svg" 
+             alt="Heineken Pint 1" 
+             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
+             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
+        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.svg</div>
+    </div>
+    
+    <div class="image-container">
+        <h2>Heineken Pint Image 2 (SVG)</h2>
+        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/2.svg" 
+             alt="Heineken Pint 2" 
+             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
+             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
+        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/2.svg</div>
+    </div>
+    
+    <div class="image-container">
+        <h2>Tiger Pint Image 1 (SVG)</h2>
+        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.svg" 
+             alt="Tiger Pint 1" 
+             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
+             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
+        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.svg</div>
+    </div>
+    
+    <div class="image-container">
+        <h2>Direct Cloudinary URL Test</h2>
+        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936154/home/brands/beer/heineken_pint/1.svg" 
+             alt="Cloudinary URL with version" 
+             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
+             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
+        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936154/home/brands/beer/heineken_pint/1.svg</div>
+    </div>
+    
+    <script>
+        // Add any additional JavaScript if needed
+    </script>
+</body>
+</html>
