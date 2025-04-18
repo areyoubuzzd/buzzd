@@ -184,7 +184,7 @@ export default function CloudflareImagesTestPage() {
               <strong>Expected Image URL format:</strong>
             </p>
             <code className="bg-muted p-2 rounded block w-full overflow-x-auto">
-              https://imagedelivery.net/{import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID}/{"{image_id}"}/public
+              https://imagedelivery.net/kx7S-b2sJYbGgWyc5FfQUg/{"{image_id}"}/public
             </code>
           </CardContent>
         </Card>
