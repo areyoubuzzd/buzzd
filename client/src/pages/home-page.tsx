@@ -594,7 +594,8 @@ export default function HomePage() {
       result.push({
         name: "1-for-1 Deals",
         description: "Buy one get one free deals near you",
-        deals: oneForOneDeals
+        deals: oneForOneDeals,
+        priority: 15 // Higher priority for promotional deals
       });
       
       // Remember we've used this name (both formats)
@@ -1007,21 +1008,13 @@ export default function HomePage() {
     
     // Sort the final result by priority to ensure consistent order
     const sortedResult = [...result].sort((a, b) => {
-      // Find the API collection for each collection if available
-      const collectionA = apiCollectionMap.get(slugify(a.name));
-      const collectionB = apiCollectionMap.get(slugify(b.name));
-      
-      // Get priorities or use defaults
-      const priorityA = collectionA?.priority || 50;
-      const priorityB = collectionB?.priority || 50;
-      
-      // Sort by priority
-      return priorityA - priorityB;
+      // Use the priority property directly from the collection object
+      return a.priority - b.priority;
     });
     
     // Log the final collection ordering
     console.log("Returning collections sorted by priority:", 
-      sortedResult.map(c => `${c.name} (priority: ${apiCollectionMap.get(slugify(c.name))?.priority || 'default'})`));
+      sortedResult.map(c => `${c.name} (priority: ${c.priority})`));
     
     return sortedResult;
   }, [dealsData, location, apiCollections]);
@@ -1249,37 +1242,12 @@ export default function HomePage() {
             >
               {collections
                 .filter(collection => {
-                  // Normalize collection names for comparison
-                  const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
-                  return [
-                    "active_happy_hours_nearby",
-                    "beers_under_10", 
-                    "cocktails_under_15",
-                    "1_for_1_deals",
-                    "one_for_one_deals"
-                  ].includes(normalizedName);
+                  // Get high priority collections (under 20)
+                  return collection.priority < 20;
                 })
                 .sort((a, b) => {
-                  // Define the priority order with normalized names
-                  const normalizeForPriority = (name: string) => {
-                    const normalized = name.toLowerCase().replace(/[\s-_]+/g, '_');
-                    // Special case for 1-for-1 variations
-                    if (normalized === '1_for_1_deals' || normalized === 'one_for_one_deals') {
-                      return 'one_for_one_deals';
-                    }
-                    return normalized;
-                  };
-                  
-                  const priorityOrder = [
-                    "active_happy_hours_nearby", 
-                    "beers_under_10", 
-                    "cocktails_under_15", 
-                    "one_for_one_deals"
-                  ];
-                  
-                  // Sort by priority index
-                  return priorityOrder.indexOf(normalizeForPriority(a.name)) - 
-                        priorityOrder.indexOf(normalizeForPriority(b.name));
+                  // Sort by priority value directly
+                  return a.priority - b.priority;
                 })
                 .map((collection, index) => (
                   <motion.div
@@ -1324,15 +1292,12 @@ export default function HomePage() {
             >
               {collections
                 .filter(collection => {
-                  // Normalize collection names for comparison
-                  const normalizedName = collection.name.toLowerCase().replace(/[\s-_]+/g, '_');
-                  return ![
-                    "active_happy_hours_nearby",
-                    "beers_under_10", 
-                    "cocktails_under_15",
-                    "1_for_1_deals",
-                    "one_for_one_deals"
-                  ].includes(normalizedName);
+                  // Get medium and low priority collections (20 and higher)
+                  return collection.priority >= 20;
+                })
+                .sort((a, b) => {
+                  // Sort by priority value directly
+                  return a.priority - b.priority;
                 })
                 .map((collection, index) => (
                   <motion.div
