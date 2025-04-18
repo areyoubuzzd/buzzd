@@ -104,7 +104,7 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
-  const [userRoadName, setUserRoadName] = useState<string>("Your Location"); // Default to generic name until we get actual location
+  const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to generic name until we get actual location
   const [isLocationSelectOpen, setIsLocationSelectOpen] = useState<boolean>(false); // State to control location selector visibility
 
   // Fetch all deals for collections with location parameters
@@ -1075,11 +1075,20 @@ export default function HomePage() {
         onOpenFilters={handleOpenFilters} 
       />
       
-      {/* Simplified location selector with direct edit functionality */}
+      {/* Simple location selector with minimal UI */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
           <div className="flex flex-col">
             <div className="flex items-center justify-between mb-2">
+              <div 
+                className="flex items-center text-sm text-gray-600 cursor-pointer"
+                onClick={() => {
+                  setIsLocationSelectOpen(true);
+                }}
+              >
+                <FiMapPin className="mr-1 h-4 w-4 text-red-500" />
+                <span className="font-medium">{userRoadName || "My Location"}</span>
+              </div>
               <div className="text-sm font-medium">
                 {totalDealsFound} deals found
               </div>
@@ -1088,9 +1097,10 @@ export default function HomePage() {
             {/* Location selection and filter controls */}
             <div className="flex gap-2 items-center">
               <div className="w-full">
-                {isLocationSelectOpen ? (
+                {isLocationSelectOpen && (
                   <LocationAutocomplete
-                    defaultValue={userRoadName}
+                    defaultValue=""
+                    placeholder="Search for a location..."
                     onLocationSelect={(selectedLocation) => {
                       // Update the location name
                       setUserRoadName(selectedLocation.name);
@@ -1111,31 +1121,22 @@ export default function HomePage() {
                       setIsLocationSelectOpen(false);
                     }}
                   />
-                ) : (
-                  <div 
-                    className="flex items-center justify-between cursor-pointer p-2 border border-gray-200 rounded-lg bg-white"
-                    onClick={() => setIsLocationSelectOpen(true)}
-                  >
-                    <div className="flex items-center">
-                      <FiMapPin className="mr-2 h-4 w-4 text-red-500" />
-                      <span className="font-medium">{userRoadName || "Your Location"}</span>
-                    </div>
-                    <FiEdit2 className="h-3.5 w-3.5 text-gray-400" />
-                  </div>
                 )}
               </div>
               
               {/* Filter button */}
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm" 
-                className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2 shrink-0"
-                style={{ background: "#f8f7f5" }}
-                onClick={handleOpenFilters}
-              >
-                <FiFilter className="h-4 w-4 text-[#191632]" />
-              </Button>
+              {!isLocationSelectOpen && (
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2 shrink-0"
+                  style={{ background: "#f8f7f5" }}
+                  onClick={handleOpenFilters}
+                >
+                  <FiFilter className="h-4 w-4 text-[#191632]" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
