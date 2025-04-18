@@ -36,24 +36,48 @@ export function CloudflareImage({
     if (fallbackSrc) return fallbackSrc;
     
     // Default fallbacks based on drink category
-    switch (category.toLowerCase()) {
-      case 'beer':
-        return '/static/images/drinks/beer.jpg';
-      case 'wine':
-        return '/static/images/drinks/wine.jpg';
-      case 'cocktail':
-        return '/static/images/drinks/cocktail.jpg';
-      case 'whisky':
-      case 'whiskey':
-        return '/static/images/drinks/whisky.jpg';
-      case 'gin':
-        return '/static/images/drinks/gin.jpg';
-      case 'vodka':
-        return '/static/images/drinks/vodka.jpg';
-      case 'rum':
-        return '/static/images/drinks/rum.jpg';
-      default:
-        return '/static/images/drinks/default.jpg';
+    // First try the Cloudinary version if available
+    try {
+      switch (category.toLowerCase()) {
+        case 'beer':
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/glass/default/beer_glass_1.jpg';
+        case 'wine':
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/glass/default/wine_glass_1.jpg';
+        case 'cocktail':
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/glass/default/cocktail_glass_1.jpg';
+        case 'whisky':
+        case 'whiskey':
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/whisky/glass/default/whisky_glass_1.jpg';
+        case 'gin':
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/gin/glass/default/gin_glass_1.jpg';
+        case 'vodka':
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/vodka/glass/default/vodka_glass_1.jpg';
+        case 'rum':
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/rum/glass/default/rum_glass_1.jpg';
+        default:
+          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/glass/default/cocktail_glass_1.jpg';
+      }
+    } catch (error) {
+      // Fallback to static images if Cloudinary fails
+      switch (category.toLowerCase()) {
+        case 'beer':
+          return '/static/images/drinks/beer.jpg';
+        case 'wine':
+          return '/static/images/drinks/wine.jpg';
+        case 'cocktail':
+          return '/static/images/drinks/cocktail.jpg';
+        case 'whisky':
+        case 'whiskey':
+          return '/static/images/drinks/whisky.jpg';
+        case 'gin':
+          return '/static/images/drinks/gin.jpg';
+        case 'vodka':
+          return '/static/images/drinks/vodka.jpg';
+        case 'rum':
+          return '/static/images/drinks/rum.jpg';
+        default:
+          return '/static/images/drinks/default.jpg';
+      }
     }
   };
 

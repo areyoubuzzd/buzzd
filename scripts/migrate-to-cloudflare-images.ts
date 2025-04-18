@@ -65,11 +65,10 @@ async function uploadToCloudflare(filePath: string, metadata: Record<string, any
 
 // Main function to migrate deals with images
 async function migrateDealsImages() {
-  // Fetch all deals with image URLs
-  const dealsWithImages = await db
-    .select()
-    .from(deals)
-    .where(eq(deals.imageUrl, undefined));
+  // Fetch all deals with image URLs - we'll filter out null values after fetching
+  const allDeals = await db.select().from(deals);
+  // Filter to only include deals with image URLs
+  const dealsWithImages = allDeals.filter(deal => deal.imageUrl != null);
     
   console.log(`Found ${dealsWithImages.length} deals with image URLs to migrate.`);
   
@@ -119,11 +118,10 @@ async function migrateDealsImages() {
 
 // Function to migrate establishment images
 async function migrateEstablishmentImages() {
-  // Fetch all establishments with image URLs
-  const establishmentsWithImages = await db
-    .select()
-    .from(establishments)
-    .where(eq(establishments.imageUrl, undefined));
+  // Fetch all establishments with image URLs - we'll filter out null values after fetching
+  const allEstablishments = await db.select().from(establishments);
+  // Filter to only include establishments with image URLs
+  const establishmentsWithImages = allEstablishments.filter(est => est.imageUrl != null);
     
   console.log(`Found ${establishmentsWithImages.length} establishments with image URLs to migrate.`);
   
