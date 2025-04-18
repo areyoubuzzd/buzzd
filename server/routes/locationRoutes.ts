@@ -10,20 +10,30 @@ const router = express.Router();
 router.get('/search', async (req, res) => {
   try {
     const query = req.query.q as string;
-    console.log('Location search query:', query);
+    console.log('Location search query:', query, 'Type:', typeof query, 'Length:', query ? query.length : 0);
+    
+    // Log all query parameters for debugging
+    console.log('All query parameters:', req.query);
     
     if (!query || query.length < 2) {
       return res.status(400).json({ 
+        success: false,
         error: 'Search query must be at least 2 characters' 
       });
     }
     
     const locations = await storage.searchLocationsByQuery(query);
     console.log(`Found ${locations.length} locations for query "${query}"`);
-    res.json(locations);
+    res.json({
+      success: true,
+      locations: locations
+    });
   } catch (error) {
     console.error('Error searching locations:', error);
-    res.status(500).json({ error: 'Failed to search locations' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to search locations' 
+    });
   }
 });
 
@@ -37,7 +47,8 @@ router.get('/postal-code/:postalCode', async (req, res) => {
     
     if (!postalCode || postalCode.length < 2) {
       return res.status(400).json({ 
-        message: 'Postal code must be at least 2 characters' 
+        success: false,
+        error: 'Postal code must be at least 2 characters' 
       });
     }
     
@@ -45,14 +56,21 @@ router.get('/postal-code/:postalCode', async (req, res) => {
     
     if (!location) {
       return res.status(404).json({ 
-        message: 'No location found for this postal code'
+        success: false,
+        error: 'No location found for this postal code'
       });
     }
     
-    res.json(location);
+    res.json({
+      success: true,
+      location: location
+    });
   } catch (error) {
     console.error('Error getting location by postal code:', error);
-    res.status(500).json({ message: 'Failed to get location' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get location' 
+    });
   }
 });
 
@@ -66,7 +84,8 @@ router.get('/district/:district', async (req, res) => {
     
     if (!district || district.length !== 2) {
       return res.status(400).json({ 
-        message: 'District must be exactly 2 characters (e.g., "01" for Central)' 
+        success: false,
+        error: 'District must be exactly 2 characters (e.g., "01" for Central)' 
       });
     }
     
@@ -74,14 +93,21 @@ router.get('/district/:district', async (req, res) => {
     
     if (locations.length === 0) {
       return res.status(404).json({ 
-        message: 'No locations found for this district'
+        success: false,
+        error: 'No locations found for this district'
       });
     }
     
-    res.json(locations);
+    res.json({
+      success: true,
+      locations: locations
+    });
   } catch (error) {
     console.error('Error getting locations by district:', error);
-    res.status(500).json({ message: 'Failed to get locations' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get locations' 
+    });
   }
 });
 
@@ -97,16 +123,23 @@ router.get('/nearby', async (req, res) => {
     
     if (isNaN(latitude) || isNaN(longitude)) {
       return res.status(400).json({ 
-        message: 'Invalid coordinates. Please provide valid lat and lng parameters.' 
+        success: false,
+        error: 'Invalid coordinates. Please provide valid lat and lng parameters.' 
       });
     }
     
     const locations = await storage.getNearbyLocations(latitude, longitude, radius);
     
-    res.json(locations);
+    res.json({
+      success: true,
+      locations: locations
+    });
   } catch (error) {
     console.error('Error getting nearby locations:', error);
-    res.status(500).json({ message: 'Failed to get nearby locations' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get nearby locations' 
+    });
   }
 });
 
