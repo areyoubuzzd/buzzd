@@ -104,7 +104,7 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
-  const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to generic name until we get actual location
+  const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to "My Location" as requested
   const [isLocationSelectOpen, setIsLocationSelectOpen] = useState<boolean>(false); // State to control location selector visibility
   const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search input field
 
@@ -1089,6 +1089,9 @@ export default function HomePage() {
                     // Use the coordinates from the selected location
                     const newLat = selectedLocation.latitude;
                     const newLng = selectedLocation.longitude;
+                    
+                    // Update the location name
+                    setUserRoadName(selectedLocation.name);
                     
                     // Update UI with new location value
                     setLocation({ lat: newLat, lng: newLng });
