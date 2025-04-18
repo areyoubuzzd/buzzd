@@ -163,42 +163,62 @@ router.get('/collections/all', async (req, res) => {
     console.log(`Fetched ${result.length} deals from database`);
     
     // Transform to DealWithEstablishment format with distance
-    const dealsWithEstablishments = result.map(item => {
-      // Calculate distance manually if coordinates are provided
-      let distance = null;
-      if (latitude !== null && longitude !== null) {
-        // Use the haversine formula to calculate distance
-        const R = 6371; // Radius of the earth in km
-        const lat1 = latitude;
-        const lon1 = longitude;
-        const lat2 = item.establishment.latitude;
-        const lon2 = item.establishment.longitude;
-        
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        
-        const a = 
-          Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-          Math.sin(dLon/2) * Math.sin(dLon/2);
-        
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        const calculatedDistance = R * c; // Distance in km
-        
-        distance = parseFloat(calculatedDistance.toFixed(2));
-        
-        // Special debug for Moon Rooftop Bar (id 11)
-        if (item.establishment.id === 11) {
-          console.log(`Distance from ${lat1},${lon1} to Moon Rooftop Bar (${lat2},${lon2}): ${distance} km`);
+    // and filter by actual distance
+    const dealsWithEstablishments = result
+      .map(item => {
+        // Calculate distance manually if coordinates are provided
+        let distance = null;
+        if (latitude !== null && longitude !== null) {
+          // Use the haversine formula to calculate distance
+          const R = 6371; // Radius of the earth in km
+          const lat1 = latitude;
+          const lon1 = longitude;
+          const lat2 = item.establishment.latitude;
+          const lon2 = item.establishment.longitude;
+          
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLon = (lon2 - lon1) * Math.PI / 180;
+          
+          const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+          
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const calculatedDistance = R * c; // Distance in km
+          
+          distance = parseFloat(calculatedDistance.toFixed(2));
+          
+          // Special debug for Moon Rooftop Bar (id 11)
+          if (item.establishment.id === 11) {
+            console.log(`Distance from ${lat1},${lon1} to Moon Rooftop Bar (${lat2},${lon2}): ${distance} km`);
+          }
         }
-      }
-      
-      return {
-        ...item.deal,
-        establishment: item.establishment,
-        distance
-      };
-    });
+        
+        return {
+          ...item.deal,
+          establishment: item.establishment,
+          distance
+        };
+      })
+      // Filter by actual calculated distance if coordinates are provided
+      .filter(deal => {
+        // If no location provided, include all deals
+        if (latitude === null || longitude === null) {
+          return true;
+        }
+        // Otherwise, only include deals within the radius
+        return deal.distance !== null && deal.distance <= radius;
+      })
+      // Sort by distance
+      .sort((a, b) => {
+        // If no distance, put at the end
+        if (a.distance === null && b.distance === null) return 0;
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        // Sort by distance
+        return a.distance - b.distance;
+      });
     
     // If no deals found, return empty array instead of error
     if (dealsWithEstablishments.length === 0) {
