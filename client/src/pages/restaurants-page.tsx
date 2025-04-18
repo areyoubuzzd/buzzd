@@ -13,6 +13,7 @@ interface Deal {
   valid_days: string;
   hh_start_time: string;
   hh_end_time: string;
+  drink_name?: string;
 }
 
 interface Establishment {
@@ -89,7 +90,12 @@ function isWithinHappyHour(deal: Deal): boolean {
     isDayValid = validDaysLower.trim() === currentDayLowercase;
   }
   
-  if (!isDayValid) return false;
+  if (!isDayValid) {
+    if (deal.drink_name) { // Only log if the deal has a name to avoid cluttering console
+      console.log(`Deal "${deal.drink_name}" is NOT active: Day ${currentDay} is not in valid days "${deal.valid_days}"`);
+    }
+    return false;
+  }
   
   // Now check if current time is within happy hour
   const currentHour = now.getHours();
@@ -149,13 +155,38 @@ function isWithinHappyHour(deal: Deal): boolean {
     }
   }
   
+  // Log the time values for debugging
+  console.log(`Start time raw: "${deal.hh_start_time}", parsed: ${startTime}`);
+  console.log(`End time raw: "${deal.hh_end_time}", parsed: ${endTime}`);
+  console.log(`Current time value: ${currentTime}`);
+  
   // Check if current time is within happy hour range
   if (startTime <= endTime) {
     // Normal case: e.g. 17:00 - 20:00
-    return currentTime >= startTime && currentTime <= endTime;
+    const isActive = currentTime >= startTime && currentTime <= endTime;
+    
+    if (deal.drink_name) { // Only log for deals with a name to avoid console clutter
+      if (isActive) {
+        console.log(`Deal "${deal.drink_name}" is ACTIVE (${currentTime} is between ${startTime} and ${endTime})`);
+      } else {
+        console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTime} is NOT between ${startTime} and ${endTime}`);
+      }
+    }
+    
+    return isActive;
   } else {
     // Overnight case: e.g. 22:00 - 02:00
-    return currentTime >= startTime || currentTime <= endTime;
+    const isActive = currentTime >= startTime || currentTime <= endTime;
+    
+    if (deal.drink_name) { // Only log for deals with a name to avoid console clutter
+      if (isActive) {
+        console.log(`Deal "${deal.drink_name}" is ACTIVE (${currentTime} is either >= ${startTime} or <= ${endTime})`);
+      } else {
+        console.log(`Deal "${deal.drink_name}" is NOT active: time ${currentTime} is neither >= ${startTime} nor <= ${endTime}`);
+      }
+    }
+    
+    return isActive;
   }
 }
 
@@ -210,14 +241,85 @@ export default function RestaurantsPage() {
   // Check if a restaurant has active deals
   // We can use the precomputed hasActiveDeals flag from the server if it exists
   const hasActiveDeals = (establishment: Establishment): boolean => {
+    console.log(`Checking active status for ${establishment.name}, deals:`, establishment.activeDeals);
+    
     // First check if the server provided the hasActiveDeals flag
-    if ('hasActiveDeals' in establishment) {
-      return establishment.hasActiveDeals as boolean;
+    if ('hasActiveDeals' in establishment && establishment.hasActiveDeals !== undefined) {
+      console.log(`${establishment.name} has server-provided hasActiveDeals flag:`, establishment.hasActiveDeals);
+      return establishment.hasActiveDeals;
     }
     
     // Fallback to client-side calculation
-    if (!establishment.activeDeals || establishment.activeDeals.length === 0) return false;
-    return establishment.activeDeals.some(deal => isWithinHappyHour(deal));
+    if (!establishment.activeDeals || establishment.activeDeals.length === 0) {
+      console.log(`${establishment.name}: No active deals array or empty array`);
+      return false;
+    }
+    
+    // Count how many deals are active for the current day and time
+    let activeDealCount = 0;
+    let todayDealCount = 0;
+    
+    establishment.activeDeals.forEach(deal => {
+      const isActive = isWithinHappyHour(deal);
+      if (isActive) activeDealCount++;
+      if (isDealValidForToday(deal)) todayDealCount++;
+    });
+    
+    console.log(`${establishment.name}: Has ${todayDealCount} deals for today, ${activeDealCount} are active now`);
+    return activeDealCount > 0;
+  };
+  
+  // Helper function to check if a deal is valid for the current day (regardless of time)
+  const isDealValidForToday = (deal: Deal): boolean => {
+    if (!deal) return false;
+    
+    // Get the current date
+    const now = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const daysLowercase = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const currentDay = days[now.getDay()];
+    const currentDayLowercase = currentDay.toLowerCase();
+    
+    // Normalize the valid_days string to lowercase
+    const validDaysLower = deal.valid_days.toLowerCase();
+    
+    // Check various day formats
+    if (validDaysLower === 'daily' || validDaysLower === 'all days') {
+      return true;
+    } 
+    else if (validDaysLower === 'weekends') {
+      return currentDay === 'Sat' || currentDay === 'Sun';
+    }
+    else if (validDaysLower === 'weekdays') {
+      return currentDay !== 'Sat' && currentDay !== 'Sun';
+    }
+    else if (validDaysLower.includes('-')) {
+      const [startDay, endDay] = validDaysLower.split('-').map(d => d.trim());
+      const startIdx = daysLowercase.indexOf(startDay);
+      const endIdx = daysLowercase.indexOf(endDay);
+      const currentIdx = now.getDay();
+      
+      console.log(`Deal for ${deal.drink_name}: valid_days="${deal.valid_days}", start_time="${deal.hh_start_time}", current day is "${currentDay}"`);
+      console.log(`Range check: ${startIdx} <= ${currentIdx} <= ${endIdx} => ${startIdx <= currentIdx && currentIdx <= endIdx}`);
+      
+      if (startIdx !== -1 && endIdx !== -1) {
+        if (startIdx <= endIdx) {
+          return currentIdx >= startIdx && currentIdx <= endIdx;
+        } else {
+          // Handle wrapping around like "Fri-Sun" (includes Fri, Sat, Sun)
+          return currentIdx >= startIdx || currentIdx <= endIdx;
+        }
+      }
+    }
+    else if (validDaysLower.includes(',')) {
+      const validDays = validDaysLower.split(',').map(d => d.trim());
+      return validDays.includes(currentDayLowercase);
+    }
+    else {
+      return validDaysLower.trim() === currentDayLowercase;
+    }
+    
+    return false;
   };
   
   // Filter restaurants based on search query
@@ -237,6 +339,8 @@ export default function RestaurantsPage() {
   const sortedEstablishments = useMemo(() => {
     if (!filteredEstablishments || !userPosition) return filteredEstablishments;
     
+    console.log("Starting to sort establishments with user position:", userPosition);
+    
     // Add distance and active status to each establishment
     const establishmentsWithMeta = filteredEstablishments.map(establishment => {
       const distance = calculateDistance(
@@ -248,6 +352,8 @@ export default function RestaurantsPage() {
       
       const isActive = hasActiveDeals(establishment);
       
+      console.log(`Calculated for ${establishment.name}: distance=${distance.toFixed(2)}km, isActive=${isActive}`);
+      
       return {
         ...establishment,
         distance,
@@ -255,15 +361,37 @@ export default function RestaurantsPage() {
       };
     });
     
+    console.log("Pre-sort establishments:", establishmentsWithMeta.map(e => ({
+      name: e.name,
+      isActive: e.isActive,
+      distance: e.distance.toFixed(2)
+    })));
+    
     // Sort: active first, then by distance
-    return establishmentsWithMeta.sort((a, b) => {
+    const sortedResult = establishmentsWithMeta.sort((a, b) => {
       // First sort by active status
-      if (a.isActive && !b.isActive) return -1;
-      if (!a.isActive && b.isActive) return 1;
+      if (a.isActive && !b.isActive) {
+        console.log(`Sorting: ${a.name} (active) comes before ${b.name} (inactive)`);
+        return -1;
+      }
+      if (!a.isActive && b.isActive) {
+        console.log(`Sorting: ${b.name} (active) comes before ${a.name} (inactive)`);
+        return 1;
+      }
       
-      // Then sort by distance
-      return a.distance - b.distance;
+      // If both have same active status, sort by distance
+      const distanceDiff = a.distance - b.distance;
+      console.log(`Sorting by distance: ${a.name} (${a.distance.toFixed(2)}km) vs ${b.name} (${b.distance.toFixed(2)}km), diff=${distanceDiff.toFixed(2)}`);
+      return distanceDiff;
     });
+    
+    console.log("Post-sort establishments:", sortedResult.map(e => ({
+      name: e.name,
+      isActive: e.isActive,
+      distance: e.distance.toFixed(2)
+    })));
+    
+    return sortedResult;
   }, [filteredEstablishments, userPosition]);
 
   return (
