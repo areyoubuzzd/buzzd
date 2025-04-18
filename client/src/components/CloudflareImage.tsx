@@ -44,7 +44,8 @@ export function CloudflareImage({
     if (!imageId || imageError) return;
     
     // If we've retried too many times, give up - Cloudflare can be slow sometimes
-    if (retryCount > 10) {
+    // Most of these images seem to be stuck in processing, so we'll give up after 3 attempts
+    if (retryCount > 3) {
       console.warn(`Gave up waiting for image ${imageId} after ${retryCount} attempts`);
       setImageError(true);
       return;
@@ -77,8 +78,8 @@ export function CloudflareImage({
         setRetryCount(prev => prev + 1);
         setIsLoading(true);
         
-        // Retry with exponential backoff
-        setTimeout(checkImage, 1000 * Math.min(3, retryCount + 1));
+        // Retry with exponential backoff, but don't wait too long
+        setTimeout(checkImage, 1000 * Math.min(2, retryCount + 1));
       } catch (error) {
         if (!isMounted) return;
         console.error(`Error checking image availability: ${error}`);
@@ -105,10 +106,10 @@ export function CloudflareImage({
     // This ensures we always have an image that can load immediately
     const bgcolor = getDrinkCategoryColor(detailedCategory);
     const textColor = '#ffffff';
-    const categoryShortName = detailedCategory.split('_').join(' ');
+    const categoryShortName = detailedCategory?.split('_').join(' ') || 'drink';
     
     // Create a more informative SVG with the category name
-    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${categoryShortName}%3C/text%3E%3Ctext x='150' y='125' font-family='Arial' font-size='14' fill='${textColor}' text-anchor='middle'%3E(Loading Image)%3C/text%3E%3C/svg%3E`;
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${categoryShortName}%3C/text%3E%3C/svg%3E`;
   };
 
   // If no imageId or there was an error, use the fallback
@@ -154,7 +155,7 @@ export function CloudflareImage({
         <div className="flex flex-col items-center text-center p-2">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
           <p className="text-[10px] text-gray-500 mt-1">Processing</p>
-          <p className="text-[10px] text-gray-400">Try {retryCount}/10</p>
+          <p className="text-[10px] text-gray-400">Try {retryCount}/3</p>
         </div>
       </div>
     );

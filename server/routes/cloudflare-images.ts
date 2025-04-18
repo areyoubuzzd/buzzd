@@ -211,9 +211,23 @@ router.get('/api/cloudflare/images/:id/check', requireCloudflareConfig, async (r
   try {
     const { id } = req.params;
     
+    // Get the Cloudflare account ID from environment variables
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    
+    if (!accountId) {
+      console.error('CLOUDFLARE_ACCOUNT_ID environment variable is not set');
+      return res.status(500).json({
+        success: false,
+        message: 'Cloudflare configuration error'
+      });
+    }
+    
     // Try to get the image details from Cloudflare (with built-in rate limiting and retries)
     try {
       const imageDetails = await getImageDetails(id);
+      
+      // Log the actual response for debugging
+      console.log(`Image ${id} details response:`, JSON.stringify(imageDetails));
       
       // Check if we got a valid response
       if (!imageDetails.success) {
@@ -230,7 +244,8 @@ router.get('/api/cloudflare/images/:id/check', requireCloudflareConfig, async (r
       return res.status(200).json({ 
         success: true, 
         message: 'Image is available',
-        id: id 
+        id: id,
+        accountId: accountId
       });
     } catch (detailsError) {
       // Rate limit errors would be caught by the retries in getImageDetails

@@ -5,7 +5,8 @@
 
 // The Cloudflare account ID is the unique identifier for the Cloudflare account
 // It's used in image URLs and API requests
-export const CLOUDFLARE_ACCOUNT_ID = "kx7S-b2sJYbGgWyc5FfQUg";
+// Using the actual account ID from the environment variables
+export const CLOUDFLARE_ACCOUNT_ID = "489956ba5dc72130d94f247435918bf9";
 
 // Generate an image delivery URL for a given image ID and variant
 export function getCloudflareImageUrl(
