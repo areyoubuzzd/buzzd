@@ -8,7 +8,8 @@
  */
 
 import { db } from "../server/db";
-import { singapareLocations } from "../shared/schema";
+import { singaporeLocations } from "../shared/schema";
+import { eq } from "drizzle-orm";
 
 const locationsToAdd = [
   // Popular Areas
@@ -463,8 +464,8 @@ async function addLocations() {
     for (const location of locationsToAdd) {
       // Check if location already exists with the same name
       const existingLocations = await db.select()
-        .from(singapareLocations)
-        .where(l => l.name.equals(location.name));
+        .from(singaporeLocations)
+        .where(eq(singaporeLocations.name, location.name));
       
       if (existingLocations.length > 0) {
         console.log(`Location "${location.name}" already exists, skipping...`);
@@ -472,7 +473,7 @@ async function addLocations() {
       }
       
       // Insert the location
-      await db.insert(singapareLocations).values({
+      await db.insert(singaporeLocations).values({
         ...location,
         createdAt: new Date(),
         updatedAt: new Date()
