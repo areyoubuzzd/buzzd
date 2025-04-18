@@ -9,17 +9,21 @@ const router = express.Router();
  */
 router.get('/search', async (req, res) => {
   try {
-    const { query } = req.query;
+    const query = req.query.q as string;
+    console.log('Location search query:', query);
     
-    if (!query || typeof query !== 'string') {
-      return res.status(400).json({ error: 'Query parameter is required' });
+    if (!query || query.length < 2) {
+      return res.status(400).json({ 
+        error: 'Search query must be at least 2 characters' 
+      });
     }
     
     const locations = await storage.searchLocationsByQuery(query);
-    return res.json(locations);
+    console.log(`Found ${locations.length} locations for query "${query}"`);
+    res.json(locations);
   } catch (error) {
     console.error('Error searching locations:', error);
-    return res.status(500).json({ error: 'Failed to search locations' });
+    res.status(500).json({ error: 'Failed to search locations' });
   }
 });
 
@@ -27,39 +31,28 @@ router.get('/search', async (req, res) => {
  * Get location by postal code
  * Provides precise location data for a given postal code
  */
-router.get('/postal/:postalCode', async (req, res) => {
+router.get('/postal-code/:postalCode', async (req, res) => {
   try {
-    const { postalCode } = req.params;
+    const postalCode = req.params.postalCode;
     
-    if (!postalCode) {
-      return res.status(400).json({ error: 'Postal code is required' });
+    if (!postalCode || postalCode.length < 2) {
+      return res.status(400).json({ 
+        message: 'Postal code must be at least 2 characters' 
+      });
     }
     
     const location = await storage.getLocationByPostalCode(postalCode);
     
     if (!location) {
-      // If exact postal code not found, try to find locations in the same postal district
-      const postalDistrict = postalCode.substring(0, 2);
-      const districtLocations = await storage.getLocationsByDistrict(postalDistrict);
-      
-      if (districtLocations.length > 0) {
-        return res.json({
-          exactMatch: false,
-          postalDistrict,
-          locations: districtLocations
-        });
-      }
-      
-      return res.status(404).json({ error: 'Location not found for postal code' });
+      return res.status(404).json({ 
+        message: 'No location found for this postal code'
+      });
     }
     
-    return res.json({
-      exactMatch: true,
-      location
-    });
+    res.json(location);
   } catch (error) {
-    console.error('Error fetching location by postal code:', error);
-    return res.status(500).json({ error: 'Failed to fetch location by postal code' });
+    console.error('Error getting location by postal code:', error);
+    res.status(500).json({ message: 'Failed to get location' });
   }
 });
 
@@ -67,24 +60,28 @@ router.get('/postal/:postalCode', async (req, res) => {
  * Get locations by district
  * Returns all locations in a specific postal district (e.g., "01" for Central)
  */
-router.get('/district/:postalDistrict', async (req, res) => {
+router.get('/district/:district', async (req, res) => {
   try {
-    const { postalDistrict } = req.params;
+    const district = req.params.district;
     
-    if (!postalDistrict) {
-      return res.status(400).json({ error: 'Postal district is required' });
+    if (!district || district.length !== 2) {
+      return res.status(400).json({ 
+        message: 'District must be exactly 2 characters (e.g., "01" for Central)' 
+      });
     }
     
-    const locations = await storage.getLocationsByDistrict(postalDistrict);
+    const locations = await storage.getLocationsByDistrict(district);
     
     if (locations.length === 0) {
-      return res.status(404).json({ error: 'No locations found for postal district' });
+      return res.status(404).json({ 
+        message: 'No locations found for this district'
+      });
     }
     
-    return res.json(locations);
+    res.json(locations);
   } catch (error) {
-    console.error('Error fetching locations by district:', error);
-    return res.status(500).json({ error: 'Failed to fetch locations by district' });
+    console.error('Error getting locations by district:', error);
+    res.status(500).json({ message: 'Failed to get locations' });
   }
 });
 
@@ -94,32 +91,22 @@ router.get('/district/:postalDistrict', async (req, res) => {
  */
 router.get('/nearby', async (req, res) => {
   try {
-    const { lat, lng, radius = 5 } = req.query;
+    const latitude = parseFloat(req.query.lat as string);
+    const longitude = parseFloat(req.query.lng as string);
+    const radius = parseFloat(req.query.radius as string) || 3; // Default 3km
     
-    if (!lat || !lng) {
-      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({ 
+        message: 'Invalid coordinates. Please provide valid lat and lng parameters.' 
+      });
     }
     
-    const latitude = parseFloat(lat as string);
-    const longitude = parseFloat(lng as string);
-    const radiusKm = parseFloat(radius as string);
+    const locations = await storage.getNearbyLocations(latitude, longitude, radius);
     
-    if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusKm)) {
-      return res.status(400).json({ error: 'Invalid coordinate or radius values' });
-    }
-    
-    const locations = await storage.getNearbyLocations(latitude, longitude, radiusKm);
-    
-    return res.json({
-      latitude,
-      longitude,
-      radiusKm,
-      count: locations.length,
-      locations
-    });
+    res.json(locations);
   } catch (error) {
-    console.error('Error fetching nearby locations:', error);
-    return res.status(500).json({ error: 'Failed to fetch nearby locations' });
+    console.error('Error getting nearby locations:', error);
+    res.status(500).json({ message: 'Failed to get nearby locations' });
   }
 });
 
@@ -129,13 +116,29 @@ router.get('/nearby', async (req, res) => {
  */
 router.get('/popular', async (req, res) => {
   try {
-    const locations = await storage.searchLocationsByQuery('');
-    const popularLocations = locations.filter(location => location.isPopular);
+    // This function doesn't exist yet in the storage interface,
+    // so for now we'll use the district search for popular areas
+    const centralLocations = await storage.getLocationsByDistrict('01'); // Central
+    const eastLocations = await storage.getLocationsByDistrict('15');    // East Coast
+    const northLocations = await storage.getLocationsByDistrict('57');   // Yishun
     
-    return res.json(popularLocations);
+    // Combine and sort by popularity
+    const popularLocations = [
+      ...centralLocations,
+      ...eastLocations,
+      ...northLocations
+    ].sort((a, b) => {
+      // Sort by isPopular first, then by name
+      if (a.isPopular === b.isPopular) {
+        return a.name.localeCompare(b.name);
+      }
+      return a.isPopular ? -1 : 1;
+    }).slice(0, 10); // Return top 10
+    
+    res.json(popularLocations);
   } catch (error) {
-    console.error('Error fetching popular locations:', error);
-    return res.status(500).json({ error: 'Failed to fetch popular locations' });
+    console.error('Error getting popular locations:', error);
+    res.status(500).json({ message: 'Failed to get popular locations' });
   }
 });
 
