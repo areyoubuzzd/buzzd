@@ -277,7 +277,7 @@ export default function HomePage() {
                       title={collection.name}
                       description={collection.description}
                       deals={collection.deals}
-                      userLocation={location}
+                      userLocation={userPosition}
                     />
                   </motion.div>
                 ))
@@ -327,7 +327,7 @@ export default function HomePage() {
                       title={collection.name}
                       description={collection.description}
                       deals={collection.deals}
-                      userLocation={location}
+                      userLocation={userPosition}
                     />
                   </motion.div>
                 ))
