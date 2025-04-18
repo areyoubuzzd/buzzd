@@ -438,8 +438,8 @@ export default function RestaurantsPage() {
         </div>
       </div>
       
-      {/* Location Header Component - moved 5px lower */}
-      <div className="pt-[5px]">
+      {/* Location Header Component - moved 8px lower and 2px to the left */}
+      <div className="pt-[8px] pl-[2px]">
         <LocationHeader onOpenFilters={() => console.log("Open filters")} />
       </div>
       
