@@ -104,7 +104,7 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
-  const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to "My Location" as requested
+  const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to "My Location" on initial load
   const [isLocationSelectOpen, setIsLocationSelectOpen] = useState<boolean>(false); // State to control location selector visibility
   const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search input field
 
@@ -257,6 +257,13 @@ export default function HomePage() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c; // Distance in km
     return distance;
+  };
+  
+  // Helper to create a slug from a collection name
+  const slugify = (name: string): string => {
+    return name.toLowerCase()
+      .replace(/[\s-]+/g, '_')
+      .replace(/[^\w-]+/g, '');
   };
   
   // Generate collections from deals data and API collections
@@ -935,7 +942,25 @@ export default function HomePage() {
     result.push(...sortedTagCollections);
   }
     
-    return result;
+    // Sort the final result by priority to ensure consistent order
+    const sortedResult = [...result].sort((a, b) => {
+      // Find the API collection for each collection if available
+      const collectionA = apiCollectionMap.get(slugify(a.name));
+      const collectionB = apiCollectionMap.get(slugify(b.name));
+      
+      // Get priorities or use defaults
+      const priorityA = collectionA?.priority || 50;
+      const priorityB = collectionB?.priority || 50;
+      
+      // Sort by priority
+      return priorityA - priorityB;
+    });
+    
+    // Log the final collection ordering
+    console.log("Returning collections sorted by priority:", 
+      sortedResult.map(c => `${c.name} (priority: ${apiCollectionMap.get(slugify(c.name))?.priority || 'default'})`));
+    
+    return sortedResult;
   }, [dealsData, location, apiCollections]);
 
   useEffect(() => {
@@ -1005,8 +1030,10 @@ export default function HomePage() {
         if (event.detail.postalCode) {
           setUserPostalCode(event.detail.postalCode);
         }
-        // Always use "My Location" instead of actual road name
-        setUserRoadName("My Location");
+              // Use the actual road name from detected location
+        if (event.detail.roadName) {
+          setUserRoadName(event.detail.roadName);
+        }
         
         // If this location was detected automatically, don't update the UI location
         // but do update the query parameters if needed
@@ -1089,8 +1116,8 @@ export default function HomePage() {
                     const newLat = selectedLocation.latitude;
                     const newLng = selectedLocation.longitude;
                     
-                    // Always display "My Location" regardless of selection
-                    setUserRoadName("My Location");
+                    // Show the selected location name
+                    setUserRoadName(selectedLocation.name);
                     
                     // Update UI with new location value
                     setLocation({ lat: newLat, lng: newLng });
