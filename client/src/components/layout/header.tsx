@@ -26,14 +26,14 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-[#f8f7f5] shadow-md">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between h-18"> {/* Fixed height to match restaurant page */}
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">
                 <img 
                   src={logoLight} 
                   alt="Buzzd Logo" 
-                  className="h-12"
+                  className="h-10" /* Reduced from 12 to fit in the 4.5rem height */
                 />
               </div>
             </Link>

@@ -268,8 +268,8 @@ export default function RestaurantsPage() {
 
   return (
     <div className="pb-20">
-      <div className="bg-primary text-white py-4 px-4 sticky top-0 z-10">
-        <div className="flex justify-between items-center">
+      <div className="bg-primary text-white px-4 sticky top-0 z-10">
+        <div className="flex justify-between items-center h-18"> {/* Fixed height of h-18 (4.5rem) */}
           <motion.h1
             className="text-2xl font-bold"
             initial={{ opacity: 0, y: -20 }}
