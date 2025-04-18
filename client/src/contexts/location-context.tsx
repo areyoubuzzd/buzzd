@@ -100,30 +100,34 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const newLocation = {
+          const newPosition = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           };
           
-          // Only update if significantly different from cached location
-          // to avoid unnecessary API calls
-          if (!cachedLocation || 
-              Math.abs(cachedLocation.lat - newLocation.lat) > 0.01 ||
-              Math.abs(cachedLocation.lng - newLocation.lng) > 0.01) {
+          // Always update userPosition for accurate distance calculations
+          console.log('LocationContext: Updating userPosition with real GPS:', newPosition);
+          setUserPosition(newPosition);
+          
+          // Only update the selected location if we're using default location
+          if (isUsingDefaultLocation && 
+              (!cachedLocation || 
+              Math.abs(cachedLocation.lat - newPosition.lat) > 0.01 ||
+              Math.abs(cachedLocation.lng - newPosition.lng) > 0.01)) {
             
-            console.log('Updating with fresh geolocation data:', newLocation);
-            setLocation(newLocation);
+            console.log('LocationContext: Also updating selected location with GPS:', newPosition);
+            setLocation(newPosition);
             
             // Store in local storage for future use
             const locationToCache = {
-              ...newLocation,
+              ...newPosition,
               name: userRoadName,
               isDefaultLocation: isUsingDefaultLocation,
               timestamp: Date.now()
             };
             localStorage.setItem('lastKnownLocation', JSON.stringify(locationToCache));
           } else {
-            console.log('Current location is close to cached location, no update needed');
+            console.log('LocationContext: Selected location unchanged (custom location or position close to cached)');
           }
         },
         (error) => {
@@ -136,7 +140,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
 
   // Function to update location
   const updateLocation = (newLocation: LocationCoordinates, locationName?: string) => {
-    console.log('LocationContext: Updating global location context to:', newLocation);
+    console.log('LocationContext: Updating selected location to:', newLocation);
     setLocation(newLocation);
     
     // Update location name if provided
@@ -144,22 +148,66 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
       console.log('LocationContext: Updating location name to:', locationName);
       setUserRoadName(locationName);
       setIsUsingDefaultLocation(locationName === "My Location");
+      
+      // If they selected "My Location", use their actual GPS position
+      if (locationName === "My Location") {
+        // Try to get fresh GPS position
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const freshPosition = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+              console.log('LocationContext: Refreshing GPS position when My Location selected:', freshPosition);
+              setUserPosition(freshPosition);
+              setLocation(freshPosition); // Also update selected location
+              
+              // Invalidate queries with the new GPS location
+              queryClient.invalidateQueries({ 
+                queryKey: ['/api/deals/collections/all', { lat: freshPosition.lat, lng: freshPosition.lng }]
+              });
+              
+              // Cache the GPS location
+              const locationToCache = {
+                ...freshPosition,
+                name: "My Location",
+                isDefaultLocation: true,
+                timestamp: Date.now()
+              };
+              localStorage.setItem('lastKnownLocation', JSON.stringify(locationToCache));
+            },
+            (error) => {
+              console.error("Error getting location during My Location selection:", error);
+              // Continue with default logic below
+              standardQueryInvalidation(newLocation);
+            }
+          );
+          return; // Skip the standard query invalidation below
+        }
+      }
     }
     
-    // Invalidate any location-dependent queries
-    queryClient.invalidateQueries({ 
-      queryKey: ['/api/deals/collections/all', { lat: newLocation.lat, lng: newLocation.lng }]
-    });
+    // Standard query invalidation for non-My Location selections
+    standardQueryInvalidation(newLocation);
     
-    // Update local storage with all necessary information
-    const locationToCache = {
-      ...newLocation,
-      name: locationName || userRoadName,
-      isDefaultLocation: locationName === "My Location" || isUsingDefaultLocation,
-      timestamp: Date.now()
-    };
-    console.log('LocationContext: Saving to localStorage:', locationToCache);
-    localStorage.setItem('lastKnownLocation', JSON.stringify(locationToCache));
+    // Helper function for standard query invalidation and caching
+    function standardQueryInvalidation(location: LocationCoordinates) {
+      // Invalidate any location-dependent queries
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/deals/collections/all', { lat: location.lat, lng: location.lng }]
+      });
+      
+      // Update local storage with all necessary information
+      const locationToCache = {
+        ...location,
+        name: locationName || userRoadName,
+        isDefaultLocation: locationName === "My Location" || isUsingDefaultLocation,
+        timestamp: Date.now()
+      };
+      console.log('LocationContext: Saving to localStorage:', locationToCache);
+      localStorage.setItem('lastKnownLocation', JSON.stringify(locationToCache));
+    }
   };
 
   // Provide context values
@@ -167,6 +215,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     location,
     userRoadName,
     isUsingDefaultLocation,
+    userPosition,
     updateLocation,
     setUserRoadName,
     setIsUsingDefaultLocation,

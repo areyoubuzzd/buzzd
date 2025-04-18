@@ -80,7 +80,7 @@ export default function HomePage() {
   }, []);
   
   // Get location from global context
-  const { location, userRoadName, isUsingDefaultLocation } = useLocation();
+  const { location, userRoadName, isUsingDefaultLocation, userPosition } = useLocation();
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
 
