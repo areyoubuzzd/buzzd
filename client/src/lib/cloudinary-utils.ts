@@ -79,7 +79,10 @@ export function getRandomDrinkImageUrl(
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/heineken_pint_jhrawp.webp'
     ],
     'red wine': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp'
+      // We now have 3 verified working URLs for red wine
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass2_n34ael.webp',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass3_spcvka.webp'
     ],
     'white wine': [
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/white_wine_glass_jhrawp.webp'
@@ -116,22 +119,30 @@ export function getRandomDrinkImageUrl(
     return drinkImages[imageIndex];
   }
   
-  // For unknown drinks, we'll create a URL following the pattern that works:
-  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp
+  // For unknown drinks, we'll create a URL following one of the patterns that work:
+  // Pattern 1: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp
+  // Pattern 2: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass2_n34ael.webp
+  // Pattern 3: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass3_spcvka.webp
   
   const formattedDrinkName = formatDrinkNameForCloudinary(drinkName);
   
-  // Use the working version number from your example
-  const version = 1744936848;
+  // Use one of the working version numbers from your examples
+  const versions = [1744936848, 1744936849];
+  const version = versions[Math.floor(Math.random() * versions.length)];
   
-  // Use the known working suffix
-  const suffix = 'jhrawp';
+  // Use one of the known working suffixes
+  const suffixes = ['jhrawp', 'n34ael', 'spcvka'];
+  const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
   
-  // Use .webp format as it's used in your working example
+  // We might have a number in the name to indicate variant (glass2, glass3)
+  const variants = ['', '2', '3'];
+  const variant = variants[Math.floor(Math.random() * variants.length)];
+  
+  // Use .webp format as it's used in all your working examples
   const format = 'webp';
   
   // Create the URL using the same format as your working example
-  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${formattedDrinkName}_${suffix}.${format}`;
+  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${formattedDrinkName}${variant}_${suffix}.${format}`;
   
   console.log(`Generated URL for ${drinkName}: ${imageUrl}`);
   return imageUrl;
