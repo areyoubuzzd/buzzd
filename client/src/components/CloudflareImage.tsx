@@ -105,9 +105,22 @@ export function CloudflareImage({
     const bgcolor = getDrinkCategoryColor(detailedCategory);
     const textColor = '#ffffff';
     const categoryShortName = detailedCategory?.split('_').join(' ') || 'drink';
+    const drinkText = drinkName || categoryShortName;
     
-    // Create a more informative SVG with the category name
-    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${categoryShortName}%3C/text%3E%3C/svg%3E`;
+    // Create a more informative SVG with the drink name and category
+    // Encode special characters for SVG data URL
+    const encodedDrinkText = drinkText.replace(/[<>&"']/g, c => {
+      switch (c) {
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '&': return '&amp;';
+        case '"': return '&quot;';
+        case "'": return '&apos;';
+        default: return c;
+      }
+    });
+    
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${encodedDrinkText}%3C/text%3E%3C/svg%3E`;
   };
 
   // If no imageId or there was an error, use the fallback
