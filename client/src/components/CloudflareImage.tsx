@@ -237,10 +237,10 @@ export function CloudflareImage({
           backgroundColor: "#f3f4f6"
         }}
       >
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          <p className="text-xs text-gray-500 mt-2">Processing image...</p>
-          <p className="text-xs text-gray-400">Attempt {retryCount} of 5</p>
+        <div className="flex flex-col items-center text-center p-2">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <p className="text-[10px] text-gray-500 mt-1">Processing</p>
+          <p className="text-[10px] text-gray-400">Try {retryCount}/5</p>
         </div>
       </div>
     );
