@@ -8,10 +8,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FaWhatsapp } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+// Import only the utility functions we need
 import { 
   getFriendlyCollectionName, 
-  getCollectionTags, 
-  sortCollectionsByPriority 
+  getCollectionTags
 } from "@/lib/collection-utils";
 
 // Updated FilterType to match the new filter-bar component
@@ -104,6 +104,20 @@ export default function HomePage() {
     return true;
   };
   
+  // Helper function to calculate haversine distance between coordinates
+  const calculateHaversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+  
   // Generate collections from deals data and API collections
   const collections = useMemo<Collection[]>(() => {
     if (!dealsData || dealsData.length === 0) return [];
@@ -176,8 +190,9 @@ export default function HomePage() {
       });
     });
     
-    // Sort all collections by their priority
-    return sortCollectionsByPriority(result);
+    // Sort all collections by their priority (direct sort, not using the utility function)
+    // because the utility expects string[] but we have Collection[] objects
+    return result.sort((a, b) => a.priority - b.priority);
   }, [dealsData, apiCollections]);
 
   // Update the total deals count when the data changes
