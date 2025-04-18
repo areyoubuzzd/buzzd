@@ -21,7 +21,7 @@
   body {
     @apply font-sans antialiased;
     color: #333333; /* Dark gray text for better readability on light background */
-    background-color: #f0f0f0; /* Light gray background as requested */
+    background-color: #d6cfc7; /* Updated background color as requested */
     background-image: none; /* Remove gradient background */
   }
   
