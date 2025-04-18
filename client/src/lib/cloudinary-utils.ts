@@ -90,7 +90,8 @@ export function getRandomDrinkImageUrl(
     'red wine': [
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/1.jpg',
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/2.jpg', 
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/3.jpg'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/3.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942262/home/brands/wine/red/2.webp'
     ],
     'white wine': [
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/white_wine/1.jpg',
@@ -155,7 +156,26 @@ export function getRandomDrinkImageUrl(
   // Generate a random image number from 1-5
   const randomNumber = Math.floor(Math.random() * 5) + 1;
   
-  // Create the URL using the folder structure format
+  // Try to determine if we should use .webp or .jpg extension
+  // For wine category, try to use the new folder structure with webp format
+  if (category === 'wine') {
+    // First check if it's red or white wine
+    let wineType = 'red';
+    if (formattedDrinkName.includes('white')) {
+      wineType = 'white';
+    } else if (formattedDrinkName.includes('rose') || formattedDrinkName.includes('rosé')) {
+      wineType = 'rose';
+    } else if (formattedDrinkName.includes('sparkling') || formattedDrinkName.includes('champagne')) {
+      wineType = 'sparkling';
+    }
+    
+    // Use newer webp path for wine
+    const webpImageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/brands/wine/${wineType}/${randomNumber}.webp`;
+    console.log(`Generated wine URL for ${drinkName}: ${webpImageUrl}`);
+    return webpImageUrl;
+  }
+  
+  // For other categories, use the original jpg format
   const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/brands/${category}/${formattedDrinkName}/${randomNumber}.jpg`;
   
   console.log(`Generated URL for ${drinkName}: ${imageUrl}`);
