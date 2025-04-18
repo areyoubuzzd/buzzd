@@ -21,16 +21,16 @@ async function createAndSeedLocations() {
         CREATE TABLE IF NOT EXISTS singapore_locations (
           id SERIAL PRIMARY KEY,
           name TEXT NOT NULL,
-          postalCode TEXT,
-          postalDistrict TEXT,
+          "postal_code" TEXT,
+          "postal_district" TEXT,
           area TEXT,
           latitude DOUBLE PRECISION NOT NULL,
           longitude DOUBLE PRECISION NOT NULL,
-          alternateNames TEXT,
-          locationType TEXT,
-          isPopular BOOLEAN DEFAULT false,
-          createdAt TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          updatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          "alternate_names" TEXT,
+          "location_type" TEXT,
+          "is_popular" BOOLEAN DEFAULT false,
+          "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
       `);
       
@@ -511,20 +511,35 @@ async function seedInitialLocations() {
   ];
   
   // Bulk insert data
+  // Use raw SQL for insert to ensure column names match exactly
   for (const location of initialLocations) {
-    await db.insert(singaporeLocations).values({
-      name: location.name,
-      postalcode: location.postalCode,
-      postaldistrict: location.postalDistrict,
-      area: location.area,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      alternatenames: location.alternateNames,
-      locationtype: location.locationType,
-      ispopular: location.isPopular,
-      createdat: new Date(),
-      updatedat: new Date()
-    });
+    await db.execute(sql`
+      INSERT INTO singapore_locations (
+        name, 
+        "postal_code", 
+        "postal_district", 
+        area, 
+        latitude, 
+        longitude, 
+        "alternate_names", 
+        "location_type", 
+        "is_popular", 
+        "created_at", 
+        "updated_at"
+      ) VALUES (
+        ${location.name},
+        ${location.postalCode},
+        ${location.postalDistrict},
+        ${location.area},
+        ${location.latitude},
+        ${location.longitude},
+        ${location.alternateNames},
+        ${location.locationType},
+        ${location.isPopular},
+        NOW(),
+        NOW()
+      )
+    `);
   }
   
   console.log(`Inserted ${initialLocations.length} locations`);
