@@ -29,11 +29,20 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (_req, file, cb) => {
-    // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
+    // Accept specific image types that Cloudflare supports
+    const allowedMimeTypes = [
+      'image/jpeg', 
+      'image/png', 
+      'image/gif', 
+      'image/webp',
+      'image/avif',
+      'image/svg+xml'
+    ];
+    
+    if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'));
+      cb(new Error(`File type '${file.mimetype}' is not supported. Supported formats: JPG, PNG, GIF, WebP, AVIF, SVG`));
     }
   }
 });
@@ -106,16 +115,27 @@ router.post('/api/cloudflare/upload', requireCloudflareConfig, upload.single('fi
     // Create form data for upload
     const formData = new FormData();
     
-    // Add the file as a stream
-    const fileStream = fs.createReadStream(req.file.path);
-    formData.append('file', fileStream);
+    // We'll use fetch's automatic handling of FormData with files
+    // Create a simple form with the file and convert directly to a buffer
+    const fileData = fs.readFileSync(req.file.path);
+    
+    // Log file information for debugging
+    console.log(`File details: size=${fileData.length} bytes, mime=${req.file.mimetype}, name=${req.file.originalname}`);
+    
+    // Use an alternative approach for the upload
+    const uploadFormData = new URLSearchParams();
+    const fileBase64 = fileData.toString('base64');
+    uploadFormData.append('file', `data:${req.file.mimetype};base64,${fileBase64}`);
     
     console.log(`Uploading file to Cloudflare using URL: ${uploadURL}`);
     
     // Upload the file to Cloudflare Images using the direct upload URL
     const uploadResponse = await fetch(uploadURL, {
       method: 'POST',
-      body: formData
+      body: uploadFormData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }
     });
     
     // Delete the temporary file regardless of success/failure

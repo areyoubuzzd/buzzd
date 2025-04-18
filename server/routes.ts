@@ -9,6 +9,7 @@ import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheet
 import { cloudinaryService } from "./services/cloudinaryService";
 import uploadDealImageRouter from "./routes/upload-deal-image";
 import cloudflareImagesRouter from "./routes/cloudflare-images";
+import cloudflareDirectUploadRouter from "./routes/cloudflare-direct-upload";
 import menuAnalysisRoutes from "./routes/menuAnalysisRoutes_new.js";
 import dealsRoutes from "./routes/deals";
 import establishmentsRoutes from "./routes/establishments";
@@ -27,6 +28,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Cloudflare Images routes
   app.use(cloudflareImagesRouter);
+  
+  // Register Cloudflare Direct Upload routes
+  app.use(cloudflareDirectUploadRouter);
   
   // Register menu analysis routes
   app.use('/api/menu-analysis', menuAnalysisRoutes);

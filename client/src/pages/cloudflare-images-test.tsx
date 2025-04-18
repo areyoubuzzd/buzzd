@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { CloudflareImage, CloudflareImageUploader } from '@/components/CloudflareImage';
+import { DirectCloudflareUploader } from '@/components/DirectCloudflareUploader';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function CloudflareImagesTestPage() {
   const [testImageId, setTestImageId] = useState<string>('');
