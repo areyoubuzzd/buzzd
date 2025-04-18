@@ -474,48 +474,82 @@ function DealCard({
                 src={`${getHeroImage(deal.brand || deal.drinkType, 'glass')}?v=${Date.now()}`}
                 alt={`${deal.brand || deal.drinkType} hero image`}
                 onError={(e) => {
-                  console.log(`Image load error for ${deal.brand || deal.drinkType}, trying Cloudinary fallback`);
+                  console.log(`Image load error for ${deal.brand || deal.drinkType}, trying SVG fallback first`);
                   
                   // Create a multi-step fallback system
                   const tryFallbacks = async () => {
                     try {
-                      // Step 1: Try Cloudinary with the brand or drink type
-                      const { getRandomDrinkImageUrl } = await import('@/lib/cloudinary-utils');
+                      // Step 1: Try SVG image from the assets folder based on category
                       const drinkName = deal.brand || deal.drinkType;
+                      const drinkType = deal.drinkType?.toLowerCase() || '';
                       
-                      // Try brand-specific image first
-                      let imageUrl = getRandomDrinkImageUrl(drinkName);
-                      e.currentTarget.src = imageUrl;
+                      // Import local SVG assets dynamically instead of Cloudinary
+                      const { images, getBrandImage } = await import('@/assets/images');
                       
-                      // Add a second error handler to try category-based fallback if brand-specific fails
-                      e.currentTarget.onerror = () => {
+                      // Map the drink type to a category that has SVG files
+                      let category = 'beer'; // Default fallback
+                      if (drinkType.includes('wine')) {
+                        category = 'wine';
+                      } else if (drinkType.includes('cocktail')) {
+                        category = 'cocktail';
+                      } else if (['whisky', 'gin', 'vodka', 'rum'].some(s => drinkType.includes(s))) {
+                        category = drinkType.includes('whisky') ? 'whisky' : 'spirits';
+                      } else if (drinkType.includes('beer') || drinkType.includes('pint')) {
+                        category = 'beer';
+                      }
+                      
+                      // Use the SVG image for the glass or bottle depending on context
+                      const servingStyle = drinkName?.toLowerCase().includes('bottle') ? 'bottle' : 'glass';
+                      const svgImage = getBrandImage(category, servingStyle);
+                      
+                      // Use a cache-busting timestamp to avoid caching issues
+                      e.currentTarget.src = `${svgImage}?v=${Date.now()}`;
+                      
+                      // If the SVG fails, try known Cloudinary images
+                      e.currentTarget.onerror = async () => {
+                        console.log(`SVG fallback failed for ${drinkName}, trying verified Cloudinary images`);
                         try {
-                          console.log(`Brand-specific image failed for ${drinkName}, trying category fallback`);
-                          // Map to general categories for better fallback chances
-                          let category = deal.drinkType?.toLowerCase() || '';
+                          // Step 2: Try Cloudinary with only verified images
+                          const { getRandomDrinkImageUrl } = await import('@/lib/cloudinary-utils');
                           
-                          if (category.includes('wine')) category = 'red_wine';
-                          else if (category.includes('beer')) category = 'beer';
-                          else if (category.includes('cocktail')) category = 'cocktail';
-                          else if (['whisky', 'gin', 'vodka', 'rum'].some(s => category.includes(s))) {
-                            category = 'whisky'; // Use whisky as fallback for spirits
-                          }
+                          // Only try the specific known drinks
+                          let cloudinaryCategory = '';
+                          if (drinkName?.toLowerCase().includes('heineken pint')) cloudinaryCategory = 'heineken pint';
+                          else if (drinkType?.toLowerCase().includes('wine')) cloudinaryCategory = 'red wine';
+                          else if (drinkName?.toLowerCase().includes('margarita')) cloudinaryCategory = 'margarita';
+                          else if (drinkName?.toLowerCase().includes('negroni')) cloudinaryCategory = 'negroni';
                           
-                          const genericUrl = getRandomDrinkImageUrl(category);
-                          e.currentTarget.src = genericUrl;
-                          
-                          // Final fallback to default image
-                          e.currentTarget.onerror = () => {
-                            console.log('All dynamic images failed, using default fallback');
-                            e.currentTarget.src = 'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/defaults/generic_drink/1.jpg';
+                          if (cloudinaryCategory) {
+                            const imageUrl = getRandomDrinkImageUrl(cloudinaryCategory);
+                            // Add a cache buster to the URL
+                            e.currentTarget.src = `${imageUrl}?v=${Date.now()}`;
+                            
+                            // Final fallback to default SVG
+                            e.currentTarget.onerror = () => {
+                              console.log('All dynamic images failed, using SVG default');
+                              // Default to beer glass SVG
+                              e.currentTarget.src = `${getBrandImage('beer', 'glass')}?v=${Date.now()}`;
+                              e.currentTarget.onerror = null; // Prevent infinite loop
+                            };
+                          } else {
+                            // Skip to final default SVG if no specific category matches
+                            console.log('No matching Cloudinary category, using SVG default');
+                            e.currentTarget.src = `${getBrandImage('beer', 'glass')}?v=${Date.now()}`;
                             e.currentTarget.onerror = null; // Prevent infinite loop
-                          };
+                          }
                         } catch (err) {
-                          console.error('Error in fallback chain:', err);
+                          console.error('Error in Cloudinary fallback chain:', err);
+                          // Fallback to beer glass SVG if everything else fails
+                          try {
+                            e.currentTarget.src = `${getBrandImage('beer', 'glass')}?v=${Date.now()}`;
+                            e.currentTarget.onerror = null; // Prevent infinite loop
+                          } catch (innerErr) {
+                            console.error('Critical error in all fallbacks', innerErr);
+                          }
                         }
                       };
                     } catch (err) {
-                      console.error('Failed to load Cloudinary fallback:', err);
+                      console.error('Failed in initial fallback chain:', err);
                     }
                   };
                   

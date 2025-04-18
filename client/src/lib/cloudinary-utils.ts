@@ -67,55 +67,26 @@ export function getRandomDrinkImageUrl(
   // The working URL format is:
   // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp
 
-  // Known existing Cloudinary images with folder structure 
-  // Format: https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/5.jpg
+  // ONLY include images that are CONFIRMED to be working as of today
+  // Use versioned URLs with timestamps where possible
   const knownDrinkImages: Record<string, string[]> = {
-    'asahi pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/2.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/3.jpg'
-    ],
-    'tiger pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/2.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/3.jpg'
-    ],
+    // Only use the ONE proven working Heineken pint image with version number
     'heineken pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/2.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936265/home/brands/beer/heineken_pint/3.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/4.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/5.jpg'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936265/home/brands/beer/heineken_pint/3.jpg'
     ],
+    // Only use the confirmed working red wine images with proper version
     'red wine': [
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/1.webp',
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/2.webp', 
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/3.webp',
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/4.webp'
     ],
-    'white wine': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/white_wine/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/white_wine/2.jpg'
-    ],
+    // Only include the confirmed working cocktail images
     'margarita': [
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/margarita/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/margarita/2.jpg'
     ],
     'negroni': [
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/negroni/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/negroni/2.jpg'
-    ],
-    'mojito': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/mojito/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/mojito/2.jpg'
-    ],
-    'whisky': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/whisky/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/whisky/2.jpg'
-    ],
-    'chivas': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/chivas/1.jpg',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/chivas/2.jpg'
     ]
   };
   
