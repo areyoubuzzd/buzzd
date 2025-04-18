@@ -231,14 +231,11 @@ export async function listImages(page = 1, perPage = 100) {
 
 // Get URL for an image with optional transformations
 export function getImageUrl(imageId: string, variant = 'public') {
-  if (!ACCOUNT_ID) {
-    // Return a fallback when not configured
-    console.warn(`⚠️ Cloudflare Images not configured, using fallback for image: ${imageId}`);
-    return `/static/images/fallback.jpg`;
-  }
+  // Always use the fixed account ID for imagedelivery.net
+  const fixedAccountId = "kx7S-b2sJYbGgWyc5FfQUg";
   
   // Format for Cloudflare Images URLs
-  return `https://imagedelivery.net/${ACCOUNT_ID}/${imageId}/${variant}`;
+  return `https://imagedelivery.net/${fixedAccountId}/${imageId}/${variant}`;
 }
 
 // Check if Cloudflare Images is configured

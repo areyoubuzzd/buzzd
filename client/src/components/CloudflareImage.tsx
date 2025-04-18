@@ -63,24 +63,31 @@ export function CloudflareImage({
         // Use a proxy request through our server to avoid CORS issues with HEAD requests
         // Direct HEAD requests to Cloudflare may fail in the browser
         const response = await fetch(`/api/cloudflare/images/${imageId}/check`);
-        const responseData = await response.json();
         
         if (!isMounted) return;
         
         // HTTP status 200 means image is ready, 202 means it's still processing
-        if (response.status === 200 && responseData.success) {
-          console.log(`Image ${imageId} is available and ready to display`);
-          setIsImageAvailable(true);
-          setIsLoading(false);
-        } else {
-          // Image is not ready yet, retry after a delay
-          console.log(`Image ${imageId} not ready yet (status: ${response.status}), retrying...`);
-          setRetryCount(prev => prev + 1);
-          setIsLoading(true);
-          
-          // Retry with exponential backoff
-          setTimeout(checkImage, 1000 * Math.min(3, retryCount + 1));
+        if (response.status === 200) {
+          try {
+            const responseData = await response.json();
+            if (responseData.success) {
+              console.log(`Image ${imageId} is available and ready to display`);
+              setIsImageAvailable(true);
+              setIsLoading(false);
+              return;
+            }
+          } catch (jsonError) {
+            console.error("Error parsing JSON from check endpoint:", jsonError);
+          }
         }
+        
+        // If we get here, the image is not ready yet or we couldn't parse the response
+        console.log(`Image ${imageId} not ready yet (status: ${response.status}), retrying...`);
+        setRetryCount(prev => prev + 1);
+        setIsLoading(true);
+        
+        // Retry with exponential backoff
+        setTimeout(checkImage, 1000 * Math.min(3, retryCount + 1));
       } catch (error) {
         if (!isMounted) return;
         console.error(`Error checking image availability: ${error}`);

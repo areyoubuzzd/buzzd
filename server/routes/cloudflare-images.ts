@@ -210,13 +210,8 @@ router.get('/api/cloudflare/images/:id', requireCloudflareConfig, async (req: Re
 router.get('/api/cloudflare/images/:id/check', requireCloudflareConfig, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-    
-    if (!accountId) {
-      return res.status(500).json({ 
-        error: 'Cloudflare account ID not configured'
-      });
-    }
+    // Use the fixed account ID for imagedelivery.net
+    const accountId = "kx7S-b2sJYbGgWyc5FfQUg";
     
     // Try to get the image details from Cloudflare (with built-in rate limiting and retries)
     try {
