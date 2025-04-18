@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function WorkingImageTest() {
   const knownWorkingImageId = '80eb4b3b-d3ce-4536-8c39-debfc6a51f00';
-  const accountId = "489956ba5dc72130d94f247435918bf9";
+  const accountId = "kx7S-b2sJYbGgWyc5FfQUg";
   
   return (
     <div className="container mx-auto py-8">

@@ -30,11 +30,11 @@ export default function CloudflareTestImagePage() {
               Image ID: {knownWorkingImageId}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              URL: https://imagedelivery.net/489956ba5dc72130d94f247435918bf9/{knownWorkingImageId}/public
+              URL: https://imagedelivery.net/kx7S-b2sJYbGgWyc5FfQUg/{knownWorkingImageId}/public
             </p>
             <div className="mt-2">
               <a 
-                href={`https://imagedelivery.net/489956ba5dc72130d94f247435918bf9/${knownWorkingImageId}/public`} 
+                href={`https://imagedelivery.net/kx7S-b2sJYbGgWyc5FfQUg/${knownWorkingImageId}/public`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xs text-blue-600 hover:underline"
