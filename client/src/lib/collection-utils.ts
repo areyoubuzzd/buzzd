@@ -35,7 +35,7 @@ const collectionDisplayNames: Record<string, string> = {
   'holland_village_deals': 'Holland Village Deals',
   
   // Default collections
-  'active_happy_hours': 'Active Happy Hours',
+  'active_happy_hours': 'Happy Hours Nearby',
   'all_deals': 'All Deals'
 };
 

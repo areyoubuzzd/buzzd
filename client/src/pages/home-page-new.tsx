@@ -174,7 +174,7 @@ export default function HomePage() {
       if (activeDeals.length > 0 && apiCollectionMap.has('active_happy_hours')) {
         const activeHoursCollection = apiCollectionMap.get('active_happy_hours')!;
         result.push({
-          name: activeHoursCollection.name,
+          name: "Happy Hours Nearby", // Override the name from API
           description: activeHoursCollection.description,
           slug: activeHoursCollection.slug,
           priority: activeHoursCollection.priority,
