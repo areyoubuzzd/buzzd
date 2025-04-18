@@ -152,7 +152,7 @@ export function LocationAutocomplete({
                     <div className="text-sm font-medium text-gray-900">{location.name}</div>
                     {location.area && (
                       <div className="text-xs text-gray-500">
-                        {location.area}{location.postalCode && ` - ${location.postalCode}`}
+                        {location.area}
                       </div>
                     )}
                   </div>

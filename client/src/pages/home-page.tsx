@@ -105,6 +105,7 @@ export default function HomePage() {
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
   const [userRoadName, setUserRoadName] = useState<string>("Your Location"); // Default to generic name until we get actual location
+  const [isLocationSelectOpen, setIsLocationSelectOpen] = useState<boolean>(false); // State to control location selector visibility
 
   // Fetch all deals for collections with location parameters
   const { data: dealsData } = useQuery<Deal[]>({
@@ -1074,50 +1075,61 @@ export default function HomePage() {
         onOpenFilters={handleOpenFilters} 
       />
       
-      {/* Location selector with autocomplete */}
+      {/* Improved location selector with clickable current location */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
           <div className="flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center text-sm text-gray-600">
                 <FiMapPin className="mr-1 h-4 w-4 text-red-500" />
-                <span className="font-medium">{userRoadName || "Your Location"}</span>
+                <span 
+                  className="font-medium cursor-pointer"
+                  onClick={() => setIsLocationSelectOpen(true)}
+                >
+                  {userRoadName || "Your Location"}
+                </span>
               </div>
               <div className="text-sm font-medium">
                 {totalDealsFound} deals found
               </div>
             </div>
             
-            {/* Location search and filter controls */}
+            {/* Location selection and filter controls */}
             <div className="flex gap-2 items-center">
               <div className="w-full">
-                <LocationAutocomplete
-                  placeholder="Search for a location..."
-                  onLocationSelect={(selectedLocation) => {
-                    // Update the location name
-                    setUserRoadName(selectedLocation.name);
-                    
-                    // Dispatch event to update location name
-                    window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
-                      detail: { roadName: selectedLocation.name } 
-                    }));
-                    
-                    // Use the coordinates from the selected location
-                    const newLat = selectedLocation.latitude;
-                    const newLng = selectedLocation.longitude;
-                    
-                    // Log the location change
-                    console.log(`Location changed to: ${selectedLocation.name} at coordinates: ${newLat.toFixed(6)}, ${newLng.toFixed(6)}`);
-                    
-                    // Update UI with new location value
-                    setLocation({ lat: newLat, lng: newLng });
-                    
-                    // Trigger a location change after a brief delay
-                    setTimeout(() => {
-                      handleLocationChange({ lat: newLat, lng: newLng });
-                    }, 300);
-                  }}
-                />
+                {isLocationSelectOpen ? (
+                  <LocationAutocomplete
+                    defaultValue={userRoadName}
+                    placeholder={userRoadName || "Search location..."}
+                    onLocationSelect={(selectedLocation) => {
+                      // Update the location name
+                      setUserRoadName(selectedLocation.name);
+                      
+                      // Use the coordinates from the selected location
+                      const newLat = selectedLocation.latitude;
+                      const newLng = selectedLocation.longitude;
+                      
+                      // Update UI with new location value
+                      setLocation({ lat: newLat, lng: newLng });
+                      
+                      // Trigger a location change after a brief delay
+                      setTimeout(() => {
+                        handleLocationChange({ lat: newLat, lng: newLng });
+                      }, 300);
+                      
+                      // Close the location selector
+                      setIsLocationSelectOpen(false);
+                    }}
+                  />
+                ) : (
+                  <div 
+                    className="flex items-center cursor-pointer p-2 border border-gray-200 rounded-lg bg-white"
+                    onClick={() => setIsLocationSelectOpen(true)}
+                  >
+                    <FiMapPin className="mr-2 h-4 w-4 text-gray-400" />
+                    <span>{userRoadName || "Select a location"}</span>
+                  </div>
+                )}
               </div>
               
               {/* Filter button */}
