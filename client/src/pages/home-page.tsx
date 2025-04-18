@@ -1088,7 +1088,7 @@ export default function HomePage() {
               </div>
             </div>
             
-            {/* Location Autocomplete */}
+            {/* Location search and filter controls */}
             <div className="flex gap-2 items-center">
               <div className="w-full">
                 <LocationAutocomplete
@@ -1102,24 +1102,25 @@ export default function HomePage() {
                       detail: { roadName: selectedLocation.name } 
                     }));
                     
-                    // Update coordinates with the selected location
+                    // Use the coordinates from the selected location
                     const newLat = selectedLocation.latitude;
                     const newLng = selectedLocation.longitude;
                     
-                    // Log the change with coordinates
+                    // Log the location change
                     console.log(`Location changed to: ${selectedLocation.name} at coordinates: ${newLat.toFixed(6)}, ${newLng.toFixed(6)}`);
                     
-                    // Update user interface with new location value
+                    // Update UI with new location value
                     setLocation({ lat: newLat, lng: newLng });
                     
-                    // Wait a moment before triggering the location change
+                    // Trigger a location change after a brief delay
                     setTimeout(() => {
-                      // Update location and trigger a UI refresh
                       handleLocationChange({ lat: newLat, lng: newLng });
                     }, 300);
                   }}
                 />
               </div>
+              
+              {/* Filter button */}
               <Button 
                 type="button" 
                 variant="ghost" 
