@@ -28,13 +28,29 @@ export function getCloudflareImageUrl(
   return url;
 }
 
-// Check if an image exists and is ready to be displayed
+/**
+ * Check if an image exists and is ready to be displayed
+ * Returns the image status and success flag
+ */
 export async function checkImageStatus(imageId: string): Promise<{success: boolean, status: number}> {
   try {
     // Use the server proxy endpoint to avoid CORS issues
     const response = await fetch(`/api/cloudflare/images/${imageId}/check`);
+    
+    // Parse the JSON response if available
+    let success = response.status === 200;
+    if (response.status === 200) {
+      try {
+        const data = await response.json();
+        success = !!data.success;
+      } catch (e) {
+        // If JSON parsing fails, just use the HTTP status
+        console.warn(`Failed to parse JSON response for image ${imageId}:`, e);
+      }
+    }
+    
     return {
-      success: response.status === 200,
+      success,
       status: response.status
     };
   } catch (error) {

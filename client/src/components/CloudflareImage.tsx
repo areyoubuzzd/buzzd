@@ -61,27 +61,19 @@ export function CloudflareImage({
       try {
         // Use our centralized utility function to check image status
         const { status, success } = await checkImageStatus(imageId);
-        const response = { status, json: () => Promise.resolve({ success }) };
         
         if (!isMounted) return;
         
-        // HTTP status 200 means image is ready, 202 means it's still processing
-        if (response.status === 200) {
-          try {
-            const responseData = await response.json();
-            if (responseData.success) {
-              console.log(`Image ${imageId} is available and ready to display`);
-              setIsImageAvailable(true);
-              setIsLoading(false);
-              return;
-            }
-          } catch (jsonError) {
-            console.error("Error parsing JSON from check endpoint:", jsonError);
-          }
+        // HTTP status 200 means image is ready
+        if (status === 200 && success) {
+          console.log(`Image ${imageId} is available and ready to display`);
+          setIsImageAvailable(true);
+          setIsLoading(false);
+          return;
         }
         
-        // If we get here, the image is not ready yet or we couldn't parse the response
-        console.log(`Image ${imageId} not ready yet (status: ${response.status}), retrying...`);
+        // If we get here, the image is not ready yet
+        console.log(`Image ${imageId} not ready yet (status: ${status}), retrying...`);
         setRetryCount(prev => prev + 1);
         setIsLoading(true);
         

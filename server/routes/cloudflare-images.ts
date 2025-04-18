@@ -210,8 +210,6 @@ router.get('/api/cloudflare/images/:id', requireCloudflareConfig, async (req: Re
 router.get('/api/cloudflare/images/:id/check', requireCloudflareConfig, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // Use the fixed account ID for imagedelivery.net
-    const accountId = "kx7S-b2sJYbGgWyc5FfQUg";
     
     // Try to get the image details from Cloudflare (with built-in rate limiting and retries)
     try {
@@ -227,36 +225,13 @@ router.get('/api/cloudflare/images/:id/check', requireCloudflareConfig, async (r
         });
       }
       
-      // If we get here, the image exists in Cloudflare's database
-      // Now check if the delivery URL is accessible
-      const imageUrl = `https://imagedelivery.net/${accountId}/${id}/public`;
-      
-      try {
-        const response = await fetch(imageUrl, { method: 'HEAD' });
-        
-        if (response.ok) {
-          // Image is fully processed and available
-          return res.status(200).json({ 
-            success: true, 
-            message: 'Image is available',
-            url: imageUrl 
-          });
-        } else {
-          // Image is in Cloudflare's database but not fully processed yet
-          return res.status(202).json({ 
-            success: false, 
-            message: 'Image is being processed',
-            status: response.status
-          });
-        }
-      } catch (fetchError) {
-        // If we can't fetch the image, it's likely still processing
-        return res.status(202).json({ 
-          success: false, 
-          message: 'Image is being processed',
-          details: fetchError instanceof Error ? fetchError.message : 'Error checking image availability'
-        });
-      }
+      // If we get here, the image exists in Cloudflare's database and we can return success
+      // The actual image URL will be constructed by the client using the same ID
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Image is available',
+        id: id 
+      });
     } catch (detailsError) {
       // Rate limit errors would be caught by the retries in getImageDetails
       // So this is likely a real error or the image doesn't exist
