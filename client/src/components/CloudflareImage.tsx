@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { mapToDrinkCategory, getDrinkCategoryColor } from '@/lib/drink-category-utils';
 import { Loader2 } from 'lucide-react';
+import { CLOUDFLARE_ACCOUNT_ID, getCloudflareImageUrl, checkImageStatus } from '@/lib/cloudflare-config';
 
 interface CloudflareImageProps {
   imageId: string | null | undefined;
@@ -36,8 +37,6 @@ export function CloudflareImage({
   const [isLoading, setIsLoading] = useState(true);
   const [isImageAvailable, setIsImageAvailable] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  // Fixed Cloudflare account ID for image delivery
-  const accountId = "kx7S-b2sJYbGgWyc5FfQUg";
   
   // For newly uploaded images, Cloudflare might need a moment to process them
   // We'll check if the image is available with a simple fetch
@@ -51,8 +50,8 @@ export function CloudflareImage({
       return;
     }
     
-    // Construct the image URL
-    const url = `https://imagedelivery.net/${accountId}/${imageId}/${variant}`;
+    // Construct the image URL using our centralized config
+    const url = getCloudflareImageUrl(imageId, variant);
     
     // Check if the image is available
     let isMounted = true;
@@ -60,9 +59,9 @@ export function CloudflareImage({
     
     const checkImage = async () => {
       try {
-        // Use a proxy request through our server to avoid CORS issues with HEAD requests
-        // Direct HEAD requests to Cloudflare may fail in the browser
-        const response = await fetch(`/api/cloudflare/images/${imageId}/check`);
+        // Use our centralized utility function to check image status
+        const { status, success } = await checkImageStatus(imageId);
+        const response = { status, json: () => Promise.resolve({ success }) };
         
         if (!isMounted) return;
         
@@ -101,7 +100,7 @@ export function CloudflareImage({
     return () => {
       isMounted = false;
     };
-  }, [imageId, accountId, variant, retryCount, imageError]);
+  }, [imageId, variant, retryCount, imageError]);
 
   // Map to detailed drink category for better image organization
   const detailedCategory = drinkName ? mapToDrinkCategory(drinkName, category) : category;
@@ -146,33 +145,8 @@ export function CloudflareImage({
     );
   }
   
-  // Construct the Cloudflare Images URL
-  let imageUrl: string;
-  
-  if (accountId) {
-    // Format: https://imagedelivery.net/{account-id}/{image-id}/{variant}
-    imageUrl = `https://imagedelivery.net/${accountId}/${imageId}/${variant}`;
-    
-    // Add dimensions if provided
-    if (width || height) {
-      const params = [];
-      if (width) params.push(`width=${width}`);
-      if (height) params.push(`height=${height}`);
-      imageUrl += `?${params.join('&')}&fit=cover`;
-    }
-  } else {
-    // Fallback if Cloudflare account ID is not configured
-    console.warn('Cloudflare Images account ID not configured in environment variables');
-    return (
-      <img
-        src={getCategoryFallback()}
-        alt={alt}
-        width={width}
-        height={height}
-        className={cn("object-cover", className)}
-      />
-    );
-  }
+  // Construct the Cloudflare Images URL using our centralized config
+  const imageUrl = getCloudflareImageUrl(imageId, variant, width, height);
   
   // If we're loading/waiting for Cloudflare to process the image, show a loading state
   if (isLoading) {
