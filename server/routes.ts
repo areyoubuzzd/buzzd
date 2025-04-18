@@ -28,6 +28,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register image generation routes
   app.use(imageGenerationRoutes);
   
+  // Debug middleware for location routes
+  app.use('/api/locations', (req, res, next) => {
+    console.log('Location API request:', {
+      method: req.method,
+      url: req.url,
+      query: req.query,
+      params: req.params,
+      headers: req.headers
+    });
+    next();
+  });
+  
   // Register location routes
   app.use('/api/locations', locationRoutes);
   
