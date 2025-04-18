@@ -115,7 +115,7 @@ router.get('/collections/all', async (req, res) => {
     });
     
     // Base query first - we'll add the haversine calculation to each result later
-    let query = db
+    const baseQuery = db
       .select({
         deal: deals,
         establishment: establishments
@@ -123,53 +123,55 @@ router.get('/collections/all', async (req, res) => {
       .from(deals)
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id));
     
-    // We'll filter by coordinates if provided, but in a different way
+    // Execute query with different filters based on coordinates
+    let dbResult;
     if (latitude !== null && longitude !== null) {
-      // We'll fetch establishments within a rough bounding box first
-      // This is more efficient than calculating haversine for every row
-      const latDelta = radius / 111.0; // Approx 111km per degree of latitude
-      const lngDelta = radius / (111.0 * Math.cos(latitude * Math.PI / 180.0)); // Adjust for longitude
+      // Calculate bounding box
+      const latDelta = radius / 111.0;
+      const lngDelta = radius / (111.0 * Math.cos(latitude * Math.PI / 180.0));
       
-      query = query.where(
-        and(
-          gte(establishments.latitude, latitude - latDelta),
-          lte(establishments.latitude, latitude + latDelta),
-          gte(establishments.longitude, longitude - lngDelta),
-          lte(establishments.longitude, longitude + lngDelta)
+      // Query with location filter
+      dbResult = await baseQuery
+        .where(
+          and(
+            gte(establishments.latitude, latitude - latDelta),
+            lte(establishments.latitude, latitude + latDelta),
+            gte(establishments.longitude, longitude - lngDelta),
+            lte(establishments.longitude, longitude + lngDelta)
+          )
         )
-      );
+        .orderBy(asc(deals.alcohol_category));
+    } else {
+      // Query without location filter
+      dbResult = await baseQuery.orderBy(asc(deals.alcohol_category));
     }
     
-    // Add ordering - by category only (we'll sort by distance later)
-    query = query.orderBy(asc(deals.alcohol_category));
-    
-    // Execute the query
-    const result = await query;
-    
     // Extra debug logging for Moon Rooftop Bar (id 11)
-    const moonDeals = result.filter(item => item.establishment.id === 11);
+    const moonDeals = dbResult.filter(item => item.establishment.id === 11);
     if (moonDeals.length > 0) {
       console.log(`FOUND ${moonDeals.length} DEALS FROM MOON ROOFTOP BAR (ID 11) IN DATABASE QUERY RESULTS`);
       
       // Log the first deal
-      if (moonDeals.length > 0) {
-        console.log("First deal for establishment:", moonDeals[0].deal);
-      }
+      console.log("First deal for establishment:", moonDeals[0].deal);
     } else {
       console.log(`Moon Rooftop Bar (id 11) NOT FOUND in database query results`);
     }
     
     // Log for debugging
-    console.log(`Fetched ${result.length} deals from database`);
+    console.log(`Fetched ${dbResult.length} deals from database`);
     
     // Transform to DealWithEstablishment format with distance
     // and filter by actual distance
-    const dealsWithEstablishments = result
-      .map(item => {
-        // Calculate distance manually if coordinates are provided
+    const dealsWithEstablishments = dbResult
+      .map((item: { deal: any; establishment: any }) => {
+        // Calculate distance manually for each establishment
         let distance = null;
-        if (latitude !== null && longitude !== null) {
-          // Use the haversine formula to calculate distance
+        
+        // Only calculate if we have coordinates for both user and establishment
+        if (latitude !== null && longitude !== null && 
+            item.establishment.latitude && item.establishment.longitude) {
+          
+          // Haversine formula for precise distance calculation
           const R = 6371; // Radius of the earth in km
           const lat1 = latitude;
           const lon1 = longitude;
@@ -189,7 +191,7 @@ router.get('/collections/all', async (req, res) => {
           
           distance = parseFloat(calculatedDistance.toFixed(2));
           
-          // Special debug for Moon Rooftop Bar (id 11)
+          // Debug for key establishments
           if (item.establishment.id === 11) {
             console.log(`Distance from ${lat1},${lon1} to Moon Rooftop Bar (${lat2},${lon2}): ${distance} km`);
           }
@@ -201,22 +203,46 @@ router.get('/collections/all', async (req, res) => {
           distance
         };
       })
-      // Filter by actual calculated distance if coordinates are provided
-      .filter(deal => {
+      // IMPORTANT: Filter by actual calculated distance
+      .filter((deal: any) => {
         // If no location provided, include all deals
         if (latitude === null || longitude === null) {
           return true;
         }
-        // Otherwise, only include deals within the radius
-        return deal.distance !== null && deal.distance <= radius;
+        
+        // Check if the establishment has valid coordinates
+        if (!deal.establishment || 
+            deal.establishment.latitude === null || 
+            deal.establishment.longitude === null) {
+          console.log(`Establishment ${deal.establishment?.name || 'Unknown'} is missing coordinates`);
+          return false;
+        }
+        
+        // If distance calculation failed, exclude
+        if (deal.distance === null) {
+          return false;
+        }
+        
+        // Only include deals within the radius
+        const isWithinRadius = deal.distance <= radius;
+        
+        // Debug for establishments near boundary
+        if (deal.distance > radius - 0.5 && deal.distance <= radius + 0.5) {
+          console.log(`Establishment ${deal.establishment.name} is near radius boundary: ${deal.distance} km (radius: ${radius} km)`);
+        }
+        
+        return isWithinRadius;
       })
-      // Sort by distance
-      .sort((a, b) => {
-        // If no distance, put at the end
-        if (a.distance === null && b.distance === null) return 0;
-        if (a.distance === null) return 1;
+      // Sort establishments by distance
+      .sort((a: any, b: any) => {
+        // If no distance info available, sort by name
+        if (a.distance === null && b.distance === null) {
+          return a.establishment.name.localeCompare(b.establishment.name);
+        }
+        if (a.distance === null) return 1;  // Push items without distance to the end
         if (b.distance === null) return -1;
-        // Sort by distance
+        
+        // Sort by distance (closest first)
         return a.distance - b.distance;
       });
     

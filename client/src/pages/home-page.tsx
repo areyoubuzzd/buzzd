@@ -1031,12 +1031,79 @@ export default function HomePage() {
                     return hash;
                   };
                   
-                  // Use the hash to generate coordinates within Singapore
-                  const locationHash = hashCode(newLocation.trim());
-                  // Singapore latitude range: roughly 1.2655 to 1.4255 (±0.08 from center 1.3455)
-                  // Singapore longitude range: roughly 103.6000 to 104.0400 (±0.22 from center 103.8200)
-                  const newLat = 1.3455 + ((locationHash % 100) / 1000);  // Small variation based on name
-                  const newLng = 103.8200 + ((locationHash % 100) / 500); // Wider variation for longitude
+                  // Cache known locations for common Singapore places
+                  const knownLocations: Record<string, { lat: number, lng: number }> = {
+                    // Downtown/Central
+                    'raffles place': { lat: 1.2795, lng: 103.688 },
+                    'marina bay': { lat: 1.2834, lng: 103.8607 },
+                    'cbd': { lat: 1.2788, lng: 103.8530 },
+                    'orchard': { lat: 1.3041, lng: 103.8320 },
+                    'chinatown': { lat: 1.2815, lng: 103.8451 },
+                    'bugis': { lat: 1.3009, lng: 103.8560 },
+                    'tanjong pagar': { lat: 1.2764, lng: 103.8454 },
+                    'clarke quay': { lat: 1.2906, lng: 103.8458 },
+                    'robertson quay': { lat: 1.2918, lng: 103.8384 },
+                    
+                    // East
+                    'east coast': { lat: 1.2997, lng: 103.9068 },
+                    'katong': { lat: 1.3042, lng: 103.8997 },
+                    'tampines': { lat: 1.3547, lng: 103.9464 },
+                    'geylang': { lat: 1.3138, lng: 103.8913 },
+                    'changi': { lat: 1.3592, lng: 103.9893 },
+                    'bedok': { lat: 1.3249, lng: 103.9271 },
+                    'pasir ris': { lat: 1.3721, lng: 103.9495 },
+                    
+                    // West
+                    'holland village': { lat: 1.3118, lng: 103.7965 },
+                    'clementi': { lat: 1.3162, lng: 103.7649 },
+                    'jurong': { lat: 1.3329, lng: 103.7436 },
+                    'buona vista': { lat: 1.3066, lng: 103.7908 },
+                    
+                    // North
+                    'woodlands': { lat: 1.4367, lng: 103.7867 },
+                    'yishun': { lat: 1.4304, lng: 103.8354 },
+                    'ang mo kio': { lat: 1.3691, lng: 103.8454 },
+                    'bishan': { lat: 1.3526, lng: 103.8352 },
+                    'sembawang': { lat: 1.4491, lng: 103.8185 }
+                  };
+                  
+                  // Check if the location name matches any known locations
+                  const locationKey = newLocation.trim().toLowerCase();
+                  let newLat = 1.3455;  // Default: central Singapore
+                  let newLng = 103.8200;
+                  
+                  // Loop through known locations to find a partial match
+                  let bestMatch = '';
+                  for (const [key, coords] of Object.entries(knownLocations)) {
+                    if (locationKey.includes(key) || key.includes(locationKey)) {
+                      // If it's a direct match, use it immediately
+                      if (key === locationKey) {
+                        newLat = coords.lat;
+                        newLng = coords.lng;
+                        bestMatch = key;
+                        break;
+                      }
+                      
+                      // If it's a longer match than our current best, update
+                      if (key.length > bestMatch.length) {
+                        newLat = coords.lat;
+                        newLng = coords.lng;
+                        bestMatch = key;
+                      }
+                    }
+                  }
+                  
+                  // If no match found, use the hash method as a fallback
+                  if (bestMatch === '') {
+                    console.log("No known location match, using name hash");
+                    const locationHash = hashCode(newLocation.trim());
+                    // Singapore latitude range: roughly 1.2655 to 1.4255 (±0.08 from center 1.3455)
+                    // Singapore longitude range: roughly 103.6000 to 104.0400 (±0.22 from center 103.8200)
+                    newLat = 1.3455 + ((locationHash % 100) / 1000);  // Small variation based on name
+                    newLng = 103.8200 + ((locationHash % 100) / 500); // Wider variation for longitude
+                  } else {
+                    console.log(`Using known coordinates for ${bestMatch}`);
+                  }
                   
                   // Show a confirmation message first
                   alert(`Location updated to: ${newLocation.trim()}`);
