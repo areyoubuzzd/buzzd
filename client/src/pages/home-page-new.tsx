@@ -265,9 +265,9 @@ export default function HomePage() {
       <LocationHeader onOpenFilters={handleOpenFilters} />
       
       {/* Total Deals Count */}
-      <div className="bg-[#d6cfc7] px-4 py-3 border-b border-gray-200">
+      <div className="bg-[#d6cfc7] px-4 border-b border-gray-200">
         <div className="container mx-auto">
-          <div className="text-sm text-gray-700 mb-1">
+          <div className="text-sm text-gray-700 h-12 flex items-center">
             <span className="mr-1">Found</span>
             <span className="font-semibold text-primary">{totalDealsFound}</span>
             <span className="ml-1">drink deals near you</span>
