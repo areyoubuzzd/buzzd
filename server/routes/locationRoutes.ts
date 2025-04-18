@@ -7,13 +7,52 @@ const router = express.Router();
  * Search locations by query string
  * This endpoint allows searching by partial name, postal code, or area
  */
+// Original search with query parameter
 router.get('/search', async (req, res) => {
   try {
-    const query = req.query.q as string;
-    console.log('Location search query:', query, 'Type:', typeof query, 'Length:', query ? query.length : 0);
+    // Try to access the query parameter sent from the client
+    let query = '';
     
-    // Log all query parameters for debugging
-    console.log('All query parameters:', req.query);
+    if (req.query && typeof req.query === 'object') {
+      if ('q' in req.query) {
+        query = String(req.query.q || '');
+      } else if ('query' in req.query) {
+        // Also try 'query' as an alternative parameter name
+        query = String(req.query.query || '');
+      }
+    }
+    
+    console.log('Location search query:', query, 'Type:', typeof query, 'Length:', query.length);
+    console.log('Raw query parameters:', req.query);
+    
+    // Check if query meets minimum length requirement
+    if (!query || query.length < 2) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Search query must be at least 2 characters' 
+      });
+    }
+    
+    const locations = await storage.searchLocationsByQuery(query);
+    console.log(`Found ${locations.length} locations for query "${query}"`);
+    res.json({
+      success: true,
+      locations: locations
+    });
+  } catch (error) {
+    console.error('Error searching locations:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to search locations' 
+    });
+  }
+});
+
+// Path parameter based search as an alternative
+router.get('/search/:query', async (req, res) => {
+  try {
+    const query = req.params.query;
+    console.log('Location search by path param:', query);
     
     if (!query || query.length < 2) {
       return res.status(400).json({ 
@@ -168,10 +207,16 @@ router.get('/popular', async (req, res) => {
       return a.isPopular ? -1 : 1;
     }).slice(0, 10); // Return top 10
     
-    res.json(popularLocations);
+    res.json({
+      success: true,
+      locations: popularLocations
+    });
   } catch (error) {
     console.error('Error getting popular locations:', error);
-    res.status(500).json({ message: 'Failed to get popular locations' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get popular locations' 
+    });
   }
 });
 
