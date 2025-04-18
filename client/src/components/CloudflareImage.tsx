@@ -154,43 +154,38 @@ export function CloudflareImageUploader({
     setError(null);
 
     try {
-      // Request a direct upload URL from our backend
-      const response = await fetch('/api/cloudflare/direct-upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'drink',
-          category,
-          drinkName,
-          establishmentId,
-          dealId
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get upload URL: ${response.status} ${response.statusText}`);
-      }
-
-      const { uploadURL, id } = await response.json();
-
-      // Create a FormData object to upload the file
+      // Use the server upload endpoint instead of direct upload to avoid CORS issues
       const formData = new FormData();
       formData.append('file', file);
+      
+      // Add metadata
+      if (category) formData.append('category', category);
+      if (drinkName) formData.append('drinkName', drinkName);
+      if (establishmentId) formData.append('establishmentId', establishmentId.toString());
+      if (dealId) formData.append('dealId', dealId.toString());
+      formData.append('type', 'drink');
 
-      // Upload directly to Cloudflare using the provided URL
-      const uploadResponse = await fetch(uploadURL, {
+      // Upload the file through our backend
+      const uploadResponse = await fetch('/api/cloudflare/upload', {
         method: 'POST',
         body: formData,
       });
 
       if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        const errorText = await uploadResponse.text();
+        console.error('Upload failed:', errorText);
+        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}. ${errorText}`);
+      }
+
+      const data = await uploadResponse.json();
+      const imageId = data.result?.id;
+      
+      if (!imageId) {
+        throw new Error('No image ID returned from upload');
       }
 
       // Call the callback with the new image ID
-      onUploadComplete(id);
+      onUploadComplete(imageId);
     } catch (err) {
       console.error('Error uploading image:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
