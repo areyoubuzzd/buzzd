@@ -256,7 +256,26 @@ const cloudinaryUploader = {
   },
   
   /**
+   * Check if an image exists with a specific extension
+   * @param {string} basePath - Base path without extension
+   * @param {string} extension - File extension to check
+   * @returns {Promise<boolean>} - Whether the image exists
+   */
+  async checkImageWithExtension(basePath, extension) {
+    try {
+      const fullPath = `${basePath}.${extension}`;
+      // Use the resources API to check if the image exists
+      await cloudinary.api.resource(fullPath);
+      return true; // If it doesn't throw, the image exists
+    } catch (error) {
+      // The image probably doesn't exist with this extension
+      return false;
+    }
+  },
+
+  /**
    * Get a random image URL from a folder for a specific drink
+   * This version supports both .jpg and .jpeg extensions
    * @param {string} category - Alcohol category (beer, wine, whisky, etc.)
    * @param {string} drinkName - Name of the drink (e.g., "Heineken")
    * @param {string} servingStyle - 'bottle' or 'glass'
@@ -272,15 +291,17 @@ const cloudinaryUploader = {
       const formattedDrink = drinkName.toLowerCase().replace(/\s+/g, '_');
       
       // Folder path for this specific drink
-      const folderPath = `home/brands/${formattedCategory}/${formattedDrink}/${servingStyle}`;
+      const baseFolderPath = `home/brands/${formattedCategory}/${formattedDrink}`;
+      console.log(`Looking for images in folder: ${baseFolderPath}`);
       
-      // Get all images in the folder
-      const images = await this.getImagesFromFolder(folderPath);
+      // Get all images in the folder (this will get both .jpg and .jpeg)
+      const images = await this.getImagesFromFolder(baseFolderPath);
+      console.log(`Found ${images.length} images in ${baseFolderPath}`);
       
       if (images.length === 0) {
-        console.log(`No images found for ${drinkName} ${servingStyle}. Using default.`);
+        console.log(`No images found for ${drinkName}. Using default.`);
         // Try the category default as fallback
-        const defaultFolderPath = `home/brands/${formattedCategory}/${servingStyle}/default`;
+        const defaultFolderPath = `home/brands/${formattedCategory}/default`;
         const defaultImages = await this.getImagesFromFolder(defaultFolderPath);
         
         if (defaultImages.length === 0) {
@@ -292,8 +313,28 @@ const cloudinaryUploader = {
         return randomDefaultImage.secure_url;
       }
       
-      // Pick a random image from the results
-      const randomImage = images[Math.floor(Math.random() * images.length)];
+      // Filter images to only include .jpg and .jpeg files
+      const jpgImages = images.filter(img => 
+        img.public_id.endsWith('.jpg') || 
+        img.format === 'jpg'
+      );
+      
+      const jpegImages = images.filter(img => 
+        img.public_id.endsWith('.jpeg') || 
+        img.format === 'jpeg'
+      );
+      
+      // Combine all available images
+      const validImages = [...jpgImages, ...jpegImages];
+      
+      if (validImages.length === 0) {
+        console.log(`No valid image formats found for ${drinkName}. Using default.`);
+        return null;
+      }
+      
+      // Pick a random image from the filtered results
+      const randomImage = validImages[Math.floor(Math.random() * validImages.length)];
+      console.log(`Selected random image: ${randomImage.public_id}`);
       return randomImage.secure_url;
     } catch (error) {
       console.error(`Error getting random drink image: ${error.message}`);

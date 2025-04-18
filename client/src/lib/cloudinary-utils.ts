@@ -178,7 +178,8 @@ export function getDefaultDrinkImageUrl(width: number = 400, height: number = 40
     'Whisky': 'whisky'
   };
   
-  // Use a generic drink image as fallback
+  // Use a generic drink image as fallback - works with both .jpg and .jpeg extensions
+  // Cloudinary will automatically handle finding the right image regardless of extension
   return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/generic_drink.jpg`;
 }
 
