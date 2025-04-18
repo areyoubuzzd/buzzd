@@ -11,7 +11,7 @@ interface LocationContextType {
   location: LocationCoordinates;
   userRoadName: string;
   isUsingDefaultLocation: boolean;
-  updateLocation: (newLocation: LocationCoordinates) => void;
+  updateLocation: (newLocation: LocationCoordinates, locationName?: string) => void;
   setUserRoadName: (name: string) => void;
   setIsUsingDefaultLocation: (isDefault: boolean) => void;
 }
@@ -61,6 +61,12 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
             lat: cachedLocation.lat,
             lng: cachedLocation.lng
           });
+          
+          // If there's a cached name that isn't "My Location", use it
+          if (cachedLocation.name && cachedLocation.name !== "My Location" && !cachedLocation.isDefaultLocation) {
+            setUserRoadName(cachedLocation.name);
+            setIsUsingDefaultLocation(false);
+          }
         }
       } catch (e) {
         console.error('Error parsing cached location:', e);
@@ -89,6 +95,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
             const locationToCache = {
               ...newLocation,
               name: userRoadName,
+              isDefaultLocation: isUsingDefaultLocation,
               timestamp: Date.now()
             };
             localStorage.setItem('lastKnownLocation', JSON.stringify(locationToCache));
@@ -105,9 +112,16 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   }, []);
 
   // Function to update location
-  const updateLocation = (newLocation: LocationCoordinates) => {
+  const updateLocation = (newLocation: LocationCoordinates, locationName?: string) => {
     console.log('Updating global location context to:', newLocation);
     setLocation(newLocation);
+    
+    // Update location name if provided
+    if (locationName) {
+      console.log('Updating location name to:', locationName);
+      setUserRoadName(locationName);
+      setIsUsingDefaultLocation(locationName === "My Location");
+    }
     
     // Invalidate any location-dependent queries
     queryClient.invalidateQueries({ 
@@ -117,7 +131,8 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     // Update local storage
     const locationToCache = {
       ...newLocation,
-      name: userRoadName,
+      name: locationName || userRoadName,
+      isDefaultLocation: locationName === "My Location" || isUsingDefaultLocation,
       timestamp: Date.now()
     };
     localStorage.setItem('lastKnownLocation', JSON.stringify(locationToCache));

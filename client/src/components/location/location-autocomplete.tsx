@@ -242,7 +242,7 @@ export function LocationAutocomplete({
                   if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                       (position) => {
-                        // Create a synthetic location object
+                        // Create a synthetic location object with explicit name "My Location"
                         const myLocation: SingaporeLocation = {
                           id: -1, // Use negative ID to identify as special location
                           name: "My Location",

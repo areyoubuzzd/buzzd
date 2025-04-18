@@ -43,13 +43,21 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
                   const newLat = selectedLocation.latitude;
                   const newLng = selectedLocation.longitude;
                   
-                  // Always display "My Location" regardless of what's selected
-                  setUserRoadName("My Location");
-                  setIsUsingDefaultLocation(true);
-                  
-                  // Update location in the context
+                  // Update location name and coordinates in context
                   setTimeout(() => {
-                    updateLocation({ lat: newLat, lng: newLng });
+                    if (selectedLocation.name === "My Location") {
+                      // If My Location selected, update with flag
+                      updateLocation(
+                        { lat: newLat, lng: newLng }, 
+                        "My Location"
+                      );
+                    } else {
+                      // Pass the actual location name for display
+                      updateLocation(
+                        { lat: newLat, lng: newLng }, 
+                        selectedLocation.name
+                      );
+                    }
                   }, 300);
                   
                   // Close the location selector
