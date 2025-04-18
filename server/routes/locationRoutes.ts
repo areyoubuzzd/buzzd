@@ -23,19 +23,31 @@ router.use((req, res, next) => {
 router.get('/search', async (req, res) => {
   try {
     // Try to access the query parameter sent from the client
+    console.log('Raw URL:', req.url);
+    console.log('Raw query parameters:', req.query);
+    
     let query = '';
     
-    if (req.query && typeof req.query === 'object') {
-      if ('q' in req.query) {
-        query = String(req.query.q || '');
-      } else if ('query' in req.query) {
-        // Also try 'query' as an alternative parameter name
-        query = String(req.query.query || '');
+    // Try multiple possible parameter names
+    if (req.query) {
+      if (typeof req.query.q === 'string') {
+        query = req.query.q;
+      } else if (typeof req.query.query === 'string') {
+        query = req.query.query;
+      } else if (typeof req.query.term === 'string') {
+        query = req.query.term;
+      } else if (typeof req.query.search === 'string') {
+        query = req.query.search;
+      } else {
+        // Try to get the first parameter value regardless of name
+        const firstKey = Object.keys(req.query)[0];
+        if (firstKey && typeof req.query[firstKey] === 'string') {
+          query = req.query[firstKey] as string;
+        }
       }
     }
     
-    console.log('Location search query:', query, 'Type:', typeof query, 'Length:', query.length);
-    console.log('Raw query parameters:', req.query);
+    console.log('Extracted query:', query, 'Type:', typeof query, 'Length:', query ? query.length : 0);
     
     // Check if query meets minimum length requirement
     if (!query || query.length < 2) {
