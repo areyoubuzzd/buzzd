@@ -96,13 +96,31 @@ router.post('/api/cloudflare/upload', requireCloudflareConfig, upload.single('fi
   }
 
   try {
-    const { type, category, drinkName, establishmentId, dealId } = req.body;
+    const { type, category, drinkName, establishmentId, dealId, customId, variant } = req.body;
     
-    // Prepare metadata to tag the image
+    // Create a formatted category path for organization
+    const categorySlug = category 
+      ? category.toLowerCase().replace(/[^a-z0-9]+/g, '_') 
+      : 'general';
+    
+    // Create a slug from the drink name
+    const drinkSlug = drinkName 
+      ? drinkName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') 
+      : 'unnamed';
+    
+    // Generate a custom ID if not provided
+    const imageCustomId = customId || `${categorySlug}/${drinkSlug}_${Date.now().toString(36)}`;
+    const variantNumber = variant || '1';
+    
+    // Prepare rich metadata to tag the image
     const metadata = {
       type: type || 'drink',
       category: category || 'general',
+      categoryPath: categorySlug,
       name: drinkName || 'unnamed',
+      nameSlug: drinkSlug,
+      customId: imageCustomId,
+      variant: variantNumber,
       establishmentId: establishmentId ? String(establishmentId) : undefined,
       dealId: dealId ? String(dealId) : undefined,
       uploadedAt: new Date().toISOString(),
