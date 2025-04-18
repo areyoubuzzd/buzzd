@@ -181,6 +181,54 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
                 src={deal.imageUrl || imageUrl || `/images/defaults/drink-default.jpg`} 
                 alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log(`Square card image load error for ${deal.drink_name || deal.alcohol_category}, trying Cloudinary fallback`);
+                  
+                  // Create a multi-step fallback system
+                  const tryFallbacks = async () => {
+                    try {
+                      // Step 1: Try Cloudinary with the brand or drink type
+                      const { getRandomDrinkImageUrl } = await import('@/lib/cloudinary-utils');
+                      const drinkName = deal.drink_name || deal.alcohol_category;
+                      
+                      // Try brand-specific image first
+                      let imageUrl = getRandomDrinkImageUrl(drinkName);
+                      e.currentTarget.src = imageUrl;
+                      
+                      // Add a second error handler to try category-based fallback if brand-specific fails
+                      e.currentTarget.onerror = () => {
+                        try {
+                          console.log(`Brand-specific image failed for ${drinkName}, trying category fallback`);
+                          // Map to general categories for better fallback chances
+                          let category = deal.alcohol_category?.toLowerCase() || '';
+                          
+                          if (category.includes('wine')) category = 'red_wine';
+                          else if (category.includes('beer')) category = 'beer';
+                          else if (category.includes('cocktail')) category = 'cocktail';
+                          else if (['whisky', 'gin', 'vodka', 'rum'].some(s => category.includes(s))) {
+                            category = 'whisky'; // Use whisky as fallback for spirits
+                          }
+                          
+                          const genericUrl = getRandomDrinkImageUrl(category);
+                          e.currentTarget.src = genericUrl;
+                          
+                          // Final fallback to default image
+                          e.currentTarget.onerror = () => {
+                            console.log('All dynamic images failed, using default fallback');
+                            e.currentTarget.src = 'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/defaults/generic_drink/1.jpg';
+                            e.currentTarget.onerror = null; // Prevent infinite loop
+                          };
+                        } catch (err) {
+                          console.error('Error in fallback chain:', err);
+                        }
+                      };
+                    } catch (err) {
+                      console.error('Failed to load Cloudinary fallback:', err);
+                    }
+                  };
+                  
+                  tryFallbacks();
+                }}
               />
               
               {/* Status indicator (green for active, red for inactive) */}

@@ -173,7 +173,7 @@ export function getRandomDrinkImageUrl(
     
     // Use newer webp path for wine with version number
     // Format matches: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942262/home/brands/wine/red/2.webp
-    const currentVersion = "v1744942262"; // Using the exact version from the working image
+    const currentVersion = "v1744945807"; // Using the latest confirmed working version from the image URL
     // Use hardcoded cloud name since env var isn't working
     const cloudName = 'dp2uoj3ts'; // Fallback to known working cloud name if env var is not available
     const webpImageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${currentVersion}/home/brands/wine/red/${randomNumber}.webp`;
@@ -275,7 +275,8 @@ export function getDrinkCategoryImageUrl(category: string, width: number = 400, 
   const categoryKey = category.toLowerCase().replace(/[^\w\s]/g, '').trim().replace(/\s+/g, '_');
   
   // Use folder structure format for category images as well
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/categories/${categoryKey}/1.jpg`;
+  const cloudName = 'dp2uoj3ts'; // Hardcoded cloud name
+  return `https://res.cloudinary.com/${cloudName}/image/upload/home/categories/${categoryKey}/1.jpg`;
 }
 
 /**
