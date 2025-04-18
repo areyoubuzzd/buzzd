@@ -1005,9 +1005,8 @@ export default function HomePage() {
         if (event.detail.postalCode) {
           setUserPostalCode(event.detail.postalCode);
         }
-        if (event.detail.roadName) {
-          setUserRoadName(event.detail.roadName);
-        }
+        // Always use "My Location" instead of actual road name
+        setUserRoadName("My Location");
         
         // If this location was detected automatically, don't update the UI location
         // but do update the query parameters if needed
@@ -1090,8 +1089,8 @@ export default function HomePage() {
                     const newLat = selectedLocation.latitude;
                     const newLng = selectedLocation.longitude;
                     
-                    // Update the location name
-                    setUserRoadName(selectedLocation.name);
+                    // Always display "My Location" regardless of selection
+                    setUserRoadName("My Location");
                     
                     // Update UI with new location value
                     setLocation({ lat: newLat, lng: newLng });
@@ -1129,21 +1128,7 @@ export default function HomePage() {
               </Button>
             </div>
             
-            {/* Filter button */}
-            {!isLocationSelectOpen && (
-              <div className="flex justify-end">
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2 shrink-0"
-                  style={{ background: "#f8f7f5" }}
-                  onClick={handleOpenFilters}
-                >
-                  <FiFilter className="h-4 w-4 text-[#191632]" />
-                </Button>
-              </div>
-            )}
+            {/* Filter button has been moved to the top right corner */}
           </div>
         </div>
       </div>
