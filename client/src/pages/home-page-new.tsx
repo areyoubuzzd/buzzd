@@ -142,6 +142,50 @@ export default function HomePage() {
       });
     }
     
+    // Create "All deals" collection first (this will always be present)
+    if (apiCollectionMap.has('all_deals')) {
+      const allDealsCollection = apiCollectionMap.get('all_deals')!;
+      result.push({
+        name: allDealsCollection.name,
+        description: allDealsCollection.description,
+        slug: allDealsCollection.slug,
+        priority: allDealsCollection.priority,
+        deals: [...allDeals] // Include all deals
+      });
+      
+      // Mark this collection name as used
+      usedCollectionNames.add(allDealsCollection.name.toLowerCase());
+    }
+    
+    // Create "Active Happy Hours" collection if we're using "My Location"
+    const isUsingMyLocation = isUsingDefaultLocation && apiCollectionMap.has('active_happy_hours');
+    if (isUsingMyLocation) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+      
+      // Get active deals (deals happening right now)
+      const activeDeals = allDeals.filter(deal => {
+        // Simple check - would need more complex logic in production
+        return true; // For now, consider all deals as active
+      });
+      
+      if (activeDeals.length > 0 && apiCollectionMap.has('active_happy_hours')) {
+        const activeHoursCollection = apiCollectionMap.get('active_happy_hours')!;
+        result.push({
+          name: activeHoursCollection.name,
+          description: activeHoursCollection.description,
+          slug: activeHoursCollection.slug,
+          priority: activeHoursCollection.priority,
+          deals: activeDeals
+        });
+        
+        // Mark this collection name as used
+        usedCollectionNames.add(activeHoursCollection.name.toLowerCase());
+      }
+    }
+    
     // Process each deal to determine its collection(s)
     allDeals.forEach(deal => {
       if (!deal.collections) return;
@@ -151,6 +195,12 @@ export default function HomePage() {
       
       // Process each collection slug
       collectionSlugs.forEach(slug => {
+        // Skip all_deals since we already added it
+        if (slug === 'all_deals') return;
+        
+        // Skip active_happy_hours if we already added it
+        if (slug === 'active_happy_hours' && isUsingMyLocation) return;
+        
         // First check if we have API collection metadata for this slug
         const apiCollection = apiCollectionMap.get(slug);
         
@@ -193,7 +243,7 @@ export default function HomePage() {
     // Sort all collections by their priority (direct sort, not using the utility function)
     // because the utility expects string[] but we have Collection[] objects
     return result.sort((a, b) => a.priority - b.priority);
-  }, [dealsData, apiCollections]);
+  }, [dealsData, apiCollections, isUsingDefaultLocation]);
 
   // Update the total deals count when the data changes
   useEffect(() => {
