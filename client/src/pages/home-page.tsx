@@ -1110,7 +1110,7 @@ export default function HomePage() {
                   }}
                 >
                   <FiMapPin className="mr-1 h-4 w-4 text-gray-400" />
-                  <span className="font-medium">{"My Location"}</span>
+                  <span className="font-medium">{userRoadName}</span>
                 </div>
               )}
               <div className="text-sm font-medium">
