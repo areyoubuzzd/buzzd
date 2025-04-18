@@ -101,31 +101,42 @@ router.post('/api/cloudflare/upload', requireCloudflareConfig, upload.single('fi
     };
     
     // Get a direct upload URL with metadata
-    const { uploadURL } = await getDirectUploadUrl(metadata);
+    const { uploadURL, id } = await getDirectUploadUrl(metadata);
     
-    // Read the file
-    const fileBuffer = fs.readFileSync(req.file.path);
+    // Create form data for upload
+    const formData = new FormData();
+    
+    // Add the file as a stream
+    const fileStream = fs.createReadStream(req.file.path);
+    formData.append('file', fileStream);
+    
+    console.log(`Uploading file to Cloudflare using URL: ${uploadURL}`);
     
     // Upload the file to Cloudflare Images using the direct upload URL
-    const formData = new FormData();
-    formData.append('file', new Blob([fileBuffer]), req.file.originalname);
-    
     const uploadResponse = await fetch(uploadURL, {
       method: 'POST',
       body: formData
     });
     
+    // Delete the temporary file regardless of success/failure
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
     if (!uploadResponse.ok) {
+      const responseText = await uploadResponse.text();
+      console.error(`Cloudflare upload failed with status ${uploadResponse.status}: ${responseText}`);
       throw new Error(`Cloudflare upload failed: ${uploadResponse.statusText}`);
     }
     
-    const uploadResult = await uploadResponse.json();
-    
-    // Delete the temporary file
-    fs.unlinkSync(req.file.path);
-    
-    // Return the Cloudflare upload result
-    res.json(uploadResult);
+    // For simplicity, we'll just return the ID since the actual upload already happened
+    res.json({ 
+      success: true, 
+      result: { 
+        id: id,
+        variants: ["public", "thumbnail"]
+      } 
+    });
   } catch (error) {
     console.error('Error uploading to Cloudflare Images:', error);
     

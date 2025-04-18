@@ -13,6 +13,8 @@ export default function CloudflareImagesTestPage() {
   const [imageId, setImageId] = useState<string>('');
   const [uploadComplete, setUploadComplete] = useState(false);
   const [category, setCategory] = useState('beer');
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     // Check Cloudflare Images connection on component mount
@@ -49,6 +51,70 @@ export default function CloudflareImagesTestPage() {
     
     checkConnection();
   }, []);
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Request a direct upload URL from our backend
+      const response = await fetch('/api/cloudflare/direct-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'drink',
+          category: category || 'beer',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to get upload URL: ${response.status} ${response.statusText}. ${errorText}`);
+      }
+
+      const { uploadURL, id } = await response.json();
+      console.log('Got upload URL:', uploadURL);
+      console.log('Image ID:', id);
+
+      // Create a FormData object to upload the file
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload directly to Cloudflare using the provided URL
+      // This is where the 403 is happening - we'll use a browser alert to show more info
+      try {
+        const uploadResponse = await fetch(uploadURL, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const responseText = await uploadResponse.text();
+          console.error('Upload response error:', responseText);
+          throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        console.log('Upload result:', uploadResult);
+
+        // Call the handle upload complete function
+        handleUploadComplete(id);
+      } catch (uploadError) {
+        console.error('Error during upload to Cloudflare:', uploadError);
+        setError(`Error uploading to Cloudflare: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
+      }
+    } catch (err) {
+      console.error('Error in upload process:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
+      setIsUploading(false);
+    }
+  };
   
   const handleUploadComplete = (newImageId: string) => {
     setImageId(newImageId);
@@ -122,11 +188,36 @@ export default function CloudflareImagesTestPage() {
                   </select>
                 </div>
                 
-                <CloudflareImageUploader 
-                  onUploadComplete={handleUploadComplete}
-                  category={category}
-                  drinkName="Test Drink"
-                />
+                <div className="flex flex-col gap-2">
+                  <label className="block">
+                    <span className="sr-only">Choose image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="block w-full text-sm text-slate-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100
+                        disabled:opacity-50 disabled:cursor-not-allowed"
+                      onChange={handleFileChange}
+                      disabled={isUploading}
+                    />
+                  </label>
+                  
+                  {isUploading && (
+                    <div className="text-sm text-blue-600 animate-pulse">
+                      Uploading image...
+                    </div>
+                  )}
+                  
+                  {error && (
+                    <div className="text-sm text-red-600">
+                      {error}
+                    </div>
+                  )}
+                </div>
                 
                 {uploadComplete && (
                   <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
