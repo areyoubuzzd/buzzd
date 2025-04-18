@@ -100,7 +100,7 @@ export function LocationAutocomplete({
               
               // Filter locations client-side
               const searchTerm = debouncedSearchTerm.toLowerCase();
-              const filteredLocations = allLocations.filter(location => 
+              const filteredLocations = allLocations.filter((location: SingaporeLocation) => 
                 location.name.toLowerCase().includes(searchTerm) || 
                 (location.alternateNames && location.alternateNames.toLowerCase().includes(searchTerm))
               );
@@ -146,11 +146,11 @@ export function LocationAutocomplete({
     // If there's a search term, filter and sort by relevance
     const term = debouncedSearchTerm.toLowerCase();
     return locArray
-      .filter(loc => 
+      .filter((loc: SingaporeLocation) => 
         loc.name.toLowerCase().includes(term) || 
         (loc.alternateNames && loc.alternateNames.toLowerCase().includes(term))
       )
-      .sort((a, b) => {
+      .sort((a: SingaporeLocation, b: SingaporeLocation) => {
         // Exact matches first
         const aNameMatch = a.name.toLowerCase() === term;
         const bNameMatch = b.name.toLowerCase() === term;
@@ -233,18 +233,61 @@ export function LocationAutocomplete({
           ) : locations.length === 0 ? (
             <div className="px-4 py-2 text-sm text-gray-500">No locations found</div>
           ) : (
-            locations.map((location: SingaporeLocation) => (
+            <>
+              {/* "My Location" as the first option */}
               <div
-                key={location.id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => handleLocationClick(location)}
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer bg-gray-50 font-medium text-[#191632] border-b border-gray-200"
+                onClick={() => {
+                  // Get current location
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        // Create a synthetic location object
+                        const myLocation: SingaporeLocation = {
+                          id: -1, // Use negative ID to identify as special location
+                          name: "My Location",
+                          latitude: position.coords.latitude,
+                          longitude: position.coords.longitude,
+                          isPopular: true
+                        };
+                        handleLocationClick(myLocation);
+                      },
+                      (error) => {
+                        console.error("Error getting location:", error);
+                        // Fallback to Singapore default
+                        const defaultLocation: SingaporeLocation = {
+                          id: 0,
+                          name: "My Location",
+                          latitude: 1.3521,
+                          longitude: 103.8198,
+                          isPopular: true
+                        };
+                        handleLocationClick(defaultLocation);
+                      }
+                    );
+                  }
+                }}
               >
                 <div className="flex items-center">
-                  <MapPin className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
-                  <div className="text-sm font-medium text-gray-900">{location.name}</div>
+                  <MapPin className="mr-2 h-4 w-4 text-blue-500" />
+                  <span>My Location</span>
                 </div>
               </div>
-            ))
+              
+              {/* All other locations */}
+              {locations.map((location: SingaporeLocation) => (
+                <div
+                  key={location.id}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleLocationClick(location)}
+                >
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
+                    <div className="text-sm font-medium text-gray-900">{location.name}</div>
+                  </div>
+                </div>
+              ))}
+            </>
           )}
         </div>
       )}
