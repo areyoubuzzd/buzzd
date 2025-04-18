@@ -918,14 +918,52 @@ export default function HomePage() {
   } else {
     // We don't have API collections, use tag-based collections as fallback
     
-    // Sort tag collections - active deals first, then alphabetically
+    // Sort tag collections - by priority, active deals, then name
     const sortedTagCollections = tagCollections.sort((a, b) => {
-      // Check if any deals in collection A are active
+      // First try to sort by collection priority using the slugified name
+      const collectionA = apiCollectionMap.get(slugify(a.name));
+      const collectionB = apiCollectionMap.get(slugify(b.name));
+      
+      // Get priorities or assign default priority based on collection name
+      const getPriority = (name: string, apiCollection: ApiCollection | undefined): number => {
+        if (apiCollection?.priority !== undefined) return apiCollection.priority;
+        
+        // Default priorities based on name patterns (consistent with API priorities)
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes('active') || nameLower.includes('happy hour')) return 1;
+        if (nameLower.includes('under $10') || nameLower.includes('under $12')) return 10;
+        if (nameLower.includes('craft beer')) return 12;
+        if (nameLower.includes('1-for-1') || nameLower.includes('one for one')) return 15;
+        if (nameLower.includes('free flow')) return 16;
+        if (nameLower.includes('two bottle')) return 17;
+        if (nameLower.includes('under $15')) return 20;
+        if (nameLower.includes('signature')) return 21;
+        if (nameLower.includes('bucket')) return 23;
+        if (nameLower.includes('whisky')) return 40;
+        if (nameLower.includes('gin')) return 41;
+        
+        // Check for region-based collections
+        if (nameLower.includes('cbd')) return 60;
+        if (nameLower.includes('orchard')) return 61;
+        if (nameLower.includes('holland village')) return 62;
+        
+        // Default priority
+        return 50;
+      };
+      
+      const aPriority = getPriority(a.name, collectionA);
+      const bPriority = getPriority(b.name, collectionB);
+      
+      // If priorities differ, use them for sorting
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      
+      // If priorities are the same, check if deals are active
       const aHasActiveDeals = a.deals.some(deal => 
         (deal as unknown as { isActive: boolean }).isActive
       );
       
-      // Check if any deals in collection B are active
       const bHasActiveDeals = b.deals.some(deal => 
         (deal as unknown as { isActive: boolean }).isActive
       );
@@ -934,7 +972,7 @@ export default function HomePage() {
       if (aHasActiveDeals && !bHasActiveDeals) return -1;
       if (!aHasActiveDeals && bHasActiveDeals) return 1;
       
-      // Otherwise sort alphabetically
+      // If active status is the same, sort alphabetically
       return a.name.localeCompare(b.name);
     });
     
