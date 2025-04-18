@@ -1116,9 +1116,17 @@ export default function HomePage() {
                   <span className="font-medium">{userRoadName}</span>
                 </div>
               )}
-              <div className="text-sm font-medium">
-                {totalDealsFound} deals found
-              </div>
+              {/* Filter button moved to top right */}
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2 shrink-0"
+                style={{ background: "#f8f7f5" }}
+                onClick={handleOpenFilters}
+              >
+                <FiFilter className="h-4 w-4 text-[#191632]" />
+              </Button>
             </div>
             
             {/* Filter button */}
