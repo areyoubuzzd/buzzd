@@ -11,6 +11,7 @@ interface LocationContextType {
   location: LocationCoordinates;
   userRoadName: string;
   isUsingDefaultLocation: boolean;
+  userPosition: LocationCoordinates; // Add a dedicated property for user's real GPS position
   updateLocation: (newLocation: LocationCoordinates, locationName?: string) => void;
   setUserRoadName: (name: string) => void;
   setIsUsingDefaultLocation: (isDefault: boolean) => void;
@@ -20,6 +21,7 @@ const defaultContext: LocationContextType = {
   location: { lat: 1.3521, lng: 103.8198 }, // Singapore default
   userRoadName: "My Location",
   isUsingDefaultLocation: true,
+  userPosition: { lat: 1.3521, lng: 103.8198 }, // Default to Singapore but will be updated with real GPS
   updateLocation: () => {},
   setUserRoadName: () => {},
   setIsUsingDefaultLocation: () => {},
@@ -37,6 +39,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   const [location, setLocation] = useState<LocationCoordinates>(defaultContext.location);
   const [userRoadName, setUserRoadName] = useState<string>(defaultContext.userRoadName);
   const [isUsingDefaultLocation, setIsUsingDefaultLocation] = useState<boolean>(defaultContext.isUsingDefaultLocation);
+  const [userPosition, setUserPosition] = useState<LocationCoordinates>(defaultContext.userPosition);
 
   // Initialize location from localStorage or geolocation on mount
   useEffect(() => {
