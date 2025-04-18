@@ -305,6 +305,9 @@ export default function RestaurantsPage() {
         </motion.div>
       </div>
       
+      {/* Location Header Component */}
+      <LocationHeader onOpenFilters={() => console.log("Open filters")} />
+      
       <div className="px-4 py-4">
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
