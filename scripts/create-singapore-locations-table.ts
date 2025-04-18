@@ -514,16 +514,16 @@ async function seedInitialLocations() {
   for (const location of initialLocations) {
     await db.insert(singaporeLocations).values({
       name: location.name,
-      postalCode: location.postalCode,
-      postalDistrict: location.postalDistrict,
+      postalcode: location.postalCode,
+      postaldistrict: location.postalDistrict,
       area: location.area,
       latitude: location.latitude,
       longitude: location.longitude,
-      alternateNames: location.alternateNames,
-      locationType: location.locationType,
-      isPopular: location.isPopular,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      alternatenames: location.alternateNames,
+      locationtype: location.locationType,
+      ispopular: location.isPopular,
+      createdat: new Date(),
+      updatedat: new Date()
     });
   }
   
