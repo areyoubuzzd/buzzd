@@ -64,29 +64,56 @@ export function getRandomDrinkImageUrl(
     return getDefaultDrinkImageUrl(width, height);
   }
 
-  // Map of known image suffixes from the working URL example:
-  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936266/4_rnrfbc.jpg
-  const knownImageTransformations = {
-    '1': 'pmxkxl',
-    '2': 'tcgcin',
-    '3': 'kqvyaz',
-    '4': 'rnrfbc',
-    '5': 'qsofwr'
-  };
+  // Format drink name for URL
+  const formattedDrinkName = formatDrinkNameForCloudinary(drinkName);
   
   // Generate a random image index (1-based)
   const imageIndex = getUniqueRandomIndex(drinkName.toLowerCase(), maxImages);
   
-  // Use a version number in the range that's known to work
-  // The example URL used v1744936266
-  const version = 1744936266;
+  // Map of known transformation suffixes for different drinks
+  const knownImageTransformations = {
+    // Number-based images (format: [number]_[suffix])
+    '1_pmxkxl': { version: 1744936266, format: 'jpg' },
+    '2_tcgcin': { version: 1744936266, format: 'jpg' },
+    '3_kqvyaz': { version: 1744936266, format: 'jpg' },
+    '4_rnrfbc': { version: 1744936266, format: 'jpg' },
+    '5_qsofwr': { version: 1744936266, format: 'jpg' },
+    
+    // Drink-specific images (format: [drink_name][number]_[suffix])
+    'Asahi_pint3_utxgcj': { version: 1744937039, format: 'webp' },
+    'Tiger_pint1_jwsmgc': { version: 1744937039, format: 'webp' },
+    'Heineken_pint2_tbchlz': { version: 1744937039, format: 'webp' }
+  };
   
-  // Get the transformation suffix from our map, or use a default if not found
-  const transformationSuffix = knownImageTransformations[imageIndex.toString()] || 'pmxkxl';
+  // Default version and transformation values
+  let version = 1744937039; // Most recent version from examples
+  let transformationSuffix = 'utxgcj'; // Default suffix
+  let format = 'webp'; // Default format
   
-  // Construct the URL in the format that works:
-  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936266/4_rnrfbc.jpg
-  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${imageIndex}_${transformationSuffix}.jpg`;
+  // Create the full image name as it would appear in your Cloudinary (without version)
+  const imageName = `${formattedDrinkName}${imageIndex}`;
+  
+  // Check if we have a known transformation for this drink+index combination
+  const specificImage = Object.keys(knownImageTransformations).find(key => 
+    key.startsWith(imageName) || key.startsWith(`${imageIndex}_`));
+  
+  if (specificImage) {
+    // Use the known values for this image
+    version = knownImageTransformations[specificImage].version;
+    format = knownImageTransformations[specificImage].format;
+    
+    // Use the full specific image name including its transformation
+    const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${specificImage}.${format}`;
+    console.log(`Using known image URL: ${imageUrl}`);
+    return imageUrl;
+  }
+  
+  // For other drinks, construct the URL based on your shared example format:
+  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Asahi_pint3_utxgcj.webp
+  const randomSuffixes = ['utxgcj', 'jwsmgc', 'tbchlz', 'rnrfbc', 'qsofwr'];
+  const randomSuffix = randomSuffixes[Math.floor(Math.random() * randomSuffixes.length)];
+  
+  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${formattedDrinkName}${imageIndex}_${randomSuffix}.${format}`;
   
   console.log(`Generated Cloudinary URL: ${imageUrl}`);
   
