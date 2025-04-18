@@ -105,6 +105,7 @@ export default function HomePage() {
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
   const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to "My Location" on initial load
+  const [isUsingDefaultLocation, setIsUsingDefaultLocation] = useState<boolean>(true); // Track if we're showing the default "My Location"
   const [isLocationSelectOpen, setIsLocationSelectOpen] = useState<boolean>(false); // State to control location selector visibility
   const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search input field
 
@@ -1024,6 +1025,10 @@ export default function HomePage() {
     sessionStorage.setItem('lastVisitedPage', '/');
     console.log('Set lastVisitedPage to / in sessionStorage');
     
+    // ALWAYS initialize with "My Location" as the display name
+    setUserRoadName("My Location");
+    setIsUsingDefaultLocation(true);
+    
     // Check if we have a cached location in localStorage
     const cachedLocationStr = localStorage.getItem('lastKnownLocation');
     let cachedLocation = null;
@@ -1034,10 +1039,9 @@ export default function HomePage() {
         // Check if cache is recent (less than 24 hours old)
         if (cachedLocation && cachedLocation.timestamp && 
             Date.now() - cachedLocation.timestamp < 24 * 60 * 60 * 1000) {
-          console.log('Using cached location:', cachedLocation.name);
+          console.log('Using cached location coordinates, but keeping "My Location" display');
           
-          // Update states with cached data
-          setUserRoadName(cachedLocation.name);
+          // Only update coordinates, but keep displaying "My Location"
           setLocation({
             lat: cachedLocation.lat,
             lng: cachedLocation.lng
@@ -1087,7 +1091,8 @@ export default function HomePage() {
           setUserPostalCode(event.detail.postalCode);
         }
               // Use the actual road name from detected location
-        if (event.detail.roadName) {
+        // Only update road name if we're not using "My Location"
+        if (event.detail.roadName && !isUsingDefaultLocation) {
           setUserRoadName(event.detail.roadName);
         }
         
@@ -1097,7 +1102,12 @@ export default function HomePage() {
             event.detail.lat && 
             event.detail.lng) {
           
-          // Update query parameters without changing the displayed location
+          // If we're using "My Location", keep it displayed
+          if (isUsingDefaultLocation) {
+            setUserRoadName("My Location");
+          }
+          
+          // Update query parameters without changing the displayed location name
           setTimeout(() => {
             handleLocationChange({ 
               lat: event.detail.lat, 
@@ -1115,7 +1125,7 @@ export default function HomePage() {
     return () => {
       window.removeEventListener('postalCodeUpdated', handlePostalCodeUpdate as EventListener);
     };
-  }, []);
+  }, [isUsingDefaultLocation]);
 
   const handleLocationChange = (newLocation: { lat: number; lng: number }) => {
     // IMPORTANT: This is the key function that updates location
@@ -1172,8 +1182,15 @@ export default function HomePage() {
                     const newLat = selectedLocation.latitude;
                     const newLng = selectedLocation.longitude;
                     
-                    // Show the selected location name
-                    setUserRoadName(selectedLocation.name);
+                    // Special case: "My Location" option returns to default behavior
+                    if (selectedLocation.name === "My Location") {
+                      setUserRoadName("My Location");
+                      setIsUsingDefaultLocation(true);
+                    } else {
+                      // User has chosen a specific location
+                      setUserRoadName(selectedLocation.name);
+                      setIsUsingDefaultLocation(false);
+                    }
                     
                     // Update UI with new location value
                     setLocation({ lat: newLat, lng: newLng });
