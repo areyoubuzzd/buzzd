@@ -5,6 +5,7 @@ import FilterBar from "@/components/layout/filter-bar";
 import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
+import { LocationAutocomplete } from "@/components/location/location-autocomplete";
 // Removed import for DealsList which was using dummy data
 
 // Helper function to calculate string similarity between two strings
@@ -1073,164 +1074,63 @@ export default function HomePage() {
         onOpenFilters={handleOpenFilters} 
       />
       
-      {/* Inline location display as text with edit icon */}
+      {/* Location selector with autocomplete */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <div 
-              className="flex items-center text-sm text-gray-600 cursor-pointer pl-6 relative"
-              onClick={() => {
-                // Create a prompt for entering a new location
-                const newLocation = prompt("Enter a new location:", userRoadName || "");
-                if (newLocation && newLocation.trim()) {
-                  // Update the location name immediately
-                  setUserRoadName(newLocation.trim());
-                  
-                  // Dispatch event to update location name
-                  window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
-                    detail: { roadName: newLocation.trim() } 
-                  }));
-                  
-                  // For demonstration, create deterministic coordinates based on the location name
-                  // In a real app, we'd use a geocoding API to get actual coordinates
-                  
-                  // Generate a hash code from the location string
-                  const hashCode = (str: string) => {
-                    let hash = 0;
-                    for (let i = 0; i < str.length; i++) {
-                      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                    }
-                    return hash;
-                  };
-                  
-                  // Cache known locations for common Singapore places
-                  const knownLocations: Record<string, { lat: number, lng: number }> = {
-                    // Downtown/Central
-                    'raffles place': { lat: 1.2842, lng: 103.8522 },  // Fixed Raffles Place coordinates
-                    'marina bay': { lat: 1.2834, lng: 103.8607 },
-                    'cbd': { lat: 1.2788, lng: 103.8530 },
-                    'orchard': { lat: 1.3041, lng: 103.8320 },
-                    'orchard road': { lat: 1.3041, lng: 103.8320 },  // Duplicate with both versions
-                    'chinatown': { lat: 1.2815, lng: 103.8451 },
-                    'bugis': { lat: 1.3009, lng: 103.8560 },
-                    'tanjong pagar': { lat: 1.2764, lng: 103.8454 },
-                    'clarke quay': { lat: 1.2906, lng: 103.8458 },
-                    'robertson quay': { lat: 1.2918, lng: 103.8384 },
-                    
-                    // East
-                    'east coast': { lat: 1.2997, lng: 103.9068 },
-                    'katong': { lat: 1.3042, lng: 103.8997 },
-                    'tampines': { lat: 1.3547, lng: 103.9464 },
-                    'geylang': { lat: 1.3138, lng: 103.8913 },
-                    'changi': { lat: 1.3592, lng: 103.9893 },
-                    'bedok': { lat: 1.3249, lng: 103.9271 },
-                    'pasir ris': { lat: 1.3721, lng: 103.9495 },
-                    
-                    // West
-                    'holland village': { lat: 1.3118, lng: 103.7965 },
-                    'clementi': { lat: 1.3162, lng: 103.7649 },
-                    'jurong': { lat: 1.3329, lng: 103.7436 },
-                    'buona vista': { lat: 1.3066, lng: 103.7908 },
-                    
-                    // North
-                    'woodlands': { lat: 1.4367, lng: 103.7867 },
-                    'yishun': { lat: 1.4304, lng: 103.8354 },
-                    'ang mo kio': { lat: 1.3691, lng: 103.8454 },
-                    'bishan': { lat: 1.3526, lng: 103.8352 },
-                    'sembawang': { lat: 1.4491, lng: 103.8185 }
-                  };
-                  
-                  // Check if the location name matches any known locations
-                  const locationKey = newLocation.trim().toLowerCase();
-                  let newLat = 1.3455;  // Default: central Singapore
-                  let newLng = 103.8200;
-                  
-                  // Fuzzy matching for location names
-                  let bestMatch = '';
-                  let bestScore = 0;
-                  
-                  // First pass: check for exact and substring matches
-                  for (const [key, coords] of Object.entries(knownLocations)) {
-                    // Direct match (highest priority)
-                    if (key === locationKey) {
-                      newLat = coords.lat;
-                      newLng = coords.lng;
-                      bestMatch = key;
-                      break;
-                    }
-                    
-                    // Contains match - either way
-                    if (locationKey.includes(key) || key.includes(locationKey)) {
-                      // If it's a longer match than our current best, update
-                      if (key.length > bestMatch.length) {
-                        newLat = coords.lat;
-                        newLng = coords.lng;
-                        bestMatch = key;
-                        bestScore = 2; // Higher than fuzzy match
-                      }
-                    }
-                  }
-                  
-                  // Second pass: If no match yet, try fuzzy matching
-                  if (bestMatch === '') {
-                    for (const [key, coords] of Object.entries(knownLocations)) {
-                      const similarity = calculateStringSimilarity(key, locationKey);
-                      if (similarity > 0.7 && similarity > bestScore) { // 70% similar or better
-                        newLat = coords.lat;
-                        newLng = coords.lng;
-                        bestMatch = key;
-                        bestScore = similarity;
-                      }
-                    }
-                  }
-                  
-                  // Use the shared calculateStringSimilarity function defined outside this block
-                  
-                  // If no match found, use the hash method as a fallback
-                  if (bestMatch === '') {
-                    console.log("No known location match, using name hash");
-                    const locationHash = hashCode(newLocation.trim());
-                    // Singapore latitude range: roughly 1.2655 to 1.4255 (±0.08 from center 1.3455)
-                    // Singapore longitude range: roughly 103.6000 to 104.0400 (±0.22 from center 103.8200)
-                    newLat = 1.3455 + ((locationHash % 100) / 1000);  // Small variation based on name
-                    newLng = 103.8200 + ((locationHash % 100) / 500); // Wider variation for longitude
-                  } else {
-                    console.log(`Using known coordinates for ${bestMatch}`);
-                  }
-                  
-                  // Show a confirmation message first
-                  alert(`Location updated to: ${newLocation.trim()}`);
-                  
-                  // Log the change with coordinates
-                  console.log(`Location changed to: ${newLocation.trim()} at coordinates: ${newLat.toFixed(6)}, ${newLng.toFixed(6)}`);
-                  
-                  // Update user interface with new location value
-                  setLocation({ lat: newLat, lng: newLng });
-                  
-                  // Wait a moment before triggering the location change
-                  setTimeout(() => {
-                    // Update location and trigger a UI refresh
-                    handleLocationChange({ lat: newLat, lng: newLng });
-                    
-                    // No need to reload the page - this will refresh the data automatically
-                  }, 300);
-                }
-              }}
-            >
-              <FiMapPin className="absolute left-0 top-1/2 transform -translate-y-1/2 h-4 w-4" />
-              <span className="mr-1">{userRoadName || "Singapore"}</span>
-              <FiEdit2 className="h-3 w-3 text-blue-500 inline-block" />
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center text-sm text-gray-600">
+                <FiMapPin className="mr-1 h-4 w-4 text-red-500" />
+                <span className="font-medium">{userRoadName || "Your Location"}</span>
+              </div>
+              <div className="text-sm font-medium">
+                {totalDealsFound} deals found
+              </div>
             </div>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="sm" 
-              className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2"
-              style={{ background: "#f8f7f5" }}
-              onClick={handleOpenFilters}
-            >
-              <FiFilter className="h-4 w-4 text-[#191632]" />
-            </Button>
+            
+            {/* Location Autocomplete */}
+            <div className="flex gap-2 items-center">
+              <div className="w-full">
+                <LocationAutocomplete
+                  placeholder="Search for a location..."
+                  onLocationSelect={(selectedLocation) => {
+                    // Update the location name
+                    setUserRoadName(selectedLocation.name);
+                    
+                    // Dispatch event to update location name
+                    window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
+                      detail: { roadName: selectedLocation.name } 
+                    }));
+                    
+                    // Update coordinates with the selected location
+                    const newLat = selectedLocation.latitude;
+                    const newLng = selectedLocation.longitude;
+                    
+                    // Log the change with coordinates
+                    console.log(`Location changed to: ${selectedLocation.name} at coordinates: ${newLat.toFixed(6)}, ${newLng.toFixed(6)}`);
+                    
+                    // Update user interface with new location value
+                    setLocation({ lat: newLat, lng: newLng });
+                    
+                    // Wait a moment before triggering the location change
+                    setTimeout(() => {
+                      // Update location and trigger a UI refresh
+                      handleLocationChange({ lat: newLat, lng: newLng });
+                    }, 300);
+                  }}
+                />
+              </div>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2 shrink-0"
+                style={{ background: "#f8f7f5" }}
+                onClick={handleOpenFilters}
+              >
+                <FiFilter className="h-4 w-4 text-[#191632]" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
