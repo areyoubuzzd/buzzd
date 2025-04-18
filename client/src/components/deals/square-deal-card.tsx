@@ -204,7 +204,7 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
             <div className="relative h-full">
               {/* Deal image from Cloudinary */}
               <img 
-                src={`${deal.imageUrl || imageUrl || `/images/defaults/drink-default.jpg`}?v=${Date.now()}`} 
+                src={createFallbackSvg(deal.alcohol_category || 'beer')}
                 alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
                 className="w-full h-full object-cover"
                 onError={(e) => {

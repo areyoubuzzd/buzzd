@@ -4,6 +4,37 @@ import { cn } from "@/lib/utils";
 import { heroes, getHeroImage } from "@/assets/heroes";
 import { useLocation } from "wouter";
 
+// Create a safe fallback SVG as data URI - guaranteed to work in all browsers
+// even if imports and Cloudinary fail completely
+function createFallbackSvg(category: string, isGlass: boolean = true): string {
+  // Get color based on drink category
+  let color = '%233090C7'; // Default blue
+  
+  const lowerCategory = category.toLowerCase();
+  if (lowerCategory.includes('beer') || lowerCategory.includes('pint')) {
+    color = '%23D4A017'; // Amber/gold for beer
+  } else if (lowerCategory.includes('wine')) {
+    color = '%23800000'; // Burgundy for wine
+  } else if (lowerCategory.includes('cocktail')) {
+    color = '%234863A0'; // Blue for cocktails
+  } else if (lowerCategory.includes('whisky')) {
+    color = '%23C35817'; // Whisky brown
+  } else if (lowerCategory.includes('vodka') || lowerCategory.includes('gin')) {
+    color = '%23C0C0C0'; // Silver for clear spirits
+  } else if (lowerCategory.includes('rum')) {
+    color = '%23C68E17'; // Dark rum color
+  }
+  
+  // Create a simple SVG with gradient background that looks like a glass/bottle shape
+  if (isGlass) {
+    // Glass SVG with appropriate color
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:${color};stop-opacity:0.9' /%3E%3Cstop offset='100%25' style='stop-color:${color};stop-opacity:0.6' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M80,40 L120,40 L140,120 L140,250 A20,20 0 0 1 120,270 L80,270 A20,20 0 0 1 60,250 L60,120 Z' fill='url(%23grad)' stroke='white' stroke-width='3' /%3E%3C/svg%3E`;
+  } else {
+    // Bottle SVG with appropriate color
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:${color};stop-opacity:0.9' /%3E%3Cstop offset='100%25' style='stop-color:${color};stop-opacity:0.6' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M85,20 L115,20 L115,60 L130,90 L130,270 A10,10 0 0 1 120,280 L80,280 A10,10 0 0 1 70,270 L70,90 L85,60 Z' fill='url(%23grad)' stroke='white' stroke-width='3' /%3E%3C/svg%3E`;
+  }
+}
+
 // Legacy function (not used anymore, using the imported getHeroImage instead)
 function _getDemoHeroImage(drinkType: string | undefined, brand?: string): string {
   // Default images based on category - using publicly accessible image URLs
@@ -471,7 +502,7 @@ function DealCard({
             {/* Hero Image - centered bottle/glass image */}
             <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ zIndex: 1 }}>
               <img 
-                src={`${getHeroImage(deal.brand || deal.drinkType, 'glass')}?v=${Date.now()}`}
+                src={createFallbackSvg(deal.drinkType || 'beer', true)}
                 alt={`${deal.brand || deal.drinkType} hero image`}
                 onError={(e) => {
                   console.log(`Image load error for ${deal.brand || deal.drinkType}, trying SVG fallback first`);
@@ -526,22 +557,22 @@ function DealCard({
                             
                             // Final fallback to default SVG
                             e.currentTarget.onerror = () => {
-                              console.log('All dynamic images failed, using SVG default');
-                              // Default to beer glass SVG
-                              e.currentTarget.src = `${getBrandImage('beer', 'glass')}?v=${Date.now()}`;
+                              console.log('All dynamic images failed, using colored fallback SVG');
+                              // Use our guaranteed-to-work data URL SVG
+                              e.currentTarget.src = createFallbackSvg(drinkType || 'beer', true);
                               e.currentTarget.onerror = null; // Prevent infinite loop
                             };
                           } else {
                             // Skip to final default SVG if no specific category matches
-                            console.log('No matching Cloudinary category, using SVG default');
-                            e.currentTarget.src = `${getBrandImage('beer', 'glass')}?v=${Date.now()}`;
+                            console.log('No matching Cloudinary category, using colored fallback SVG');
+                            e.currentTarget.src = createFallbackSvg(drinkType || 'beer', true);
                             e.currentTarget.onerror = null; // Prevent infinite loop
                           }
                         } catch (err) {
                           console.error('Error in Cloudinary fallback chain:', err);
                           // Fallback to beer glass SVG if everything else fails
                           try {
-                            e.currentTarget.src = `${getBrandImage('beer', 'glass')}?v=${Date.now()}`;
+                            e.currentTarget.src = createFallbackSvg(drinkType || 'beer', true);
                             e.currentTarget.onerror = null; // Prevent infinite loop
                           } catch (innerErr) {
                             console.error('Critical error in all fallbacks', innerErr);
