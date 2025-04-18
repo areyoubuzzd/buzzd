@@ -49,10 +49,43 @@ export function DirectCloudflareUploader({
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to get upload URL: ${response.statusText}`);
+        let errorMessage = `Failed to get upload URL: ${response.statusText}`;
+        
+        try {
+          // Try to parse response as JSON to get more detailed error
+          const errorData = await response.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+          if (errorData.details) {
+            errorMessage += ` (${errorData.details})`;
+          }
+        } catch (e) {
+          // If not JSON, try to get text
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage += `: ${errorText}`;
+            }
+          } catch {
+            // Ignore if we can't get text either
+          }
+        }
+        
+        // If it's a rate limit issue, provide a more helpful message
+        if (response.status === 429 || errorMessage.includes('rate')) {
+          throw new Error('Cloudflare API rate limit reached. Please try again in a few moments.');
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      const { uploadURL, id } = await response.json();
+      const responseData = await response.json();
+      const { uploadURL, id } = responseData;
+      
+      if (!uploadURL || !id) {
+        throw new Error('Invalid response from server, missing upload URL or image ID');
+      }
 
       // Step 2: Upload directly to Cloudflare
       const formData = new FormData();
@@ -68,7 +101,27 @@ export function DirectCloudflareUploader({
       });
 
       if (!uploadResponse.ok) {
-        throw new Error(`Failed to upload image: ${uploadResponse.statusText}`);
+        let errorMessage = `Failed to upload image: ${uploadResponse.statusText}`;
+        
+        try {
+          // Try to parse response as JSON
+          const errorData = await uploadResponse.json();
+          if (errorData.error) {
+            errorMessage = `Upload failed: ${errorData.error}`;
+          }
+        } catch (e) {
+          // If not JSON, try to get text
+          try {
+            const errorText = await uploadResponse.text();
+            if (errorText) {
+              errorMessage += `: ${errorText}`;
+            }
+          } catch {
+            // Ignore if we can't get text either
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       // Step 3: Use the image ID

@@ -254,9 +254,21 @@ export function CloudflareImageUploader({
       });
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('Upload failed:', errorText);
-        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}. ${errorText}`);
+        let errorMessage = `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`;
+        
+        try {
+          // Try to parse as JSON first
+          const responseData = await uploadResponse.json();
+          console.error('Upload failed:', responseData);
+          errorMessage = responseData.error || responseData.details || errorMessage;
+        } catch (jsonError) {
+          // If not JSON, treat as text
+          const errorText = await uploadResponse.text();
+          console.error('Upload failed (text):', errorText);
+          errorMessage = `${errorMessage}. ${errorText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await uploadResponse.json();
