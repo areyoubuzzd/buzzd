@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { mapToDrinkCategory, getDrinkCategoryColor } from '@/lib/drink-category-utils';
+import { Loader2 } from 'lucide-react';
 
 interface CloudflareImageProps {
   imageId: string | null | undefined;
@@ -32,7 +33,63 @@ export function CloudflareImage({
   drinkName
 }: CloudflareImageProps) {
   const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isImageAvailable, setIsImageAvailable] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const accountId = import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID as string;
+  
+  // For newly uploaded images, Cloudflare might need a moment to process them
+  // We'll check if the image is available with a simple fetch
+  useEffect(() => {
+    if (!imageId || imageError) return;
+    
+    // If we've retried too many times, give up
+    if (retryCount > 5) {
+      console.warn(`Gave up waiting for image ${imageId} after ${retryCount} attempts`);
+      setImageError(true);
+      return;
+    }
+    
+    // Construct the image URL
+    const url = `https://imagedelivery.net/${accountId}/${imageId}/${variant}`;
+    
+    // Check if the image is available
+    let isMounted = true;
+    setIsLoading(true);
+    
+    const checkImage = async () => {
+      try {
+        // Use a proxy request through our server to avoid CORS issues with HEAD requests
+        // Direct HEAD requests to Cloudflare may fail in the browser
+        const response = await fetch(`/api/cloudflare/images/${imageId}/check`);
+        
+        if (!isMounted) return;
+        
+        if (response.ok) {
+          setIsImageAvailable(true);
+          setIsLoading(false);
+        } else {
+          // Image is not ready yet, retry after a delay
+          console.log(`Image ${imageId} not ready yet (status: ${response.status}), retrying...`);
+          setRetryCount(prev => prev + 1);
+          
+          // Retry with exponential backoff
+          setTimeout(checkImage, 1000 * Math.min(3, retryCount + 1));
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        console.error(`Error checking image availability: ${error}`);
+        setImageError(true);
+        setIsLoading(false);
+      }
+    };
+    
+    checkImage();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [imageId, accountId, variant, retryCount, imageError]);
 
   // Map to detailed drink category for better image organization
   const detailedCategory = drinkName ? mapToDrinkCategory(drinkName, category) : category;
@@ -165,6 +222,27 @@ export function CloudflareImage({
     );
   }
   
+  // If we're loading/waiting for Cloudflare to process the image, show a loading state
+  if (isLoading && retryCount > 0) {
+    return (
+      <div 
+        className={cn("relative flex items-center justify-center", className)}
+        style={{ 
+          width: width ? `${width}px` : 'auto', 
+          height: height ? `${height}px` : 'auto',
+          backgroundColor: "#f3f4f6"
+        }}
+      >
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <p className="text-xs text-gray-500 mt-2">Processing image...</p>
+          <p className="text-xs text-gray-400">Attempt {retryCount} of 5</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Image is ready to display
   return (
     <img
       src={imageUrl}

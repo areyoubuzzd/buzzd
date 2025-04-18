@@ -206,6 +206,61 @@ router.get('/api/cloudflare/images/:id', requireCloudflareConfig, async (req: Re
   }
 });
 
+// Check if an image is available (for newly uploaded images)
+router.get('/api/cloudflare/images/:id/check', requireCloudflareConfig, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    
+    if (!accountId) {
+      return res.status(500).json({ 
+        error: 'Cloudflare account ID not configured'
+      });
+    }
+    
+    // Try to get the image details from Cloudflare
+    try {
+      await getImageDetails(id);
+      
+      // If we get here, the image exists in Cloudflare's database
+      // Now check if the delivery URL is accessible
+      const imageUrl = `https://imagedelivery.net/${accountId}/${id}/public`;
+      
+      const response = await fetch(imageUrl, { method: 'HEAD' });
+      
+      if (response.ok) {
+        // Image is fully processed and available
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Image is available',
+          url: imageUrl 
+        });
+      } else {
+        // Image is in Cloudflare's database but not fully processed yet
+        return res.status(202).json({ 
+          success: false, 
+          message: 'Image is being processed',
+          status: response.status
+        });
+      }
+    } catch (detailsError) {
+      // Image doesn't exist or there was an error getting details
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Image not found',
+        details: detailsError instanceof Error ? detailsError.message : 'Unknown error'
+      });
+    }
+  } catch (error) {
+    console.error('Error checking image availability:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to check image availability',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Check Cloudflare Images connection
 router.get('/api/cloudflare/connection', async (req: Request, res: Response) => {
   try {
