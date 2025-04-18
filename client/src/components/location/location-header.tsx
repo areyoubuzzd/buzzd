@@ -30,65 +30,63 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
   };
 
   return (
-    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+    <div className="bg-[#d6cfc7] px-4 py-3 border-b border-gray-200">
       <div className="container mx-auto">
-        <div className="flex flex-col">
-          <div className="flex items-center justify-between mb-2">
-            {isLocationSelectOpen ? (
-              <LocationAutocomplete
-                defaultValue=""
-                placeholder="Search for a location..."
-                onLocationSelect={(selectedLocation) => {
-                  // Use the coordinates from the selected location
-                  const newLat = selectedLocation.latitude;
-                  const newLng = selectedLocation.longitude;
-                  
-                  console.log("Selected location:", selectedLocation);
-                  
-                  // Update location name and coordinates in context - no timeout
-                  if (selectedLocation.name === "My Location") {
-                    // If My Location selected, update with flag
-                    console.log("Updating to My Location");
-                    updateLocation(
-                      { lat: newLat, lng: newLng }, 
-                      "My Location"
-                    );
-                  } else {
-                    // Pass the actual location name for display
-                    console.log(`Updating to location: ${selectedLocation.name}`);
-                    updateLocation(
-                      { lat: newLat, lng: newLng }, 
-                      selectedLocation.name
-                    );
-                  }
-                  
-                  // Close the location selector
-                  setIsLocationSelectOpen(false);
-                }}
-              />
-            ) : (
-              <div 
-                className="flex items-center text-sm text-gray-600 cursor-pointer"
-                onClick={() => {
-                  setIsLocationSelectOpen(true);
-                }}
-              >
-                <FiMapPin className="mr-1 h-4 w-4 text-gray-400" />
-                <span className="font-medium">{userRoadName}</span>
-              </div>
-            )}
-            {/* Filter button */}
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="sm" 
-              className="border border-gray-200 hover:bg-gray-100 rounded-lg p-2 shrink-0"
-              style={{ background: "#f8f7f5" }}
-              onClick={handleOpenFilters}
+        <div className="flex items-center justify-between">
+          {isLocationSelectOpen ? (
+            <LocationAutocomplete
+              defaultValue=""
+              placeholder="Search for a location..."
+              onLocationSelect={(selectedLocation) => {
+                // Use the coordinates from the selected location
+                const newLat = selectedLocation.latitude;
+                const newLng = selectedLocation.longitude;
+                
+                console.log("Selected location:", selectedLocation);
+                
+                // Update location name and coordinates in context - no timeout
+                if (selectedLocation.name === "My Location") {
+                  // If My Location selected, update with flag
+                  console.log("Updating to My Location");
+                  updateLocation(
+                    { lat: newLat, lng: newLng }, 
+                    "My Location"
+                  );
+                } else {
+                  // Pass the actual location name for display
+                  console.log(`Updating to location: ${selectedLocation.name}`);
+                  updateLocation(
+                    { lat: newLat, lng: newLng }, 
+                    selectedLocation.name
+                  );
+                }
+                
+                // Close the location selector
+                setIsLocationSelectOpen(false);
+              }}
+            />
+          ) : (
+            <div 
+              className="flex items-center text-sm text-gray-700 cursor-pointer"
+              onClick={() => {
+                setIsLocationSelectOpen(true);
+              }}
             >
-              <FiFilter className="h-4 w-4 text-[#191632]" />
-            </Button>
-          </div>
+              <FiMapPin className="mr-1 h-4 w-4 text-gray-500" />
+              <span className="font-medium">{userRoadName}</span>
+            </div>
+          )}
+          {/* Filter button */}
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm" 
+            className="border border-gray-300 hover:bg-gray-100 rounded-lg p-2 shrink-0"
+            style={{ background: "#c9c2ba" }}
+            onClick={handleOpenFilters}
+          >
+            <FiFilter className="h-4 w-4 text-[#191632]" />
+          </Button>
         </div>
       </div>
     </div>

@@ -269,41 +269,45 @@ export default function RestaurantsPage() {
   return (
     <div className="pb-20">
       <div className="bg-primary text-white py-4 px-4 sticky top-0 z-10">
-        <motion.h1
-          className="text-2xl font-bold mb-2"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ 
-            type: "spring",
-            stiffness: 400,
-            damping: 15
-          }}
-        >
-          Restaurants
-        </motion.h1>
-        <motion.div 
-          className="relative"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ 
-            delay: 0.1,
-            duration: 0.3
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+        <div className="flex justify-between items-center">
+          <motion.h1
+            className="text-2xl font-bold"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 400,
+              damping: 15
+            }}
           >
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            Restaurants
+          </motion.h1>
+
+          {/* Search bar - made smaller and moved to the right */}
+          <motion.div 
+            className="relative w-40"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ 
+              delay: 0.1,
+              duration: 0.3
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            </motion.div>
+            <Input
+              className="bg-white/10 border-0 focus-visible:ring-1 text-white pl-8 h-8 text-sm"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </motion.div>
-          <Input
-            className="bg-white/10 border-0 focus-visible:ring-1 text-white pl-10"
-            placeholder="Search restaurants..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </motion.div>
+        </div>
       </div>
       
       {/* Location Header Component */}
