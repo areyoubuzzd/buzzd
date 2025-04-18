@@ -18,6 +18,13 @@ router.get('/search', async (req, res) => {
         error: 'Search query parameter (q) is required and must be a string' 
       });
     }
+    
+    // Reduce minimum query length to 1 character
+    if (q.length < 1) {
+      return res.status(400).json({
+        error: 'Search query must be at least 1 character long'
+      });
+    }
 
     const searchTerm = `%${q}%`; // Add wildcards for partial matching
     
