@@ -43,10 +43,10 @@ export function CloudflareImage({
   useEffect(() => {
     if (!imageId || imageError) return;
     
-    // If we've retried too many times, give up - Cloudflare can be slow sometimes
-    // Most of these images seem to be stuck in processing, so we'll give up after 3 attempts
-    if (retryCount > 3) {
-      console.warn(`Gave up waiting for image ${imageId} after ${retryCount} attempts`);
+    // Immediately show fallback after 1 attempt - we'll just use the fallbacks since
+    // there appears to be an ongoing issue with the Cloudflare image service
+    if (retryCount > 0) {
+      console.warn(`Using fallback for image ${imageId} to reduce API load`);
       setImageError(true);
       return;
     }
@@ -73,13 +73,11 @@ export function CloudflareImage({
           return;
         }
         
-        // If we get here, the image is not ready yet
-        console.log(`Image ${imageId} not ready yet (status: ${status}), retrying...`);
+        // If we get here, the image is not ready yet - immediately use fallback
+        console.log(`Image ${imageId} not ready yet (status: ${status}), using fallback`);
         setRetryCount(prev => prev + 1);
-        setIsLoading(true);
-        
-        // Retry with exponential backoff, but don't wait too long
-        setTimeout(checkImage, 1000 * Math.min(2, retryCount + 1));
+        setImageError(true);
+        setIsLoading(false);
       } catch (error) {
         if (!isMounted) return;
         console.error(`Error checking image availability: ${error}`);
