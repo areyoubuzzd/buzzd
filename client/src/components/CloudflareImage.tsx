@@ -62,16 +62,20 @@ export function CloudflareImage({
         // Use a proxy request through our server to avoid CORS issues with HEAD requests
         // Direct HEAD requests to Cloudflare may fail in the browser
         const response = await fetch(`/api/cloudflare/images/${imageId}/check`);
+        const responseData = await response.json();
         
         if (!isMounted) return;
         
-        if (response.ok) {
+        // HTTP status 200 means image is ready, 202 means it's still processing
+        if (response.status === 200 && responseData.success) {
+          console.log(`Image ${imageId} is available and ready to display`);
           setIsImageAvailable(true);
           setIsLoading(false);
         } else {
           // Image is not ready yet, retry after a delay
           console.log(`Image ${imageId} not ready yet (status: ${response.status}), retrying...`);
           setRetryCount(prev => prev + 1);
+          setIsLoading(true);
           
           // Retry with exponential backoff
           setTimeout(checkImage, 1000 * Math.min(3, retryCount + 1));
@@ -223,7 +227,7 @@ export function CloudflareImage({
   }
   
   // If we're loading/waiting for Cloudflare to process the image, show a loading state
-  if (isLoading && retryCount > 0) {
+  if (isLoading) {
     return (
       <div 
         className={cn("relative flex items-center justify-center", className)}
