@@ -67,40 +67,54 @@ export function getRandomDrinkImageUrl(
   // The working URL format is:
   // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp
 
-  // Known existing Cloudinary images (exact URLs that are confirmed to work)
+  // Known existing Cloudinary images with folder structure 
+  // Format: https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/5.jpg
   const knownDrinkImages: Record<string, string[]> = {
     'asahi pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/asahi_pint_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/2.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/3.jpg'
     ],
     'tiger pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/tiger_pint_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/2.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/3.jpg'
     ],
     'heineken pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/heineken_pint_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/2.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/3.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/4.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/5.jpg'
     ],
     'red wine': [
-      // We now have 3 verified working URLs for red wine
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass2_n34ael.webp',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass3_spcvka.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/2.jpg', 
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/3.jpg'
     ],
     'white wine': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/white_wine_glass_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/white_wine/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/white_wine/2.jpg'
     ],
     'margarita': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/margarita_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/margarita/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/margarita/2.jpg'
     ],
     'negroni': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/negroni_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/negroni/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/negroni/2.jpg'
     ],
     'mojito': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/mojito_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/mojito/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/cocktail/mojito/2.jpg'
     ],
     'whisky': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/whisky_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/whisky/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/whisky/2.jpg'
     ],
     'chivas': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/chivas_jhrawp.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/chivas/1.jpg',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/spirits/chivas/2.jpg'
     ]
   };
   
@@ -119,30 +133,30 @@ export function getRandomDrinkImageUrl(
     return drinkImages[imageIndex];
   }
   
-  // For unknown drinks, we'll create a URL following one of the patterns that work:
-  // Pattern 1: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp
-  // Pattern 2: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass2_n34ael.webp
-  // Pattern 3: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936849/red_wine_glass3_spcvka.webp
+  // For unknown drinks, we'll create a URL using the folder structure format:
+  // Format: https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/5.jpg
   
   const formattedDrinkName = formatDrinkNameForCloudinary(drinkName);
   
-  // Use one of the working version numbers from your examples
-  const versions = [1744936848, 1744936849];
-  const version = versions[Math.floor(Math.random() * versions.length)];
+  // Determine the category based on drink name
+  let category = 'other';
+  if (formattedDrinkName.includes('pint') || formattedDrinkName.includes('beer')) {
+    category = 'beer';
+  } else if (formattedDrinkName.includes('wine')) {
+    category = 'wine';
+  } else if (formattedDrinkName.includes('whisky') || formattedDrinkName.includes('vodka') || 
+             formattedDrinkName.includes('rum') || formattedDrinkName.includes('gin')) {
+    category = 'spirits';
+  } else if (formattedDrinkName.includes('margarita') || formattedDrinkName.includes('mojito') || 
+             formattedDrinkName.includes('cocktail') || formattedDrinkName.includes('martini')) {
+    category = 'cocktail';
+  }
   
-  // Use one of the known working suffixes
-  const suffixes = ['jhrawp', 'n34ael', 'spcvka'];
-  const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+  // Generate a random image number from 1-5
+  const randomNumber = Math.floor(Math.random() * 5) + 1;
   
-  // We might have a number in the name to indicate variant (glass2, glass3)
-  const variants = ['', '2', '3'];
-  const variant = variants[Math.floor(Math.random() * variants.length)];
-  
-  // Use .webp format as it's used in all your working examples
-  const format = 'webp';
-  
-  // Create the URL using the same format as your working example
-  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${formattedDrinkName}${variant}_${suffix}.${format}`;
+  // Create the URL using the folder structure format
+  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/brands/${category}/${formattedDrinkName}/${randomNumber}.jpg`;
   
   console.log(`Generated URL for ${drinkName}: ${imageUrl}`);
   return imageUrl;
@@ -193,9 +207,9 @@ export function getDefaultDrinkImageUrl(width: number = 400, height: number = 40
     'Whisky': 'whisky'
   };
   
-  // Use a generic drink image as fallback
-  // We'll use jpg format as our primary extension since that works reliably with our Tiger Pint test
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/generic_drink.jpg`;
+  // Use a generic drink image as fallback using the folder structure
+  // We'll use jpg format as our primary extension since that works reliably with our tests
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/defaults/generic_drink/1.jpg`;
 }
 
 /**
@@ -208,7 +222,8 @@ export function getDrinkCategoryImageUrl(category: string, width: number = 400, 
   
   const categoryKey = category.toLowerCase().replace(/[^\w\s]/g, '').trim().replace(/\s+/g, '_');
   
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/categories/${categoryKey}.jpg`;
+  // Use folder structure format for category images as well
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/categories/${categoryKey}/1.jpg`;
 }
 
 /**
