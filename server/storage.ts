@@ -5,6 +5,7 @@ import {
   reviews, type Review, type InsertReview,
   savedDeals, type SavedDeal, type InsertSavedDeal,
   userDealViews, type UserDealView, type InsertUserDealView,
+  singaporeLocations, type SingaporeLocation,
   type DealWithEstablishment,
   type DealWithDetails
 } from "@shared/schema";
@@ -71,6 +72,12 @@ export interface IStorage {
   recordDealView(data: InsertUserDealView): Promise<UserDealView>;
   getUserDealViews(userId: number): Promise<UserDealView[]>;
   getUserSavings(userId: number): Promise<number>;
+  
+  // Singapore Locations
+  searchLocationsByQuery(query: string): Promise<SingaporeLocation[]>;
+  getLocationByPostalCode(postalCode: string): Promise<SingaporeLocation | undefined>;
+  getLocationsByDistrict(district: string): Promise<SingaporeLocation[]>;
+  getNearbyLocations(latitude: number, longitude: number, radiusKm: number): Promise<SingaporeLocation[]>;
   
   // Session store for authentication
   sessionStore: session.SessionStore;
@@ -1515,6 +1522,87 @@ export class MemStorage implements IStorage {
     return totalSavings;
   }
 
+  // Singapore Locations methods
+  async searchLocationsByQuery(query: string): Promise<SingaporeLocation[]> {
+    // Search by name, area, or alternate names with case-insensitive search
+    return db
+      .select()
+      .from(singaporeLocations)
+      .where(
+        or(
+          ilike(singaporeLocations.name, `%${query}%`),
+          ilike(singaporeLocations.area, `%${query}%`),
+          ilike(singaporeLocations.alternateNames, `%${query}%`)
+        )
+      )
+      .orderBy(desc(singaporeLocations.isPopular))
+      .limit(10);
+  }
+  
+  async getLocationByPostalCode(postalCode: string): Promise<SingaporeLocation | undefined> {
+    // First try for exact match on postal code
+    const [exactMatch] = await db
+      .select()
+      .from(singaporeLocations)
+      .where(eq(singaporeLocations.postalCode, postalCode))
+      .limit(1);
+    
+    if (exactMatch) {
+      return exactMatch;
+    }
+    
+    // If no exact match, check postal district (first 2 digits)
+    if (postalCode.length >= 2) {
+      const postalDistrict = postalCode.substring(0, 2);
+      const [districtMatch] = await db
+        .select()
+        .from(singaporeLocations)
+        .where(eq(singaporeLocations.postalDistrict, postalDistrict))
+        .orderBy(desc(singaporeLocations.isPopular)) // Return popular locations first
+        .limit(1);
+      
+      if (districtMatch) {
+        return districtMatch;
+      }
+    }
+    
+    return undefined;
+  }
+  
+  async getLocationsByDistrict(district: string): Promise<SingaporeLocation[]> {
+    return db
+      .select()
+      .from(singaporeLocations)
+      .where(eq(singaporeLocations.postalDistrict, district))
+      .orderBy(desc(singaporeLocations.isPopular)) // Popular locations first
+      .limit(5);
+  }
+  
+  async getNearbyLocations(latitude: number, longitude: number, radiusKm: number): Promise<SingaporeLocation[]> {
+    // Using the Haversine formula to calculate distance
+    const haversine = sql`
+      2 * 6371 * asin(
+        sqrt(
+          pow(sin((radians(${latitude}) - radians(${singaporeLocations.latitude})) / 2), 2) +
+          cos(radians(${latitude})) * cos(radians(${singaporeLocations.latitude})) *
+          pow(sin((radians(${longitude}) - radians(${singaporeLocations.longitude})) / 2), 2)
+        )
+      )
+    `;
+    
+    const result = await db
+      .select({
+        ...singaporeLocations,
+        distance: haversine
+      })
+      .from(singaporeLocations)
+      .where(sql`${haversine} <= ${radiusKm}`)
+      .orderBy(asc(haversine))
+      .limit(10);
+    
+    return result;
+  }
+  
   // Helper method for calculating distance between two coordinates
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     // Haversine formula
