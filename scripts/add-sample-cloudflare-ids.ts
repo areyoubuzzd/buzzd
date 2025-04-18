@@ -43,7 +43,7 @@ async function addSampleIds() {
         await db
           .update(deals)
           .set({ 
-            image_id: imageId,
+            imageId: imageId,
             // Also, let's use our advanced categorization
             alcohol_subcategory: deal.alcohol_subcategory || getSubcategoryFromDrink(drinkName)
           })
@@ -55,20 +55,24 @@ async function addSampleIds() {
     
     // Update establishments with sample image IDs
     for (const [establishmentName, imageId] of Object.entries(sampleEstablishmentImageIds)) {
-      // Find establishments with this name
-      const matchingEstablishments = await db
-        .select()
-        .from(establishments)
-        .where(eq(establishments.name, establishmentName));
-      
-      for (const establishment of matchingEstablishments) {
-        // Update with image ID
-        await db
-          .update(establishments)
-          .set({ image_id: imageId })
-          .where(eq(establishments.id, establishment.id));
+      try {
+        // Find establishments with this name
+        const matchingEstablishments = await db
+          .select()
+          .from(establishments)
+          .where(eq(establishments.name, establishmentName));
         
-        console.log(`Updated establishment #${establishment.id} (${establishmentName}) with Cloudflare image ID: ${imageId}`);
+        for (const establishment of matchingEstablishments) {
+          // Update with image ID
+          await db
+            .update(establishments)
+            .set({ imageId: imageId })
+            .where(eq(establishments.id, establishment.id));
+          
+          console.log(`Updated establishment #${establishment.id} (${establishmentName}) with Cloudflare image ID: ${imageId}`);
+        }
+      } catch (error) {
+        console.error(`Error updating ${establishmentName}:`, error);
       }
     }
     
