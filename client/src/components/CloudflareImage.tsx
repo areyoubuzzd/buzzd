@@ -103,7 +103,11 @@ export function CloudflareImage({
       // If we can't load from Cloudinary, create a color SVG as final fallback
       // Create a data URL SVG that will work everywhere as final fallback
       const bgcolor = getDrinkCategoryColor(detailedCategory);
-      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='${bgcolor}'/%3E%3C/svg%3E`;
+      const textColor = '#ffffff';
+      const categoryShortName = detailedCategory.split('_').join(' ');
+      
+      // Create a more informative SVG with the category name
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${categoryShortName}%3C/text%3E%3Ctext x='150' y='125' font-family='Arial' font-size='14' fill='${textColor}' text-anchor='middle'%3E(Fallback Image)%3C/text%3E%3C/svg%3E`;
     }
   };
 
@@ -169,8 +173,9 @@ export function CloudflareImage({
       height={height}
       className={cn("object-cover", className)}
       loading="lazy"
-      onError={() => {
+      onError={(e) => {
         console.warn(`Failed to load image from Cloudflare: ${imageId}`);
+        console.log(`Attempted to load from URL: ${(e.target as HTMLImageElement).src}`);
         setImageError(true);
       }}
     />
