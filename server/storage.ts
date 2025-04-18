@@ -1521,6 +1521,27 @@ export class MemStorage implements IStorage {
     
     return totalSavings;
   }
+  
+  // Singapore Locations methods - Memory storage implementation
+  async searchLocationsByQuery(query: string): Promise<SingaporeLocation[]> {
+    // In-memory implementation - just return an empty array
+    return [];
+  }
+  
+  async getLocationByPostalCode(postalCode: string): Promise<SingaporeLocation | undefined> {
+    // In-memory implementation - return undefined
+    return undefined;
+  }
+  
+  async getLocationsByDistrict(district: string): Promise<SingaporeLocation[]> {
+    // In-memory implementation - just return an empty array
+    return [];
+  }
+  
+  async getNearbyLocations(latitude: number, longitude: number, radiusKm: number): Promise<SingaporeLocation[]> {
+    // In-memory implementation - just return an empty array
+    return [];
+  }
 
   // Singapore Locations methods
   async searchLocationsByQuery(query: string): Promise<SingaporeLocation[]> {

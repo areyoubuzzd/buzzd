@@ -2,10 +2,8 @@
  * API routes for location services including postal code search
  */
 import express, { Request, Response } from 'express';
-import { db } from '../db';
-import { singaporeLocations } from '../../shared/schema';
-import { eq, like, or, ilike, sql } from 'drizzle-orm';
-import { haversineDistance } from '../../client/src/utils/distance';
+import { storage } from '../storage';
+import { z } from 'zod';
 
 const router = express.Router();
 
@@ -16,24 +14,15 @@ const router = express.Router();
 router.get('/search', async (req: Request, res: Response) => {
   try {
     const query = req.query.query as string;
+    
     if (!query || query.length < 2) {
-      return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+      return res.status(400).json({ 
+        error: 'Query parameter must be at least 2 characters' 
+      });
     }
     
-    // Search by name, area, or alternate names
-    const results = await db
-      .select()
-      .from(singaporeLocations)
-      .where(
-        or(
-          ilike(singaporeLocations.name, `%${query}%`),
-          ilike(singaporeLocations.area, `%${query}%`),
-          ilike(singaporeLocations.alternateNames, `%${query}%`)
-        )
-      )
-      .limit(10);
-    
-    return res.json(results);
+    const locations = await storage.searchLocationsByQuery(query);
+    return res.json(locations);
   } catch (error) {
     console.error('Error searching locations:', error);
     return res.status(500).json({ error: 'Failed to search locations' });
@@ -47,53 +36,21 @@ router.get('/search', async (req: Request, res: Response) => {
 router.get('/postal-code/:code', async (req: Request, res: Response) => {
   try {
     const postalCode = req.params.code;
-    if (!postalCode || !/^\d{6}$/.test(postalCode)) {
+    
+    // Validate the postal code format (Singapore postal codes are 6 digits)
+    if (!/^\d{6}$/.test(postalCode)) {
       return res.status(400).json({ 
-        error: 'Invalid postal code format. Singapore postal codes must be 6 digits.' 
+        error: 'Invalid postal code format. Singapore postal codes should be 6 digits.' 
       });
     }
     
-    // First, try for exact match
-    const exactMatch = await db
-      .select()
-      .from(singaporeLocations)
-      .where(eq(singaporeLocations.postalCode, postalCode))
-      .limit(1);
+    const location = await storage.getLocationByPostalCode(postalCode);
     
-    if (exactMatch.length > 0) {
-      return res.json(exactMatch[0]);
+    if (!location) {
+      return res.status(404).json({ error: 'Location not found for this postal code' });
     }
     
-    // If no exact match, check postal district (first 2 digits)
-    const postalDistrict = postalCode.substring(0, 2);
-    const districtMatches = await db
-      .select()
-      .from(singaporeLocations)
-      .where(eq(singaporeLocations.postalDistrict, postalDistrict))
-      .limit(5);
-    
-    if (districtMatches.length > 0) {
-      // Return the most popular location in that district
-      const popularMatch = districtMatches.find(loc => loc.isPopular);
-      if (popularMatch) {
-        return res.json({
-          ...popularMatch,
-          matchType: 'district',
-          message: 'Exact postal code not found. Using location in the same district.'
-        });
-      }
-      return res.json({
-        ...districtMatches[0],
-        matchType: 'district',
-        message: 'Exact postal code not found. Using location in the same district.'
-      });
-    }
-    
-    // If still no match, return the closest major area/neighborhood
-    return res.status(404).json({ 
-      error: 'Location not found for this postal code',
-      suggestion: 'Try searching by area name instead or use your current location'
-    });
+    return res.json(location);
   } catch (error) {
     console.error('Error looking up postal code:', error);
     return res.status(500).json({ error: 'Failed to lookup postal code' });
@@ -106,42 +63,60 @@ router.get('/postal-code/:code', async (req: Request, res: Response) => {
  */
 router.get('/nearby', async (req: Request, res: Response) => {
   try {
-    const lat = parseFloat(req.query.lat as string);
-    const lng = parseFloat(req.query.lng as string);
-    let radius = parseFloat(req.query.radius as string) || 5; // Default to 5km
+    const querySchema = z.object({
+      lat: z.string().transform(s => parseFloat(s)),
+      lng: z.string().transform(s => parseFloat(s)),
+      radius: z.string().optional().transform(s => parseFloat(s || '5')), // Default 5km radius
+    });
     
-    // Validate parameters
-    if (isNaN(lat) || isNaN(lng)) {
-      return res.status(400).json({ error: 'Invalid latitude or longitude' });
+    const result = querySchema.safeParse(req.query);
+    
+    if (!result.success) {
+      return res.status(400).json({ 
+        error: 'Invalid parameters. Please provide valid lat and lng coordinates.'
+      });
     }
     
-    // Cap radius at reasonable value
-    radius = Math.min(radius, 20); // Maximum 20km
+    const { lat, lng, radius } = result.data;
     
-    // Calculate Haversine distance in the database query 
-    // for more efficient filtering
-    const haversineQuery = sql`
-      6371 * acos(
-        cos(radians(${lat})) * cos(radians(${singaporeLocations.latitude})) * 
-        cos(radians(${singaporeLocations.longitude}) - radians(${lng})) + 
-        sin(radians(${lat})) * sin(radians(${singaporeLocations.latitude}))
-      )`;
+    // Basic validation for coordinates
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
     
-    // Query with distance calculation and filtering
-    const nearbyLocations = await db
-      .select({
-        ...singaporeLocations,
-        distance: haversineQuery
-      })
-      .from(singaporeLocations)
-      .where(sql`${haversineQuery} <= ${radius}`)
-      .orderBy(haversineQuery)
-      .limit(10);
-    
-    return res.json(nearbyLocations);
+    const locations = await storage.getNearbyLocations(lat, lng, radius);
+    return res.json(locations);
   } catch (error) {
     console.error('Error finding nearby locations:', error);
     return res.status(500).json({ error: 'Failed to find nearby locations' });
+  }
+});
+
+/**
+ * Get locations by district (first 2 digits of postal code)
+ * GET /api/locations/district/01
+ */
+router.get('/district/:code', async (req: Request, res: Response) => {
+  try {
+    const district = req.params.code;
+    
+    // Validate the district format (first 2 digits of postal code)
+    if (!/^\d{2}$/.test(district)) {
+      return res.status(400).json({ 
+        error: 'Invalid district format. District should be 2 digits (first 2 digits of postal code).' 
+      });
+    }
+    
+    const locations = await storage.getLocationsByDistrict(district);
+    
+    if (locations.length === 0) {
+      return res.status(404).json({ error: 'No locations found for this district' });
+    }
+    
+    return res.json(locations);
+  } catch (error) {
+    console.error('Error looking up district:', error);
+    return res.status(500).json({ error: 'Failed to lookup district' });
   }
 });
 

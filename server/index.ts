@@ -49,6 +49,12 @@ app.use((req, res, next) => {
     next();
   }, (await import('./routes/establishments')).default);
   
+  // Register the locations API routes
+  app.use('/api/locations', (req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  }, (await import('./routes/locations')).default);
+  
   // Also register V2 API routes 
   app.use('/api/v2/deals', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
