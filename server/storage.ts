@@ -10,7 +10,7 @@ import {
   type DealWithDetails
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte, lte, inArray, sql, desc, asc, or, lt, gt, ilike } from "drizzle-orm";
+import { eq, and, gte, lte, inArray, sql, desc, asc, or, lt, gt, ilike, like } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import createMemoryStore from "memorystore";
@@ -933,7 +933,23 @@ export class DatabaseStorage implements IStorage {
       return exactMatch;
     }
     
-    // If no exact match, check postal district (first 2 digits)
+    // Second, try partial match on postal code (useful for areas with multiple codes)
+    // This helps with cases where user enters a postal code like 278998 and we have 278997
+    if (postalCode.length >= 4) {
+      const partialCode = postalCode.substring(0, 4); // First 4 digits
+      const [partialMatch] = await db
+        .select()
+        .from(singaporeLocations)
+        .where(like(singaporeLocations.postalCode, `${partialCode}%`))
+        .orderBy(desc(singaporeLocations.isPopular)) // Return popular locations first
+        .limit(1);
+      
+      if (partialMatch) {
+        return partialMatch;
+      }
+    }
+    
+    // Third, if no exact or partial match, check postal district (first 2 digits)
     if (postalCode.length >= 2) {
       const postalDistrict = postalCode.substring(0, 2);
       const [districtMatch] = await db

@@ -83,7 +83,9 @@ async function seedInitialLocations() {
   console.log('Seeding initial Singapore locations...');
   
   // Popular locations in Singapore with accurate coordinates
+  // Focus on areas with high concentration of bars and restaurants
   const initialLocations = [
+    // Original popular locations
     {
       name: 'Orchard Road',
       postalCode: '238823',
@@ -91,7 +93,29 @@ async function seedInitialLocations() {
       area: 'Central',
       latitude: 1.3036,
       longitude: 103.8318,
-      alternateNames: 'Orchard, Shopping District',
+      alternateNames: 'Orchard, Shopping District, Orchard Area',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Somerset',
+      postalCode: '238164',
+      postalDistrict: '23',
+      area: 'Orchard Area',
+      latitude: 1.3006,
+      longitude: 103.8368,
+      alternateNames: 'Somerset MRT, 313 Somerset, Orchard Road',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Dhoby Ghaut',
+      postalCode: '238826',
+      postalDistrict: '23',
+      area: 'Orchard Area',
+      latitude: 1.2993,
+      longitude: 103.8455,
+      alternateNames: 'Plaza Singapura, The Cathay, Orchard Area',
       locationType: 'district',
       isPopular: true
     },
@@ -201,8 +225,30 @@ async function seedInitialLocations() {
       area: 'Central',
       latitude: 1.3067,
       longitude: 103.8517,
-      alternateNames: 'Tekka, Serangoon Road',
+      alternateNames: 'Tekka, Serangoon Road, Little India Area',
       locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Tyrwhitt Road',
+      postalCode: '207564',
+      postalDistrict: '20',
+      area: 'Little India Area',
+      latitude: 1.3093,
+      longitude: 103.8561,
+      alternateNames: 'Tyrwhitt, Jalan Besar, Little India',
+      locationType: 'street',
+      isPopular: true
+    },
+    {
+      name: 'Syed Alwi Road',
+      postalCode: '207630',
+      postalDistrict: '20',
+      area: 'Little India Area',
+      latitude: 1.3103,
+      longitude: 103.8549,
+      alternateNames: 'Syed Alwi, Mustafa Centre, Little India',
+      locationType: 'street',
       isPopular: true
     },
     {
@@ -248,6 +294,219 @@ async function seedInitialLocations() {
       alternateNames: 'ECP, East Coast',
       locationType: 'park',
       isPopular: true
+    },
+    
+    // Additional locations with high concentration of bars/restaurants
+    {
+      name: 'Robertson Quay',
+      postalCode: '238879',
+      postalDistrict: '23',
+      area: 'River Valley',
+      latitude: 1.2908,
+      longitude: 103.8367,
+      alternateNames: 'Robertson, Riverside',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Boat Quay',
+      postalCode: '049860',
+      postalDistrict: '04',
+      area: 'CBD',
+      latitude: 1.2872,
+      longitude: 103.8503,
+      alternateNames: 'Singapore River, Riverside',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Amoy Street',
+      postalCode: '069924',
+      postalDistrict: '06',
+      area: 'CBD',
+      latitude: 1.2798,
+      longitude: 103.8470,
+      alternateNames: 'Telok Ayer, Far East Square',
+      locationType: 'street',
+      isPopular: true
+    },
+    {
+      name: 'Ann Siang Hill',
+      postalCode: '069788',
+      postalDistrict: '06',
+      area: 'Chinatown',
+      latitude: 1.2803,
+      longitude: 103.8453,
+      alternateNames: 'Club Street, Ann Siang Road',
+      locationType: 'street',
+      isPopular: true
+    },
+    {
+      name: 'Keong Saik Road',
+      postalCode: '089144',
+      postalDistrict: '08',
+      area: 'Chinatown',
+      latitude: 1.2792,
+      longitude: 103.8410,
+      alternateNames: 'Keong Saik, Chinatown',
+      locationType: 'street',
+      isPopular: true
+    },
+    {
+      name: 'Haji Lane',
+      postalCode: '189244',
+      postalDistrict: '18',
+      area: 'Kampong Glam',
+      latitude: 1.3020,
+      longitude: 103.8590,
+      alternateNames: 'Arab Street, Kampong Glam',
+      locationType: 'street',
+      isPopular: true
+    },
+    {
+      name: 'Serangoon Gardens',
+      postalCode: '555933',
+      postalDistrict: '55',
+      area: 'North East',
+      latitude: 1.3643,
+      longitude: 103.8650,
+      alternateNames: 'Chomp Chomp, myVillage',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Katong',
+      postalCode: '428736',
+      postalDistrict: '42',
+      area: 'East',
+      latitude: 1.3040,
+      longitude: 103.9022,
+      alternateNames: 'East Coast, Marine Parade',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Joo Chiat',
+      postalCode: '427356',
+      postalDistrict: '42',
+      area: 'East',
+      latitude: 1.3159,
+      longitude: 103.9022,
+      alternateNames: 'Joo Chiat Road, East Coast',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Bukit Timah',
+      postalCode: '269698',
+      postalDistrict: '26',
+      area: 'Central West',
+      latitude: 1.3294,
+      longitude: 103.8021,
+      alternateNames: 'Bukit Timah Road, Beauty World',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Neil Road',
+      postalCode: '088810',
+      postalDistrict: '08',
+      area: 'Chinatown',
+      latitude: 1.2797,
+      longitude: 103.8399,
+      alternateNames: 'Outram, Tanjong Pagar',
+      locationType: 'street',
+      isPopular: true
+    },
+    {
+      name: 'Novena',
+      postalCode: '307683',
+      postalDistrict: '30',
+      area: 'Central',
+      latitude: 1.3199,
+      longitude: 103.8434,
+      alternateNames: 'Novena Square, Velocity',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Siglap',
+      postalCode: '455859',
+      postalDistrict: '45',
+      area: 'East',
+      latitude: 1.3099,
+      longitude: 103.9199,
+      alternateNames: 'Upper East Coast, Siglap Road',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Clementi',
+      postalCode: '129588',
+      postalDistrict: '12',
+      area: 'West',
+      latitude: 1.3155,
+      longitude: 103.7649,
+      alternateNames: 'Clementi Mall, West Coast',
+      locationType: 'district',
+      isPopular: false
+    },
+    {
+      name: 'Telok Ayer',
+      postalCode: '068815',
+      postalDistrict: '06',
+      area: 'CBD',
+      latitude: 1.2794,
+      longitude: 103.8491,
+      alternateNames: 'Telok Ayer Street, Amoy Street',
+      locationType: 'street',
+      isPopular: true
+    },
+    // Dhoby Ghaut is already defined above in the Orchard Area section
+    
+    {
+      name: 'Geylang',
+      postalCode: '389697',
+      postalDistrict: '38',
+      area: 'East',
+      latitude: 1.3187,
+      longitude: 103.8896,
+      alternateNames: 'Geylang Road, Aljunied',
+      locationType: 'district',
+      isPopular: false
+    },
+    {
+      name: 'Upper Thomson',
+      postalCode: '574408',
+      postalDistrict: '57',
+      area: 'North',
+      latitude: 1.3543,
+      longitude: 103.8305,
+      alternateNames: 'Thomson Road, Thomson Plaza',
+      locationType: 'district',
+      isPopular: true
+    },
+    {
+      name: 'Punggol',
+      postalCode: '828761',
+      postalDistrict: '82',
+      area: 'North East',
+      latitude: 1.3984,
+      longitude: 103.9072,
+      alternateNames: 'Punggol Waterway, Waterway Point',
+      locationType: 'district',
+      isPopular: false
+    },
+    {
+      name: 'Kallang',
+      postalCode: '339147',
+      postalDistrict: '33',
+      area: 'Central',
+      latitude: 1.3114,
+      longitude: 103.8713,
+      alternateNames: 'Stadium, Leisure Park Kallang',
+      locationType: 'district',
+      isPopular: false
     }
   ];
   
