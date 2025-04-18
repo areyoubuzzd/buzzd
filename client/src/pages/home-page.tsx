@@ -90,7 +90,7 @@ type Collection = {
   deals: Deal[];
   description?: string;
   slug?: string;
-  priority?: number;
+  priority: number; // Make priority required to enforce sorting
 };
 
 export default function HomePage() {
@@ -537,7 +537,8 @@ export default function HomePage() {
       result.push({
         name: "Beers Under $10",
         description: "Great beer deals under $10 near you",
-        deals: beersUnder10Deals
+        deals: beersUnder10Deals,
+        priority: 10 // Medium-high priority
       });
       
       // Remember we've used this name - IMPORTANT: add both forms to avoid duplicates
@@ -564,7 +565,8 @@ export default function HomePage() {
       result.push({
         name: "Cocktails Under $15",
         description: "Affordable cocktail deals near you",
-        deals: cocktailsUnder15Deals
+        deals: cocktailsUnder15Deals,
+        priority: 20 // Medium priority
       });
       
       // Remember we've used this name (both formats)
@@ -644,10 +646,33 @@ export default function HomePage() {
       if (dealsWithTag.length > 0) {
         const enrichedDeals = enrichDeals(dealsWithTag);
         
+        // Determine appropriate priority for this tag-based collection
+        const apiCollection = apiCollectionMap.get(tag.toLowerCase().replace(/\s+/g, '_'));
+        const priority = apiCollection?.priority || (() => {
+          // Assign priority based on tag name if no API collection exists
+          const tagLower = tag.toLowerCase();
+          if (tagLower.includes('active') || tagLower.includes('happy hour')) return 1;
+          if (tagLower.includes('under $10') || tagLower.includes('under $12')) return 10;
+          if (tagLower.includes('craft beer')) return 12;
+          if (tagLower.includes('1-for-1') || tagLower.includes('one for one')) return 15;
+          if (tagLower.includes('free flow')) return 16;
+          if (tagLower.includes('bottle')) return 17;
+          if (tagLower.includes('under $15')) return 20;
+          if (tagLower.includes('signature')) return 21;
+          if (tagLower.includes('bucket')) return 23;
+          if (tagLower.includes('whisky')) return 40;
+          if (tagLower.includes('gin')) return 41;
+          if (tagLower.includes('cbd')) return 60;
+          if (tagLower.includes('orchard')) return 61;
+          if (tagLower.includes('holland')) return 62;
+          return 50; // Default priority
+        })();
+        
         tagCollections.push({
           name: tag,
           description: `${tag} deals near you`,
-          deals: sortDeals(enrichedDeals)
+          deals: sortDeals(enrichedDeals),
+          priority // Add the priority to the collection object
         });
         
         // Remember we've used this tag
