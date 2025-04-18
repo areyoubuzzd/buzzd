@@ -3,6 +3,18 @@ import { storage } from '../storage';
 
 const router = express.Router();
 
+// Add middleware to log all request details
+router.use((req, res, next) => {
+  console.log('Location API request:', {
+    method: req.method,
+    url: req.url,
+    query: req.query,
+    params: req.params,
+    headers: req.headers
+  });
+  next();
+});
+
 /**
  * Search locations by query string
  * This endpoint allows searching by partial name, postal code, or area
