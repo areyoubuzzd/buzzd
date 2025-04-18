@@ -8,6 +8,7 @@ import { fromZodError } from "zod-validation-error";
 import { syncAllDataFromSheets, syncEstablishmentsFromSheets, syncDealsFromSheets, syncCollectionsFromSheets } from "./services/googleSheetsService";
 import { cloudinaryService } from "./services/cloudinaryService";
 import uploadDealImageRouter from "./routes/upload-deal-image";
+import cloudflareImagesRouter from "./routes/cloudflare-images";
 import menuAnalysisRoutes from "./routes/menuAnalysisRoutes_new.js";
 import dealsRoutes from "./routes/deals";
 import establishmentsRoutes from "./routes/establishments";
@@ -15,6 +16,7 @@ import imageGenerationRoutes from "./routes/imageGenerationRoutes";
 import locationRoutes from "./routes/locationRoutes";
 import locationSearchRoutes from "./routes/locationSearchRoutes";
 import { db, pool } from "./db";
+import { checkConnection as checkCloudflareConnection } from "./services/cloudflare-images";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -22,6 +24,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register the deal image upload route
   app.use(uploadDealImageRouter);
+  
+  // Register Cloudflare Images routes
+  app.use(cloudflareImagesRouter);
   
   // Register menu analysis routes
   app.use('/api/menu-analysis', menuAnalysisRoutes);
@@ -83,6 +88,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in Cloudinary test endpoint:", error);
       res.status(500).json({ error: "Failed to generate test URLs" });
+    }
+  });
+  
+  // Test endpoint for Cloudflare Images
+  app.get("/api/test-cloudflare", async (_req, res) => {
+    try {
+      // Test connection
+      const connectionResult = await checkCloudflareConnection();
+      
+      // Check if environment variables are set
+      const configStatus = {
+        CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID ? 'Set' : 'Not set',
+        CLOUDFLARE_IMAGES_API_TOKEN: process.env.CLOUDFLARE_IMAGES_API_TOKEN ? 'Set' : 'Not set'
+      };
+      
+      // Generate example URL format
+      const exampleUrl = process.env.CLOUDFLARE_ACCOUNT_ID 
+        ? `https://imagedelivery.net/${process.env.CLOUDFLARE_ACCOUNT_ID}/exampleImageId/public`
+        : 'https://imagedelivery.net/{your-account-id}/exampleImageId/public';
+      
+      res.json({
+        connection: connectionResult,
+        config: configStatus,
+        exampleUrl,
+        usage: {
+          directUpload: 'POST /api/cloudflare/direct-upload',
+          serverUpload: 'POST /api/cloudflare/upload',
+          delete: 'DELETE /api/cloudflare/images/{id}',
+          getDetails: 'GET /api/cloudflare/images/{id}'
+        }
+      });
+    } catch (error) {
+      console.error("Error in Cloudflare Images test endpoint:", error);
+      res.status(500).json({ 
+        error: "Failed to check Cloudflare Images connection",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
