@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, X } from 'lucide-react';
-import { useDebounce } from '@/hooks/use-debounce';
+// Import hooks with relative paths based on actual directory structure
+import { useDebounce } from '../../hooks/use-debounce';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { useClickOutside } from '@/hooks/use-click-outside';
+import { useClickOutside } from '../../hooks/use-click-outside';
 
 type SingaporeLocation = {
   id: number;
