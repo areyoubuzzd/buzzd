@@ -7,19 +7,34 @@ dotenv.config();
 
 // URLs to check with different extensions
 const urls = [
-  // Heineken Pint images
+  // Heineken Pint images (user confirmed upload)
   'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.jpg',
   'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.jpeg',
   'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.svg',
   'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.png',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/2.jpg',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/3.jpg',
   
-  // Tiger Pint images
+  // Asahi Pint images (user confirmed upload)
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/1.jpg',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/1.jpeg',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/1.svg',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/asahi_pint/1.png',
+  
+  // Red Wine images (user confirmed upload)
+  // Assuming it's in the wine category with a "red_wine" folder
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/1.jpg',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/1.jpeg',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red_wine/1.svg',
+  
+  // Additional paths to check wine folder structures
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/glass/red_wine/1.jpg',
+  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red/1.jpg',
+  
+  // Tiger Pint images (previously seemed to work)
   'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.jpg',
-  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.jpeg',
-  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.svg',
-  'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.png',
   
-  // Test for raw upload version explicitly
+  // Test for raw upload version explicitly (previously confirmed to work)
   'https://res.cloudinary.com/dp2uoj3ts/raw/upload/v1744936069/home/brands/beer/heineken_pint/1.txt'
 ];
 

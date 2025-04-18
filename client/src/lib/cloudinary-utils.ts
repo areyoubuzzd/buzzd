@@ -121,9 +121,18 @@ export function getRandomDrinkImageUrl(
   const imagePathJpg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
   const imagePathJpeg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpeg`;
   
-  // For now, we'll just use the svg path in the URL, but Cloudinary will handle the extension check
-  // Cloudinary will automatically try to find the closest match
-  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathSvg}`;
+  // For Tiger Pint, we know for sure it works without version
+  if (drinkName.toLowerCase().includes('tiger') && drinkName.toLowerCase().includes('pint')) {
+    console.log('Using known working Tiger Pint path');
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathJpg}`;
+  }
+  
+  // For other drinks, try the URL with both jpg and svg extensions 
+  // We'll use the proven format that works with Tiger Pint as our reference
+  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathJpg}`;
+  
+  // Also log the SVG alternative path for debugging
+  const svgUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathSvg}`;
   
   console.log(`Drink: ${drinkName}`);
   console.log(`Category: ${drinkCategory}`);
@@ -180,9 +189,9 @@ export function getDefaultDrinkImageUrl(width: number = 400, height: number = 40
     'Whisky': 'whisky'
   };
   
-  // Use a generic drink image as fallback - Cloudinary converts our uploads to SVG format,
-  // but we'll try checking for JPG/JPEG extensions as well as a fallback
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/generic_drink.svg`;
+  // Use a generic drink image as fallback
+  // We'll use jpg format as our primary extension since that works reliably with our Tiger Pint test
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/generic_drink.jpg`;
 }
 
 /**
@@ -195,7 +204,7 @@ export function getDrinkCategoryImageUrl(category: string, width: number = 400, 
   
   const categoryKey = category.toLowerCase().replace(/[^\w\s]/g, '').trim().replace(/\s+/g, '_');
   
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/categories/${categoryKey}.svg`;
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/categories/${categoryKey}.jpg`;
 }
 
 /**
