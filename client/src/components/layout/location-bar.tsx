@@ -120,6 +120,8 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
           detail: { 
             postalCode: closestLocation.postalCode, 
             roadName: locationName,
+            lat: latitude,
+            lng: longitude,
             detectedLocation: true // Flag indicating we detected this automatically
           } 
         }));
@@ -142,7 +144,13 @@ export default function LocationBar({ onLocationChange, onOpenFilters }: Locatio
       // Default location on error
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('postalCodeUpdated', { 
-          detail: { postalCode: "018989", roadName: "Your Location" } 
+          detail: { 
+            postalCode: "018989", 
+            roadName: "Your Location",
+            lat: 1.3521, 
+            lng: 103.8198, 
+            detectedLocation: false
+          } 
         }));
       }
     }

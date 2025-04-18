@@ -103,7 +103,7 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
-  const [userRoadName, setUserRoadName] = useState<string>(""); // Added road name state
+  const [userRoadName, setUserRoadName] = useState<string>("Your Location"); // Default to generic name until we get actual location
 
   // Fetch all deals for collections with location parameters
   const { data: dealsData } = useQuery<Deal[]>({
