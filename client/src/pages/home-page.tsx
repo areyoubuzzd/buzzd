@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/header";
-import LocationBar from "@/components/layout/location-bar";
-import FilterBar from "@/components/layout/filter-bar";
-import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
-import { LocationAutocomplete } from "@/components/location/location-autocomplete";
+import { useLocation } from "@/contexts/location-context";
+import { LocationHeader } from "@/components/location/location-header";
 // Removed import for DealsList which was using dummy data
 
 // Helper function to calculate string similarity between two strings
@@ -99,14 +97,17 @@ export default function HomePage() {
     const whatsappUrl = "https://wa.me/6587654321?text=Hello%2C%20I'd%20like%20to%20suggest%20a%20restaurant%20or%20deal%20to%20be%20added%20to%20the%20app.";
     window.open(whatsappUrl, "_blank");
   };
-  // Initialize with a default location - Singapore
-  const [location, setLocation] = useState<{ lat: number; lng: number }>({ lat: 1.3521, lng: 103.8198 });
+  
+  // Store the current page in sessionStorage for proper back navigation
+  useEffect(() => {
+    sessionStorage.setItem('lastVisitedPage', '/');
+    console.log('HomePage: Set lastVisitedPage to / in sessionStorage');
+  }, []);
+  
+  // Get location from global context
+  const { location, userRoadName, isUsingDefaultLocation } = useLocation();
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
-  const [userPostalCode, setUserPostalCode] = useState<string>(""); // Added postal code state
-  const [userRoadName, setUserRoadName] = useState<string>("My Location"); // Default to "My Location" on initial load
-  const [isUsingDefaultLocation, setIsUsingDefaultLocation] = useState<boolean>(true); // Track if we're showing the default "My Location"
-  const [isLocationSelectOpen, setIsLocationSelectOpen] = useState<boolean>(false); // State to control location selector visibility
   const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search input field
 
   // Fetch all deals for collections with location parameters
