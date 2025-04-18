@@ -121,27 +121,22 @@ export function getRandomDrinkImageUrl(
   const imagePathJpg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
   const imagePathJpeg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpeg`;
   
-  // For Tiger Pint, we know for sure it works without version
-  if (drinkName.toLowerCase().includes('tiger') && drinkName.toLowerCase().includes('pint')) {
-    console.log('Using known working Tiger Pint path');
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathJpg}`;
-  }
-  
-  // For other drinks, try the URL with both jpg and svg extensions 
-  // We'll use the proven format that works with Tiger Pint as our reference
-  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathJpg}`;
-  
-  // Also log the SVG alternative path for debugging
-  const svgUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathSvg}`;
+  // Based on user feedback, the actual URLs are in a different format:
+  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936265/2.jpg
+  // They don't include the folder structure we expected but use a version number
+
+  // First, try using the version-based format that the user confirmed is working
+  // We'll use version numbers close to what we've seen work
+  const version = Math.floor(1744936160 + (Math.random() * 200)); // Version around known working range
+  const versionUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${imageIndex}.jpg`;
   
   console.log(`Drink: ${drinkName}`);
   console.log(`Category: ${drinkCategory}`);
   console.log(`Folder name: ${folderName}`);
   console.log(`Image index: ${imageIndex}`);
-  console.log(`Image paths: ${imagePathSvg} or ${imagePathJpg} or ${imagePathJpeg}`);
-  console.log(`Full Cloudinary URL: ${fullUrl}`);
+  console.log(`Using direct version-based URL format: ${versionUrl}`);
   
-  return fullUrl;
+  return versionUrl;
 }
 
 /**
