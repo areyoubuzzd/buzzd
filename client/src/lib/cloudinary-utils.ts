@@ -174,7 +174,9 @@ export function getRandomDrinkImageUrl(
     // Use newer webp path for wine with version number
     // Format matches: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942262/home/brands/wine/red/2.webp
     const currentVersion = "v1744942262"; // Using the exact version from the working image
-    const webpImageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${currentVersion}/home/brands/wine/red/${randomNumber}.webp`;
+    // Use hardcoded cloud name since env var isn't working
+    const cloudName = 'dp2uoj3ts'; // Fallback to known working cloud name if env var is not available
+    const webpImageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${currentVersion}/home/brands/wine/red/${randomNumber}.webp`;
     console.log(`Generated wine URL for ${drinkName}: ${webpImageUrl}`);
     return webpImageUrl;
   }
@@ -188,13 +190,15 @@ export function getRandomDrinkImageUrl(
     // We have a confirmed working version number for heineken_pint
     if (formattedDrinkName === 'heineken_pint') {
       const beerVersion = "v1744936265"; // Version from beer working image
-      const beerImageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/${beerVersion}/home/brands/beer/${formattedDrinkName}/${randomNumber}.jpg`;
+      const cloudName = 'dp2uoj3ts'; // Hardcoded cloud name
+      const beerImageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${beerVersion}/home/brands/beer/${formattedDrinkName}/${randomNumber}.jpg`;
       console.log(`Generated beer URL for ${drinkName}: ${beerImageUrl}`);
       return beerImageUrl;
     }
     // For other beers, use standard format without version number as it works
     else {
-      const beerImageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/brands/beer/${formattedDrinkName}/${randomNumber}.jpg`;
+      const cloudName = 'dp2uoj3ts'; // Hardcoded cloud name
+      const beerImageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/home/brands/beer/${formattedDrinkName}/${randomNumber}.jpg`;
       console.log(`Generated beer URL for ${drinkName}: ${beerImageUrl}`);
       return beerImageUrl;
     }
@@ -202,7 +206,8 @@ export function getRandomDrinkImageUrl(
   
   // For all other categories, use the original jpg format
   randomNumber = Math.floor(Math.random() * 3) + 1; // Use 1-3 for other categories
-  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/brands/${category}/${formattedDrinkName}/${randomNumber}.jpg`;
+  const cloudName = 'dp2uoj3ts'; // Hardcoded cloud name 
+  const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/home/brands/${category}/${formattedDrinkName}/${randomNumber}.jpg`;
   
   console.log(`Generated URL for ${drinkName}: ${imageUrl}`);
   return imageUrl;
@@ -255,7 +260,8 @@ export function getDefaultDrinkImageUrl(width: number = 400, height: number = 40
   
   // Use a generic drink image as fallback using the folder structure
   // We'll use jpg format as our primary extension since that works reliably with our tests
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/home/defaults/generic_drink/1.jpg`;
+  const cloudName = 'dp2uoj3ts'; // Hardcoded cloud name
+  return `https://res.cloudinary.com/${cloudName}/image/upload/home/defaults/generic_drink/1.jpg`;
 }
 
 /**

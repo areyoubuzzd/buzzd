@@ -473,6 +473,13 @@ function DealCard({
               <img 
                 src={`${getHeroImage(deal.brand || deal.drinkType, 'glass')}?v=${Date.now()}`}
                 alt={`${deal.brand || deal.drinkType} hero image`}
+                onError={(e) => {
+                  console.log('Image load error, trying Cloudinary fallback');
+                  // If the local image fails, try to use the Cloudinary image instead
+                  import('@/lib/cloudinary-utils').then(({ getRandomDrinkImageUrl }) => {
+                    e.currentTarget.src = getRandomDrinkImageUrl(deal.brand || deal.drinkType);
+                  }).catch(err => console.error('Failed to load Cloudinary fallback:', err));
+                }}
                 className="h-[150%] object-contain"
                 style={{ 
                   filter: 'brightness(1.2) contrast(1.0) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.4))', 
