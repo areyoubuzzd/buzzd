@@ -1182,15 +1182,9 @@ export default function HomePage() {
                     const newLat = selectedLocation.latitude;
                     const newLng = selectedLocation.longitude;
                     
-                    // Special case: "My Location" option returns to default behavior
-                    if (selectedLocation.name === "My Location") {
-                      setUserRoadName("My Location");
-                      setIsUsingDefaultLocation(true);
-                    } else {
-                      // User has chosen a specific location
-                      setUserRoadName(selectedLocation.name);
-                      setIsUsingDefaultLocation(false);
-                    }
+                    // Always display "My Location" regardless of what's selected
+                    setUserRoadName("My Location");
+                    setIsUsingDefaultLocation(true);
                     
                     // Update UI with new location value
                     setLocation({ lat: newLat, lng: newLng });
