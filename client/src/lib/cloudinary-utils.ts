@@ -88,9 +88,10 @@ export function getRandomDrinkImageUrl(
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/5.jpg'
     ],
     'red wine': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942262/home/brands/wine/red/2.webp',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942262/home/brands/wine/red/1.webp',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/red/2.webp'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/1.webp',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/2.webp', 
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/3.webp',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942336/home/brands/wine/red/4.webp'
     ],
     'white wine': [
       'https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/wine/white_wine/1.jpg',
@@ -158,8 +159,8 @@ export function getRandomDrinkImageUrl(
   // Try to determine if we should use .webp or .jpg extension
   // For wine category, try to use the new folder structure with webp format
   if (category === 'wine') {
-    // For wines, we only want to use the confirmed working image numbers (1-2)
-    randomNumber = Math.floor(Math.random() * 2) + 1;
+    // For wines, we now have confirmed working image numbers 1-4
+    randomNumber = Math.floor(Math.random() * 4) + 1;
     
     // First check if it's red or white wine
     let wineType = 'red'; // Default to red since we know that works
@@ -173,7 +174,7 @@ export function getRandomDrinkImageUrl(
     
     // Use newer webp path for wine with version number
     // Format matches: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744942262/home/brands/wine/red/2.webp
-    const currentVersion = "v1744945807"; // Using the latest confirmed working version from the image URL
+    const currentVersion = "v1744942336"; // Using the latest confirmed working version from the image URL
     // Use hardcoded cloud name since env var isn't working
     const cloudName = 'dp2uoj3ts'; // Fallback to known working cloud name if env var is not available
     const webpImageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${currentVersion}/home/brands/wine/red/${randomNumber}.webp`;
