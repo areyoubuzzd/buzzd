@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, MapPin, X } from 'lucide-react';
 // Import hooks with relative paths based on actual directory structure
 import { useDebounce } from '../../hooks/use-debounce';
@@ -39,22 +39,56 @@ export function LocationAutocomplete({
   useClickOutside(containerRef, () => setIsOpen(false));
 
   // Fetch locations based on search term
-  const { data: locations = [], isLoading } = useQuery({
+  const { data: locationsData = { locations: [] }, isLoading } = useQuery({
     queryKey: ['locations', debouncedSearchTerm],
     queryFn: async () => {
-      if (!debouncedSearchTerm || debouncedSearchTerm.length < 2) {
-        // If no search term or too short, fetch popular locations instead
-        const response = await fetch('/api/locations/popular');
-        if (!response.ok) throw new Error('Failed to fetch popular locations');
-        return response.json();
+      try {
+        if (!debouncedSearchTerm || debouncedSearchTerm.length < 2) {
+          // If no search term or too short, fetch popular locations instead
+          const response = await fetch('/api/locations/popular');
+          if (!response.ok) throw new Error('Failed to fetch popular locations');
+          
+          const data = await response.json();
+          console.log('Popular locations response:', data);
+          
+          // Handle different response formats
+          if (Array.isArray(data)) {
+            return { locations: data };
+          } else if (data && data.locations && Array.isArray(data.locations)) {
+            return data;
+          } else {
+            console.error('Unexpected popular locations response format:', data);
+            return { locations: [] };
+          }
+        }
+        
+        const response = await fetch(`/api/locations/search?q=${encodeURIComponent(debouncedSearchTerm)}`);
+        if (!response.ok) throw new Error('Failed to fetch locations');
+        
+        const data = await response.json();
+        console.log('Search locations response:', data);
+        
+        // Handle different response formats
+        if (Array.isArray(data)) {
+          return { locations: data };
+        } else if (data && data.locations && Array.isArray(data.locations)) {
+          return data;
+        } else {
+          console.error('Unexpected search locations response format:', data);
+          return { locations: [] };
+        }
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+        return { locations: [] };
       }
-      
-      const response = await fetch(`/api/locations/search?q=${encodeURIComponent(debouncedSearchTerm)}`);
-      if (!response.ok) throw new Error('Failed to fetch locations');
-      return response.json();
     },
     enabled: isOpen,
   });
+  
+  // Extract the locations array from the response data
+  const locations = useMemo(() => {
+    return locationsData.locations || [];
+  }, [locationsData]);
 
   // Open dropdown when typing
   useEffect(() => {
