@@ -321,3 +321,30 @@ export function calculateSavingsPercentage(regularPrice: number, dealPrice: numb
   if (regularPrice <= 0) return 0;
   return Math.round(((regularPrice - dealPrice) / regularPrice) * 100);
 }
+
+// Singapore Locations table (for better location search)
+export const singaporeLocations = pgTable("singapore_locations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),                     // Primary name (e.g., "Raffles Place")
+  alternateNames: text("alternate_names"),          // Comma-separated alternative names/spellings
+  postalCode: text("postal_code"),                  // Can be single code or range (e.g., "018956" or "018900-018999")
+  postalDistrict: text("postal_district"),          // Postal district number (e.g., "01" for Central)
+  area: text("area"),                               // North, South, East, West, Central
+  latitude: doublePrecision("latitude").notNull(),  // Coordinates
+  longitude: doublePrecision("longitude").notNull(),
+  locationType: text("location_type"),              // neighborhood, mrt_station, landmark, mall, etc.
+  isPopular: boolean("is_popular").default(false),  // Flag for popular locations
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Schema for inserting Singapore locations
+export const insertSingaporeLocationSchema = createInsertSchema(singaporeLocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Define types for Singapore locations
+export type InsertSingaporeLocation = z.infer<typeof insertSingaporeLocationSchema>;
+export type SingaporeLocation = typeof singaporeLocations.$inferSelect;
