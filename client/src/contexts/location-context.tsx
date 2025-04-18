@@ -40,9 +40,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
 
   // Initialize location from localStorage or geolocation on mount
   useEffect(() => {
-    // ALWAYS initialize with "My Location" as the display name
-    setUserRoadName("My Location");
-    setIsUsingDefaultLocation(true);
+    console.log('LocationContext: Initializing...');
     
     // Check if we have a cached location in localStorage
     const cachedLocationStr = localStorage.getItem('lastKnownLocation');
@@ -51,26 +49,48 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     if (cachedLocationStr) {
       try {
         cachedLocation = JSON.parse(cachedLocationStr);
+        console.log('LocationContext: Found cached location:', cachedLocation);
+        
         // Check if cache is recent (less than 24 hours old)
         if (cachedLocation && cachedLocation.timestamp && 
             Date.now() - cachedLocation.timestamp < 24 * 60 * 60 * 1000) {
-          console.log('Using cached location coordinates, but keeping "My Location" display');
           
-          // Only update coordinates, but keep displaying "My Location"
+          // Update coordinates
           setLocation({
             lat: cachedLocation.lat,
             lng: cachedLocation.lng
           });
           
-          // If there's a cached name that isn't "My Location", use it
-          if (cachedLocation.name && cachedLocation.name !== "My Location" && !cachedLocation.isDefaultLocation) {
+          // Set the name from cache - either "My Location" or a specific location
+          if (cachedLocation.name) {
+            console.log('LocationContext: Using cached location name:', cachedLocation.name);
             setUserRoadName(cachedLocation.name);
-            setIsUsingDefaultLocation(false);
+            setIsUsingDefaultLocation(
+              cachedLocation.name === "My Location" || 
+              cachedLocation.isDefaultLocation === true
+            );
+          } else {
+            // Default to "My Location" if no name is found
+            console.log('LocationContext: No name in cache, defaulting to "My Location"');
+            setUserRoadName("My Location");
+            setIsUsingDefaultLocation(true);
           }
+        } else {
+          // Cache is too old, default to "My Location"
+          console.log('LocationContext: Cache is too old, defaulting to "My Location"');
+          setUserRoadName("My Location");
+          setIsUsingDefaultLocation(true);
         }
       } catch (e) {
         console.error('Error parsing cached location:', e);
+        setUserRoadName("My Location");
+        setIsUsingDefaultLocation(true);
       }
+    } else {
+      // No cache found, default to "My Location"
+      console.log('LocationContext: No cache found, defaulting to "My Location"');
+      setUserRoadName("My Location");
+      setIsUsingDefaultLocation(true);
     }
     
     // Try to get user's current location
@@ -113,12 +133,12 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
 
   // Function to update location
   const updateLocation = (newLocation: LocationCoordinates, locationName?: string) => {
-    console.log('Updating global location context to:', newLocation);
+    console.log('LocationContext: Updating global location context to:', newLocation);
     setLocation(newLocation);
     
     // Update location name if provided
     if (locationName) {
-      console.log('Updating location name to:', locationName);
+      console.log('LocationContext: Updating location name to:', locationName);
       setUserRoadName(locationName);
       setIsUsingDefaultLocation(locationName === "My Location");
     }
@@ -128,13 +148,14 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
       queryKey: ['/api/deals/collections/all', { lat: newLocation.lat, lng: newLocation.lng }]
     });
     
-    // Update local storage
+    // Update local storage with all necessary information
     const locationToCache = {
       ...newLocation,
       name: locationName || userRoadName,
       isDefaultLocation: locationName === "My Location" || isUsingDefaultLocation,
       timestamp: Date.now()
     };
+    console.log('LocationContext: Saving to localStorage:', locationToCache);
     localStorage.setItem('lastKnownLocation', JSON.stringify(locationToCache));
   };
 

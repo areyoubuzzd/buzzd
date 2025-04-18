@@ -43,22 +43,24 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
                   const newLat = selectedLocation.latitude;
                   const newLng = selectedLocation.longitude;
                   
-                  // Update location name and coordinates in context
-                  setTimeout(() => {
-                    if (selectedLocation.name === "My Location") {
-                      // If My Location selected, update with flag
-                      updateLocation(
-                        { lat: newLat, lng: newLng }, 
-                        "My Location"
-                      );
-                    } else {
-                      // Pass the actual location name for display
-                      updateLocation(
-                        { lat: newLat, lng: newLng }, 
-                        selectedLocation.name
-                      );
-                    }
-                  }, 300);
+                  console.log("Selected location:", selectedLocation);
+                  
+                  // Update location name and coordinates in context - no timeout
+                  if (selectedLocation.name === "My Location") {
+                    // If My Location selected, update with flag
+                    console.log("Updating to My Location");
+                    updateLocation(
+                      { lat: newLat, lng: newLng }, 
+                      "My Location"
+                    );
+                  } else {
+                    // Pass the actual location name for display
+                    console.log(`Updating to location: ${selectedLocation.name}`);
+                    updateLocation(
+                      { lat: newLat, lng: newLng }, 
+                      selectedLocation.name
+                    );
+                  }
                   
                   // Close the location selector
                   setIsLocationSelectOpen(false);

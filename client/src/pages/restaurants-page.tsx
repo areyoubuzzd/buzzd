@@ -161,7 +161,7 @@ function isWithinHappyHour(deal: Deal): boolean {
 
 export default function RestaurantsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { location } = useLocation();
+  const { location, userRoadName } = useLocation(); // Import userRoadName too
   const [userPosition, setUserPosition] = useState<{ lat: number, lng: number } | null>(null);
   
   // WhatsApp button handler
@@ -176,11 +176,12 @@ export default function RestaurantsPage() {
     console.log('Set lastVisitedPage to /restaurants in sessionStorage');
     
     // Use the location from the global context
+    console.log('RestaurantsPage: Location from context:', location, 'Name:', userRoadName);
     setUserPosition({
       lat: location.lat,
       lng: location.lng
     });
-  }, [location]);
+  }, [location, userRoadName]);
   
   const { 
     data: establishments, 
