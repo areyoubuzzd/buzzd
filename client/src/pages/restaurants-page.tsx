@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa';
+import { LocationHeader } from '@/components/location/location-header';
+import { useLocation } from '@/contexts/location-context';
 
 interface Deal {
   valid_days: string;
@@ -159,6 +161,7 @@ function isWithinHappyHour(deal: Deal): boolean {
 
 export default function RestaurantsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { location } = useLocation();
   const [userPosition, setUserPosition] = useState<{ lat: number, lng: number } | null>(null);
   
   // WhatsApp button handler
@@ -172,21 +175,12 @@ export default function RestaurantsPage() {
     sessionStorage.setItem('lastVisitedPage', '/restaurants');
     console.log('Set lastVisitedPage to /restaurants in sessionStorage');
     
-    // Get user's position
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserPosition({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
-      },
-      (error) => {
-        console.error('Error getting user location:', error);
-        // Default to Singapore center
-        setUserPosition({ lat: 1.3521, lng: 103.8198 });
-      }
-    );
-  }, []);
+    // Use the location from the global context
+    setUserPosition({
+      lat: location.lat,
+      lng: location.lng
+    });
+  }, [location]);
   
   const { 
     data: establishments, 

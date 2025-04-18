@@ -24,6 +24,7 @@ import RestaurantsPage from "@/pages/restaurants-page";
 import EstablishmentDetailsPage from "@/pages/establishment-details-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
+import { LocationProvider } from "./contexts/location-context";
 
 function Router() {
   return (
@@ -57,8 +58,10 @@ function Router() {
 function App() {
   return (
     <AuthProvider>
-      <Router />
-      <Toaster />
+      <LocationProvider>
+        <Router />
+        <Toaster />
+      </LocationProvider>
     </AuthProvider>
   );
 }
