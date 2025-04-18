@@ -438,8 +438,10 @@ export default function RestaurantsPage() {
         </div>
       </div>
       
-      {/* Location Header Component */}
-      <LocationHeader onOpenFilters={() => console.log("Open filters")} />
+      {/* Location Header Component - moved 5px lower */}
+      <div className="pt-[5px]">
+        <LocationHeader onOpenFilters={() => console.log("Open filters")} />
+      </div>
       
       <div className="px-4 py-4">
         {isLoading ? (
