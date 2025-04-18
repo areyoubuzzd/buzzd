@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { mapToDrinkCategory, getDrinkCategoryColor } from '@/lib/drink-category-utils';
 
 interface CloudflareImageProps {
   imageId: string | null | undefined;
@@ -11,6 +12,7 @@ interface CloudflareImageProps {
   fallbackColor?: string;
   fallbackSrc?: string;
   category?: string; // e.g., 'beer', 'wine', 'cocktail'
+  drinkName?: string; // The specific drink name for more accurate categorization
 }
 
 /**
@@ -26,19 +28,57 @@ export function CloudflareImage({
   variant = 'public',
   fallbackColor = '#f3f4f6',
   fallbackSrc,
-  category = 'general'
+  category = 'general',
+  drinkName
 }: CloudflareImageProps) {
   const [imageError, setImageError] = useState(false);
   const accountId = import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID as string;
 
+  // Map to detailed drink category for better image organization
+  const detailedCategory = drinkName ? mapToDrinkCategory(drinkName, category) : category;
+  
   // Generate category-specific fallback if no fallbackSrc is provided
   const getCategoryFallback = () => {
     if (fallbackSrc) return fallbackSrc;
     
-    // Default fallbacks based on drink category
+    // Get the base category for fallback selection
+    const baseCategory = detailedCategory.includes('_') 
+      ? detailedCategory.split('_')[0] 
+      : detailedCategory;
+    
     // First try the Cloudinary version if available
     try {
-      switch (category.toLowerCase()) {
+      // Use more specific detailed categories first
+      if (detailedCategory.includes('beer_pint')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/glass/default/beer_glass_1.jpg';
+      }
+      if (detailedCategory.includes('beer_bucket')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/bucket/default/beer_bucket_1.jpg'; 
+      }
+      if (detailedCategory.includes('beer_tower')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/tower/default/beer_tower_1.jpg';
+      }
+      if (detailedCategory.includes('beer_pitcher')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/pitcher/default/beer_pitcher_1.jpg';
+      }
+      if (detailedCategory.includes('red_wine')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/red/default/red_wine_1.jpg';
+      }
+      if (detailedCategory.includes('white_wine')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/white/default/white_wine_1.jpg';
+      }
+      if (detailedCategory.includes('bubbly') || detailedCategory.includes('champagne')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/bubbly/default/bubbly_1.jpg';
+      }
+      if (detailedCategory.includes('margarita')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/margarita/default/margarita_1.jpg';
+      }
+      if (detailedCategory.includes('martini')) {
+        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/martini/default/martini_1.jpg';
+      }
+      
+      // Fall back to general categories
+      switch (baseCategory.toLowerCase()) {
         case 'beer':
           return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/glass/default/beer_glass_1.jpg';
         case 'wine':
@@ -58,26 +98,12 @@ export function CloudflareImage({
           return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/glass/default/cocktail_glass_1.jpg';
       }
     } catch (error) {
-      // Fallback to static images if Cloudinary fails
-      switch (category.toLowerCase()) {
-        case 'beer':
-          return '/static/images/drinks/beer.jpg';
-        case 'wine':
-          return '/static/images/drinks/wine.jpg';
-        case 'cocktail':
-          return '/static/images/drinks/cocktail.jpg';
-        case 'whisky':
-        case 'whiskey':
-          return '/static/images/drinks/whisky.jpg';
-        case 'gin':
-          return '/static/images/drinks/gin.jpg';
-        case 'vodka':
-          return '/static/images/drinks/vodka.jpg';
-        case 'rum':
-          return '/static/images/drinks/rum.jpg';
-        default:
-          return '/static/images/drinks/default.jpg';
-      }
+      console.warn(`Failed to load Cloudinary fallback for ${detailedCategory}, using static or SVG fallback`);
+      
+      // If we can't load from Cloudinary, create a color SVG as final fallback
+      // Create a data URL SVG that will work everywhere as final fallback
+      const bgcolor = getDrinkCategoryColor(detailedCategory);
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='${bgcolor}'/%3E%3C/svg%3E`;
     }
   };
 
@@ -170,6 +196,11 @@ export function CloudflareImageUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Map to detailed category for better image organization
+  const detailedCategory = drinkName && category 
+    ? mapToDrinkCategory(drinkName, category) 
+    : category || 'general';
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -182,8 +213,8 @@ export function CloudflareImageUploader({
       const formData = new FormData();
       formData.append('file', file);
       
-      // Add metadata
-      if (category) formData.append('category', category);
+      // Add metadata with detailed categorization
+      formData.append('category', detailedCategory);
       if (drinkName) formData.append('drinkName', drinkName);
       if (establishmentId) formData.append('establishmentId', establishmentId.toString());
       if (dealId) formData.append('dealId', dealId.toString());
