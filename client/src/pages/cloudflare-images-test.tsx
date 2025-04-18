@@ -118,14 +118,37 @@ export default function CloudflareImagesTestPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CloudflareImageUploader
-              onUploadComplete={handleUploadComplete}
-              category={testCategory}
-              drinkName={testDrinkName}
-            />
+            <Tabs defaultValue="direct" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="direct">Direct Upload (Recommended)</TabsTrigger>
+                <TabsTrigger value="server">Server Upload</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="direct" className="mt-4">
+                <div className="text-sm text-muted-foreground mb-4">
+                  Uploads directly to Cloudflare from your browser (faster, supports all image formats)
+                </div>
+                <DirectCloudflareUploader
+                  onUploadComplete={handleUploadComplete}
+                  category={testCategory}
+                  drinkName={testDrinkName}
+                />
+              </TabsContent>
+              
+              <TabsContent value="server" className="mt-4">
+                <div className="text-sm text-muted-foreground mb-4">
+                  Uploads through the server (recommended for JPG, PNG, GIF only)
+                </div>
+                <CloudflareImageUploader
+                  onUploadComplete={handleUploadComplete}
+                  category={testCategory}
+                  drinkName={testDrinkName}
+                />
+              </TabsContent>
+            </Tabs>
             
             {uploadedImageId && (
-              <div className="mt-4">
+              <div className="mt-6 pt-4 border-t">
                 <p className="text-sm text-muted-foreground mb-2">Uploaded image ID:</p>
                 <code className="bg-muted p-2 rounded block w-full overflow-x-auto">
                   {uploadedImageId}
