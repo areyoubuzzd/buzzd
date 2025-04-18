@@ -115,19 +115,21 @@ export function getRandomDrinkImageUrl(
   }
   
   // Build multiple possible image paths using different extensions
-  // We'll try .jpg first, then fall back to .jpeg if needed
+  // Since Cloudinary seems to convert our images to SVG format, we'll try SVG first, 
+  // then fall back to jpg and jpeg if needed
+  const imagePathSvg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.svg`;
   const imagePathJpg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpg`;
   const imagePathJpeg = `home/brands/${drinkCategory}/${folderName}/${imageIndex}.jpeg`;
   
-  // For now, we'll just use the jpg path in the URL, but our backend will handle the extension check
+  // For now, we'll just use the svg path in the URL, but Cloudinary will handle the extension check
   // Cloudinary will automatically try to find the closest match
-  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathJpg}`;
+  const fullUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/${imagePathSvg}`;
   
   console.log(`Drink: ${drinkName}`);
   console.log(`Category: ${drinkCategory}`);
   console.log(`Folder name: ${folderName}`);
   console.log(`Image index: ${imageIndex}`);
-  console.log(`Image paths: ${imagePathJpg} or ${imagePathJpeg}`);
+  console.log(`Image paths: ${imagePathSvg} or ${imagePathJpg} or ${imagePathJpeg}`);
   console.log(`Full Cloudinary URL: ${fullUrl}`);
   
   return fullUrl;
@@ -178,9 +180,9 @@ export function getDefaultDrinkImageUrl(width: number = 400, height: number = 40
     'Whisky': 'whisky'
   };
   
-  // Use a generic drink image as fallback - works with both .jpg and .jpeg extensions
-  // Cloudinary will automatically handle finding the right image regardless of extension
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/generic_drink.jpg`;
+  // Use a generic drink image as fallback - Cloudinary converts our uploads to SVG format,
+  // but we'll try checking for JPG/JPEG extensions as well as a fallback
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/defaults/generic_drink.svg`;
 }
 
 /**
@@ -193,7 +195,7 @@ export function getDrinkCategoryImageUrl(category: string, width: number = 400, 
   
   const categoryKey = category.toLowerCase().replace(/[^\w\s]/g, '').trim().replace(/\s+/g, '_');
   
-  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/categories/${categoryKey}.jpg`;
+  return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/c_fill,g_auto,h_${height},w_${width}/categories/${categoryKey}.svg`;
 }
 
 /**
