@@ -43,8 +43,8 @@ export function CloudflareImage({
   useEffect(() => {
     if (!imageId || imageError) return;
     
-    // If we've retried too many times, give up
-    if (retryCount > 5) {
+    // If we've retried too many times, give up - Cloudflare can be slow sometimes
+    if (retryCount > 10) {
       console.warn(`Gave up waiting for image ${imageId} after ${retryCount} attempts`);
       setImageError(true);
       return;
@@ -102,74 +102,14 @@ export function CloudflareImage({
   const getCategoryFallback = () => {
     if (fallbackSrc) return fallbackSrc;
     
-    // Get the base category for fallback selection
-    const baseCategory = detailedCategory.includes('_') 
-      ? detailedCategory.split('_')[0] 
-      : detailedCategory;
+    // Always return an SVG fallback for reliability
+    // This ensures we always have an image that can load immediately
+    const bgcolor = getDrinkCategoryColor(detailedCategory);
+    const textColor = '#ffffff';
+    const categoryShortName = detailedCategory.split('_').join(' ');
     
-    // First try the Cloudinary version if available
-    try {
-      // Use more specific detailed categories first
-      if (detailedCategory.includes('beer_pint')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/glass/default/beer_glass_1.jpg';
-      }
-      if (detailedCategory.includes('beer_bucket')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/bucket/default/beer_bucket_1.jpg'; 
-      }
-      if (detailedCategory.includes('beer_tower')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/tower/default/beer_tower_1.jpg';
-      }
-      if (detailedCategory.includes('beer_pitcher')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/pitcher/default/beer_pitcher_1.jpg';
-      }
-      if (detailedCategory.includes('red_wine')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/red/default/red_wine_1.jpg';
-      }
-      if (detailedCategory.includes('white_wine')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/white/default/white_wine_1.jpg';
-      }
-      if (detailedCategory.includes('bubbly') || detailedCategory.includes('champagne')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/bubbly/default/bubbly_1.jpg';
-      }
-      if (detailedCategory.includes('margarita')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/margarita/default/margarita_1.jpg';
-      }
-      if (detailedCategory.includes('martini')) {
-        return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/martini/default/martini_1.jpg';
-      }
-      
-      // Fall back to general categories
-      switch (baseCategory.toLowerCase()) {
-        case 'beer':
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/beer/glass/default/beer_glass_1.jpg';
-        case 'wine':
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/wine/glass/default/wine_glass_1.jpg';
-        case 'cocktail':
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/glass/default/cocktail_glass_1.jpg';
-        case 'whisky':
-        case 'whiskey':
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/whisky/glass/default/whisky_glass_1.jpg';
-        case 'gin':
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/gin/glass/default/gin_glass_1.jpg';
-        case 'vodka':
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/vodka/glass/default/vodka_glass_1.jpg';
-        case 'rum':
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/rum/glass/default/rum_glass_1.jpg';
-        default:
-          return 'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1/home/brands/cocktail/glass/default/cocktail_glass_1.jpg';
-      }
-    } catch (error) {
-      console.warn(`Failed to load Cloudinary fallback for ${detailedCategory}, using static or SVG fallback`);
-      
-      // If we can't load from Cloudinary, create a color SVG as final fallback
-      // Create a data URL SVG that will work everywhere as final fallback
-      const bgcolor = getDrinkCategoryColor(detailedCategory);
-      const textColor = '#ffffff';
-      const categoryShortName = detailedCategory.split('_').join(' ');
-      
-      // Create a more informative SVG with the category name
-      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${categoryShortName}%3C/text%3E%3Ctext x='150' y='125' font-family='Arial' font-size='14' fill='${textColor}' text-anchor='middle'%3E(Fallback Image)%3C/text%3E%3C/svg%3E`;
-    }
+    // Create a more informative SVG with the category name
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${categoryShortName}%3C/text%3E%3Ctext x='150' y='125' font-family='Arial' font-size='14' fill='${textColor}' text-anchor='middle'%3E(Loading Image)%3C/text%3E%3C/svg%3E`;
   };
 
   // If no imageId or there was an error, use the fallback
@@ -240,7 +180,7 @@ export function CloudflareImage({
         <div className="flex flex-col items-center text-center p-2">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
           <p className="text-[10px] text-gray-500 mt-1">Processing</p>
-          <p className="text-[10px] text-gray-400">Try {retryCount}/5</p>
+          <p className="text-[10px] text-gray-400">Try {retryCount}/10</p>
         </div>
       </div>
     );
