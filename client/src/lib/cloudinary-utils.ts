@@ -64,19 +64,40 @@ export function getRandomDrinkImageUrl(
     return getDefaultDrinkImageUrl(width, height);
   }
 
+  // The working URL format is:
+  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp
+
   // Known existing Cloudinary images (exact URLs that are confirmed to work)
   const knownDrinkImages: Record<string, string[]> = {
     'asahi pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Asahi_pint3_utxgcj.webp',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937038/Asahi_pint2_vdhjk5.jpg'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/asahi_pint_jhrawp.webp'
     ],
     'tiger pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Tiger_pint1_jwsmgc.webp',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936266/4_rnrfbc.jpg'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/tiger_pint_jhrawp.webp'
     ],
     'heineken pint': [
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Heineken_pint2_tbchlz.webp',
-      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936265/heineken_pint_2.jpg'
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/heineken_pint_jhrawp.webp'
+    ],
+    'red wine': [
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp'
+    ],
+    'white wine': [
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/white_wine_glass_jhrawp.webp'
+    ],
+    'margarita': [
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/margarita_jhrawp.webp'
+    ],
+    'negroni': [
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/negroni_jhrawp.webp'
+    ],
+    'mojito': [
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/mojito_jhrawp.webp'
+    ],
+    'whisky': [
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/whisky_jhrawp.webp'
+    ],
+    'chivas': [
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/chivas_jhrawp.webp'
     ]
   };
   
@@ -95,44 +116,22 @@ export function getRandomDrinkImageUrl(
     return drinkImages[imageIndex];
   }
   
-  // For unknown drinks, we'll try to make a reasonable guess based on your examples
+  // For unknown drinks, we'll create a URL following the pattern that works:
+  // https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp
+  
   const formattedDrinkName = formatDrinkNameForCloudinary(drinkName);
-  const randomIndex = getUniqueRandomIndex(lowerDrinkName, maxImages);
   
-  // We've seen several different URL formats in your Cloudinary account:
-  // Format 1: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Asahi_pint3_utxgcj.webp
-  // Format 2: https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936265/heineken_pint_2.jpg
+  // Use the working version number from your example
+  const version = 1744936848;
   
-  // Choose between the different version numbers we've seen
-  const versions = [1744937039, 1744936265, 1744937038];
-  const version = versions[Math.floor(Math.random() * versions.length)];
+  // Use the known working suffix
+  const suffix = 'jhrawp';
   
-  // Randomly choose URL format style
-  const urlFormats = ['drink_index_suffix', 'drink_index'];
-  const urlFormatStyle = urlFormats[Math.floor(Math.random() * urlFormats.length)];
+  // Use .webp format as it's used in your working example
+  const format = 'webp';
   
-  // For format with suffixes
-  const suffixes = ['utxgcj', 'vdhjk5', 'jwsmgc', 'tbchlz', 'rnrfbc', 'qsofwr'];
-  const randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-  
-  // We've seen both capitalized and lowercase versions
-  const capitalizedName = formattedDrinkName.charAt(0).toUpperCase() + formattedDrinkName.slice(1);
-  const useLowercase = Math.random() > 0.5;
-  const finalName = useLowercase ? formattedDrinkName : capitalizedName;
-  
-  // Randomly use either jpg or webp format
-  const formats = ['jpg', 'webp'];
-  const format = formats[Math.floor(Math.random() * formats.length)];
-  
-  // Construct URL based on chosen format style
-  let imageUrl;
-  if (urlFormatStyle === 'drink_index_suffix') {
-    // Format 1: With suffix (Asahi_pint3_utxgcj.webp)
-    imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${finalName}${randomIndex}_${randomSuffix}.${format}`;
-  } else {
-    // Format 2: Without suffix (heineken_pint_2.jpg)
-    imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${finalName}_${randomIndex}.${format}`;
-  }
+  // Create the URL using the same format as your working example
+  const imageUrl = `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/v${version}/${formattedDrinkName}_${suffix}.${format}`;
   
   console.log(`Generated URL for ${drinkName}: ${imageUrl}`);
   return imageUrl;

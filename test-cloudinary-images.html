@@ -1,98 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloudinary Image Test</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .image-container {
-            margin-bottom: 40px;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        .image-container h2 {
-            margin-top: 0;
-        }
-        img {
-            max-width: 100%;
-            border: 1px solid #eee;
-            display: block;
-        }
-        .image-url {
-            word-break: break-all;
-            font-family: monospace;
-            background: #f5f5f5;
-            padding: 8px;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        .success, .error {
-            padding: 5px;
-            border-radius: 3px;
-            margin-top: 5px;
-            font-weight: bold;
-        }
-        .success {
-            color: green;
-            background: #e7f7e7;
-        }
-        .error {
-            color: red;
-            background: #f7e7e7;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudinary Image Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .image-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .image-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      width: 350px;
+    }
+    .image-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .url {
+      font-size: 12px;
+      word-break: break-all;
+      margin-top: 10px;
+      color: #666;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <h1>Cloudinary Image Test</h1>
-    
-    <div class="image-container">
-        <h2>Heineken Pint Image 1 (SVG)</h2>
-        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.svg" 
-             alt="Heineken Pint 1" 
-             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
-             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
-        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/1.svg</div>
-    </div>
-    
-    <div class="image-container">
-        <h2>Heineken Pint Image 2 (SVG)</h2>
-        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/2.svg" 
-             alt="Heineken Pint 2" 
-             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
-             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
-        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/heineken_pint/2.svg</div>
-    </div>
-    
-    <div class="image-container">
-        <h2>Tiger Pint Image 1 (SVG)</h2>
-        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.svg" 
-             alt="Tiger Pint 1" 
-             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
-             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
-        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/home/brands/beer/tiger_pint/1.svg</div>
-    </div>
-    
-    <div class="image-container">
-        <h2>Direct Cloudinary URL Test</h2>
-        <img src="https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936154/home/brands/beer/heineken_pint/1.svg" 
-             alt="Cloudinary URL with version" 
-             onerror="this.onerror=null; this.insertAdjacentHTML('afterend', '<div class=\'error\'>Failed to load image</div>');"
-             onload="this.insertAdjacentHTML('afterend', '<div class=\'success\'>Image loaded successfully</div>');">
-        <div class="image-url">https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936154/home/brands/beer/heineken_pint/1.svg</div>
-    </div>
-    
-    <script>
-        // Add any additional JavaScript if needed
-    </script>
+  <h1>Cloudinary Image Test</h1>
+  
+  <div class="image-container" id="imageContainer">
+    <!-- Images will be added here by JavaScript -->
+  </div>
+
+  <script>
+    // Array of Cloudinary URLs to test
+    const cloudinaryUrls = [
+      // Known working URL (Wine Glass) - provided by user
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/red_wine_glass_jhrawp.webp',
+      
+      // Try variations based on the working format (v1744936848/name_suffix.webp)
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/heineken_pint_jhrawp.webp',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/tiger_pint_jhrawp.webp',
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936848/asahi_pint_jhrawp.webp',
+      
+      // Format 1: Number with suffix
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936266/4_rnrfbc.jpg',
+      
+      // Format 2: Drink name with index (no suffix)
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744936265/heineken_pint_2.jpg',
+      
+      // Format 3: Capitalized drink name with index and suffix (.webp)
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Asahi_pint3_utxgcj.webp',
+      
+      // Format 4: Capitalized drink name with index and suffix (.jpg)
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937038/Asahi_pint2_vdhjk5.jpg',
+      
+      // Format 5: Capitalized drink name with index and suffix (Tiger)
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Tiger_pint1_jwsmgc.webp',
+      
+      // Format 6: Capitalized drink name with index and suffix (Heineken)
+      'https://res.cloudinary.com/dp2uoj3ts/image/upload/v1744937039/Heineken_pint2_tbchlz.webp',
+    ];
+
+    // Function to create image cards
+    function createImageCards() {
+      const container = document.getElementById('imageContainer');
+      
+      cloudinaryUrls.forEach((url, index) => {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        
+        const title = document.createElement('h3');
+        title.textContent = `Image ${index + 1}`;
+        
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = `Test image ${index + 1}`;
+        
+        // Add load/error event listeners
+        img.onload = function() {
+          status.textContent = 'Status: Success';
+          status.className = 'success';
+        };
+        
+        img.onerror = function() {
+          status.textContent = 'Status: Failed to load';
+          status.className = 'error';
+          img.style.display = 'none'; // Hide broken image
+        };
+        
+        const urlText = document.createElement('div');
+        urlText.className = 'url';
+        urlText.textContent = url;
+        
+        const status = document.createElement('div');
+        status.textContent = 'Status: Loading...';
+        
+        card.appendChild(title);
+        card.appendChild(img);
+        card.appendChild(urlText);
+        card.appendChild(status);
+        
+        container.appendChild(card);
+      });
+    }
+
+    // Initialize the page
+    createImageCards();
+  </script>
 </body>
 </html>
