@@ -122,20 +122,24 @@ router.post('/api/cloudflare/upload', requireCloudflareConfig, upload.single('fi
     // Log file information for debugging
     console.log(`File details: size=${fileData.length} bytes, mime=${req.file.mimetype}, name=${req.file.originalname}`);
     
-    // Use an alternative approach for the upload
-    const uploadFormData = new URLSearchParams();
-    const fileBase64 = fileData.toString('base64');
-    uploadFormData.append('file', `data:${req.file.mimetype};base64,${fileBase64}`);
+    // Create a FormData object for multipart/form-data upload
+    // This is the format Cloudflare expects for direct uploads
+    const uploadFormData = new FormData();
+    
+    // Create a Blob from the buffer with the correct MIME type
+    const blob = new Blob([fileData], { type: req.file.mimetype });
+    
+    // Append the file to FormData - IMPORTANT: the field name must be 'file'
+    uploadFormData.append('file', blob, req.file.originalname);
     
     console.log(`Uploading file to Cloudflare using URL: ${uploadURL}`);
+    console.log(`Uploading as ${req.file.mimetype}, size: ${fileData.length} bytes`);
     
     // Upload the file to Cloudflare Images using the direct upload URL
     const uploadResponse = await fetch(uploadURL, {
       method: 'POST',
       body: uploadFormData,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      }
+      // Don't set Content-Type - let fetch set the correct multipart boundary
     });
     
     // Delete the temporary file regardless of success/failure

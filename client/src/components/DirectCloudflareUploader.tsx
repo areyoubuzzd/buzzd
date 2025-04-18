@@ -58,8 +58,12 @@ export function DirectCloudflareUploader({
       const formData = new FormData();
       formData.append('file', file);
 
+      console.log(`Uploading directly to Cloudflare URL: ${uploadURL}`);
+      console.log(`File type: ${file.type}, size: ${file.size} bytes`);
+      
       const uploadResponse = await fetch(uploadURL, {
         method: 'POST',
+        // No need to set Content-Type as the browser will set it correctly with boundary
         body: formData,
       });
 
@@ -85,7 +89,7 @@ export function DirectCloudflareUploader({
           type="file"
           ref={fileInputRef}
           onChange={handleUpload}
-          accept="image/jpeg,image/png,image/gif"
+          accept="image/jpeg,image/png,image/gif,image/webp"
           className="hidden"
         />
         <Button
