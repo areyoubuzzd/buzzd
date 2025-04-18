@@ -22,6 +22,7 @@ import GradientTestPage from "@/pages/gradient-test-page";
 import MenuAnalysisPage from "@/pages/menu-analysis-page";
 import RestaurantsPage from "@/pages/restaurants-page";
 import EstablishmentDetailsPage from "@/pages/establishment-details-page";
+import CloudflareImagesTestPage from "@/pages/cloudflare-images-test";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { LocationProvider } from "./contexts/location-context";
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/cards-test" component={CardsTestPage} />
       <Route path="/gradient-test" component={GradientTestPage} />
       <Route path="/menu-analysis" component={MenuAnalysisPage} />
+      <Route path="/cloudflare-images" component={CloudflareImagesTestPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/saved" component={SavedDealsPage} />
       <Route component={NotFound} />

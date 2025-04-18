@@ -54,6 +54,7 @@ export const establishments = pgTable("establishments", {
   latitude: doublePrecision("latitude").notNull(),
   longitude: doublePrecision("longitude").notNull(),
   imageUrl: text("image_url"),
+  imageId: text("image_id"), // Cloudflare Images ID for establishment logo
   rating: doublePrecision("rating"),
   cuisine: text("cuisine").notNull(), // Changed from "type" to "cuisine"
   price: integer("price"), // Added price column (can be null)
@@ -92,6 +93,7 @@ export const deals = pgTable("deals", {
   
   // Media and metadata
   imageUrl: text("image_url"),
+  imageId: text("image_id"), // Cloudflare Images ID
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
