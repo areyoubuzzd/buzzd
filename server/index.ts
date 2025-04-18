@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { checkConnection as checkCloudflareConnection } from "./services/cloudflare-images";
 
 const app = express();
 app.use(express.json());
@@ -37,6 +38,18 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Check Cloudflare Images connection
+  try {
+    const cloudflareStatus = await checkCloudflareConnection();
+    if (cloudflareStatus.success) {
+      console.log('✅ Successfully connected to Cloudflare Images API');
+    } else {
+      console.warn(`⚠️ ${cloudflareStatus.message}`);
+    }
+  } catch (error) {
+    console.error('❌ Error checking Cloudflare Images connection:', error);
+  }
+
   // Register API routes with explicit content-type
   // First regular API routes
   app.use('/api/deals', (req, res, next) => {
@@ -83,6 +96,12 @@ app.use((req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     next();
   }, (await import('./routes/cloudinaryRoutes')).default);
+  
+  // Register Cloudflare Images routes
+  app.use('/', (req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  }, (await import('./routes/cloudflare-images')).default);
   
   // Register rest of the routes
   const server = await registerRoutes(app);

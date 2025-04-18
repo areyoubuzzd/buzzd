@@ -161,6 +161,11 @@ export async function checkConnection() {
       return { success: false, message: `Connection failed: ${JSON.stringify(data.errors)}` };
     }
   } catch (error) {
-    return { success: false, message: `Connection error: ${error.message}` };
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'string' 
+        ? error 
+        : 'Unknown error';
+    return { success: false, message: `Connection error: ${errorMessage}` };
   }
 }
