@@ -231,11 +231,11 @@ export async function listImages(page = 1, perPage = 100) {
 
 // Get URL for an image with optional transformations
 export function getImageUrl(imageId: string, variant = 'public') {
-  // Always use the fixed account ID for imagedelivery.net
-  const fixedAccountId = "kx7S-b2sJYbGgWyc5FfQUg";
+  // Use the account ID from environment variables
+  const accountId = ACCOUNT_ID;
   
   // Format for Cloudflare Images URLs
-  return `https://imagedelivery.net/${fixedAccountId}/${imageId}/${variant}`;
+  return `https://imagedelivery.net/${accountId}/${imageId}/${variant}`;
 }
 
 // Check if Cloudflare Images is configured

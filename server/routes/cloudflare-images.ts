@@ -275,7 +275,21 @@ router.get('/api/cloudflare/images/:id/check', requireCloudflareConfig, async (r
 router.get('/api/cloudflare/connection', async (req: Request, res: Response) => {
   try {
     const result = await checkConnection();
-    res.json(result);
+    
+    // Add environment variable information for debugging
+    const debugInfo = {
+      accountId: process.env.CLOUDFLARE_ACCOUNT_ID || 'Not set',
+      accountIdLength: process.env.CLOUDFLARE_ACCOUNT_ID ? process.env.CLOUDFLARE_ACCOUNT_ID.length : 0,
+      apiTokenPresent: !!process.env.CLOUDFLARE_IMAGES_API_TOKEN,
+      apiTokenLength: process.env.CLOUDFLARE_IMAGES_API_TOKEN ? process.env.CLOUDFLARE_IMAGES_API_TOKEN.length : 0,
+      viteAccountId: process.env.VITE_CLOUDFLARE_ACCOUNT_ID || 'Not set',
+      environment: process.env.NODE_ENV || 'Not set'
+    };
+    
+    res.json({
+      ...result,
+      debug: debugInfo
+    });
   } catch (error) {
     console.error('Error checking Cloudflare Images connection:', error);
     res.status(500).json({ 
