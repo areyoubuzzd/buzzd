@@ -13,6 +13,7 @@ import dealsRoutes from "./routes/deals";
 import establishmentsRoutes from "./routes/establishments";
 import imageGenerationRoutes from "./routes/imageGenerationRoutes";
 import locationRoutes from "./routes/locationRoutes";
+import locationSearchRoutes from "./routes/locationSearchRoutes";
 import { db, pool } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -42,6 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register location routes
   app.use('/api/locations', locationRoutes);
+  
+  // Register location search routes
+  app.use('/api/locations', locationSearchRoutes);
   
   // NOTE: We no longer register deal and establishment routes here
   // They are registered directly in index.ts to ensure they take precedence
