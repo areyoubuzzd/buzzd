@@ -6,6 +6,26 @@ import SavingsCalculator from "@/components/savings/savings-calculator";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
 // Removed import for DealsList which was using dummy data
+
+// Helper function to calculate string similarity between two strings
+function calculateStringSimilarity(str1: string, str2: string): number {
+  // Simple implementation of string similarity
+  // Returns a value between 0 (completely different) and 1 (identical)
+  if (str1 === str2) return 1.0;
+  if (str1.length === 0 || str2.length === 0) return 0.0;
+  
+  // Count matching characters
+  let matches = 0;
+  const maxLen = Math.max(str1.length, str2.length);
+  const minLen = Math.min(str1.length, str2.length);
+  
+  for (let i = 0; i < minLen; i++) {
+    if (str1[i] === str2[i]) matches++;
+  }
+  
+  // Simple similarity score
+  return matches / maxLen;
+}
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FiMapPin, FiEdit2, FiFilter } from "react-icons/fi";
@@ -920,21 +940,58 @@ export default function HomePage() {
     sessionStorage.setItem('lastVisitedPage', '/');
     console.log('Set lastVisitedPage to / in sessionStorage');
     
-    // Try to get user's location on mount
+    // Check if we have a cached location in localStorage
+    const cachedLocationStr = localStorage.getItem('lastKnownLocation');
+    let cachedLocation = null;
+    
+    if (cachedLocationStr) {
+      try {
+        cachedLocation = JSON.parse(cachedLocationStr);
+        // Check if cache is recent (less than 24 hours old)
+        if (cachedLocation && cachedLocation.timestamp && 
+            Date.now() - cachedLocation.timestamp < 24 * 60 * 60 * 1000) {
+          console.log('Using cached location:', cachedLocation.name);
+          
+          // Update states with cached data
+          setUserRoadName(cachedLocation.name);
+          setLocation({
+            lat: cachedLocation.lat,
+            lng: cachedLocation.lng
+          });
+          
+          // Even with cached data, we'll still try to get fresh location
+        }
+      } catch (e) {
+        console.error('Error parsing cached location:', e);
+      }
+    }
+    
+    // Try to get user's current location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setLocation({
+          const newLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          };
           
-          // Try to get a postal code based on reverse geocoding will be handled by LocationBar
-          // which will send us an event with the postal code
+          // Only update if significantly different from cached location
+          // to avoid unnecessary API calls
+          if (!cachedLocation || 
+              Math.abs(cachedLocation.lat - newLocation.lat) > 0.01 ||
+              Math.abs(cachedLocation.lng - newLocation.lng) > 0.01) {
+            
+            console.log('Updating with fresh geolocation data:', newLocation);
+            setLocation(newLocation);
+            
+            // LocationBar will handle the reverse geocoding and update the road name
+          } else {
+            console.log('Current location is close to cached location, no update needed');
+          }
         },
         (error) => {
           console.error("Error getting location:", error);
-          // We already have a default location (Singapore) set in state
+          // Use default or cached location if available
         }
       );
     }
@@ -947,6 +1004,21 @@ export default function HomePage() {
         }
         if (event.detail.roadName) {
           setUserRoadName(event.detail.roadName);
+        }
+        
+        // If this location was detected automatically, don't update the UI location
+        // but do update the query parameters if needed
+        if (event.detail.detectedLocation && 
+            event.detail.lat && 
+            event.detail.lng) {
+          
+          // Update query parameters without changing the displayed location
+          setTimeout(() => {
+            handleLocationChange({ 
+              lat: event.detail.lat, 
+              lng: event.detail.lng 
+            });
+          }, 300);
         }
       }
     };
@@ -1034,10 +1106,11 @@ export default function HomePage() {
                   // Cache known locations for common Singapore places
                   const knownLocations: Record<string, { lat: number, lng: number }> = {
                     // Downtown/Central
-                    'raffles place': { lat: 1.2795, lng: 103.688 },
+                    'raffles place': { lat: 1.2842, lng: 103.8522 },  // Fixed Raffles Place coordinates
                     'marina bay': { lat: 1.2834, lng: 103.8607 },
                     'cbd': { lat: 1.2788, lng: 103.8530 },
                     'orchard': { lat: 1.3041, lng: 103.8320 },
+                    'orchard road': { lat: 1.3041, lng: 103.8320 },  // Duplicate with both versions
                     'chinatown': { lat: 1.2815, lng: 103.8451 },
                     'bugis': { lat: 1.3009, lng: 103.8560 },
                     'tanjong pagar': { lat: 1.2764, lng: 103.8454 },
@@ -1072,26 +1145,46 @@ export default function HomePage() {
                   let newLat = 1.3455;  // Default: central Singapore
                   let newLng = 103.8200;
                   
-                  // Loop through known locations to find a partial match
+                  // Fuzzy matching for location names
                   let bestMatch = '';
+                  let bestScore = 0;
+                  
+                  // First pass: check for exact and substring matches
                   for (const [key, coords] of Object.entries(knownLocations)) {
+                    // Direct match (highest priority)
+                    if (key === locationKey) {
+                      newLat = coords.lat;
+                      newLng = coords.lng;
+                      bestMatch = key;
+                      break;
+                    }
+                    
+                    // Contains match - either way
                     if (locationKey.includes(key) || key.includes(locationKey)) {
-                      // If it's a direct match, use it immediately
-                      if (key === locationKey) {
-                        newLat = coords.lat;
-                        newLng = coords.lng;
-                        bestMatch = key;
-                        break;
-                      }
-                      
                       // If it's a longer match than our current best, update
                       if (key.length > bestMatch.length) {
                         newLat = coords.lat;
                         newLng = coords.lng;
                         bestMatch = key;
+                        bestScore = 2; // Higher than fuzzy match
                       }
                     }
                   }
+                  
+                  // Second pass: If no match yet, try fuzzy matching
+                  if (bestMatch === '') {
+                    for (const [key, coords] of Object.entries(knownLocations)) {
+                      const similarity = calculateStringSimilarity(key, locationKey);
+                      if (similarity > 0.7 && similarity > bestScore) { // 70% similar or better
+                        newLat = coords.lat;
+                        newLng = coords.lng;
+                        bestMatch = key;
+                        bestScore = similarity;
+                      }
+                    }
+                  }
+                  
+                  // Use the shared calculateStringSimilarity function defined outside this block
                   
                   // If no match found, use the hash method as a fallback
                   if (bestMatch === '') {
