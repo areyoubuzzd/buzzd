@@ -178,9 +178,20 @@ export function LocationAutocomplete({
   }, [debouncedSearchTerm]);
 
   const handleLocationClick = (location: SingaporeLocation) => {
-    onLocationSelect(location);
+    // First update the search term to show the selection feedback
     setSearchTerm(location.name);
+    
+    // Call the parent component's handler to update the location
+    onLocationSelect(location);
+    
+    // Close the dropdown
     setIsOpen(false);
+    
+    // After a short delay, clear the search term
+    // This allows the parent component to display the location name properly
+    setTimeout(() => {
+      setSearchTerm("");
+    }, 200);
   };
 
   const handleClear = () => {
