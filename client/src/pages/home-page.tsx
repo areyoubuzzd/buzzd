@@ -4,8 +4,8 @@ import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
 import { useLocation, LocationContext } from "@/contexts/location-context";
 import { LocationHeader } from "@/components/location/location-header";
-// Import any location components by their actual exported names (non-default exports)
-import { LocationBar } from "@/components/location/location-bar";
+// Import location components with correct paths and export types
+import LocationBar from "@/components/layout/location-bar";
 import { LocationAutocomplete } from "@/components/location/location-autocomplete";
 // Removed import for DealsList which was using dummy data
 
@@ -1174,10 +1174,10 @@ export default function HomePage() {
           console.log('Using cached location coordinates, but keeping "My Location" display');
           
           // Only update coordinates, but keep displaying "My Location"
-          setLocation({
+          updateLocation({
             lat: cachedLocation.lat,
             lng: cachedLocation.lng
-          });
+          }, "My Location");
           
           // Even with cached data, we'll still try to get fresh location
         }
@@ -1202,7 +1202,7 @@ export default function HomePage() {
               Math.abs(cachedLocation.lng - newLocation.lng) > 0.01) {
             
             console.log('Updating with fresh geolocation data:', newLocation);
-            setLocation(newLocation);
+            updateLocation(newLocation, "My Location");
             
             // LocationBar will handle the reverse geocoding and update the road name
           } else {
