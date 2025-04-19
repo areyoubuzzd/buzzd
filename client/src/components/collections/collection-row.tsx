@@ -15,13 +15,94 @@ interface CollectionRowProps {
 export default function CollectionRow({ title, deals, description, userLocation, onViewAllClick }: CollectionRowProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Distribute deals so same drinks aren't adjacent (but all deals are included)
+  // First sort deals by active status, then distribute so same drinks aren't adjacent
   const distributedDeals = useMemo(() => {
     // If no deals or just one deal, return as is
     if (!deals || deals.length <= 1) return deals;
     
-    // Create a copy of deals to work with
-    const dealsToDistribute = [...deals];
+    // CRITICAL FIX: Force sorting by active status before distribution
+    // This ensures active deals always appear first, regardless of any other sorting
+    console.log(`CollectionRow [${title}]: Sorting ${deals.length} deals to prioritize active deals first`);
+    
+    // Helper function to check if a deal is active now
+    const isDealActiveNow = (deal: any): boolean => {
+      // Check day first
+      const now = new Date();
+      const sgOptions = { timeZone: 'Asia/Singapore' };
+      const sgTime = new Date(now.toLocaleString('en-US', sgOptions));
+      const currentDay = sgTime.getDay();
+      const daysMap = {
+        0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 
+        4: 'thursday', 5: 'friday', 6: 'saturday'
+      };
+      const currentDayName = daysMap[currentDay as keyof typeof daysMap];
+      
+      // Check for day matches in valid_days
+      const validDaysLower = deal.valid_days.toLowerCase();
+      let dayMatches = false;
+      
+      if (validDaysLower === 'all days' || validDaysLower.includes('everyday') || validDaysLower.includes('all')) {
+        dayMatches = true;
+      } else if (validDaysLower.includes(currentDayName)) {
+        dayMatches = true;
+      } else if (validDaysLower.includes('-')) {
+        const dayParts = validDaysLower.split('-');
+        if (dayParts.length === 2) {
+          const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+          const startDayValue = days.findIndex(d => dayParts[0].trim().toLowerCase().startsWith(d));
+          const endDayValue = days.findIndex(d => dayParts[1].trim().toLowerCase().startsWith(d));
+          if (startDayValue !== -1 && endDayValue !== -1) {
+            dayMatches = currentDay >= startDayValue && currentDay <= endDayValue;
+          }
+        }
+      }
+      
+      if (!dayMatches) return false;
+      
+      // Check time
+      const currentHours = sgTime.getHours();
+      const currentMinutes = sgTime.getMinutes();
+      const currentTimeValue = currentHours * 100 + currentMinutes;
+      
+      // Parse start time
+      let startTimeValue = 0;
+      try {
+        if (deal.hh_start_time.includes(':')) {
+          const [startHours, startMinutes] = deal.hh_start_time.split(':').map(Number);
+          startTimeValue = startHours * 100 + startMinutes;
+        } else {
+          startTimeValue = parseInt(deal.hh_start_time, 10);
+        }
+      } catch (e) {
+        return false;
+      }
+      
+      // Parse end time
+      let endTimeValue = 0;
+      try {
+        if (deal.hh_end_time.includes(':')) {
+          const [endHours, endMinutes] = deal.hh_end_time.split(':').map(Number);
+          endTimeValue = endHours * 100 + endMinutes;
+        } else {
+          endTimeValue = parseInt(deal.hh_end_time, 10);
+        }
+      } catch (e) {
+        return false;
+      }
+      
+      // Check if current time is within happy hour time range
+      const isActive = currentTimeValue >= startTimeValue && currentTimeValue <= endTimeValue;
+      return isActive;
+    };
+    
+    // First, split deals into active and inactive
+    const activeDeals = deals.filter(isDealActiveNow);
+    const inactiveDeals = deals.filter(deal => !isDealActiveNow(deal));
+    
+    console.log(`CollectionRow [${title}]: Found ${activeDeals.length} active deals and ${inactiveDeals.length} inactive deals`);
+    
+    // Now start distribution with active deals first
+    const dealsToDistribute = [...activeDeals, ...inactiveDeals];
     const result: any[] = [];
     
     // Keep track of the last drink name to avoid identical adjacent drinks
