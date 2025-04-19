@@ -1,374 +1,254 @@
 /**
- * Utilities for managing drink images with consistent categorization and naming
- * This module provides functions for organizing and retrieving images based on drink type
+ * Utility functions for image categories and drink types
  */
 
-// Define standard image categories
-export type DrinkCategory = 
+// Drink categories for our application
+export enum DrinkCategory {
   // Beer categories
-  | 'beer_pint' 
-  | 'beer_bucket' 
-  | 'beer_1for1' 
-  | 'beer_freeflow'
-  | 'beer_pitcher'
-  | 'beer_tower'
-  // Wine categories
-  | 'wine_red_glass'
-  | 'wine_white_glass'
-  | 'wine_bubbly_glass'
-  | 'wine_prosecco_glass'
-  | 'wine_sake_glass'
-  | 'wine_soju_glass'
-  | 'wine_red_1for1'
-  | 'wine_white_1for1'
-  | 'wine_bubbly_1for1'
-  | 'wine_prosecco_1for1'
-  | 'wine_red_freeflow'
-  | 'wine_white_freeflow'
-  | 'wine_bubbly_freeflow'
-  | 'wine_prosecco_freeflow'
-  // Cocktail categories
-  | 'cocktail_margarita'
-  | 'cocktail_martini'
-  | 'cocktail_singapore_sling'
-  | 'cocktail_espresso_martini'
-  | 'cocktail_cosmopolitan'
-  | 'cocktail_highball'
-  | 'cocktail_gin_tonic'
-  // Spirit glass categories
-  | 'spirit_whisky_glass'
-  | 'spirit_vodka_glass'
-  | 'spirit_rum_glass'
-  // Spirit bottle categories
-  | 'spirit_whisky_bottle'
-  | 'spirit_vodka_bottle'
-  | 'spirit_rum_bottle'
-  | 'spirit_tequila_bottle'
-  | 'spirit_gin_bottle'
-  // Fallback
-  | 'unknown';
-
-// Map simplified categories to detailed categories
-export function mapToDrinkCategory(drinkName: string, baseCategory?: string): DrinkCategory {
-  const lowerName = drinkName.toLowerCase();
-  
-  // Beer categories
-  if ((baseCategory?.includes('beer') || lowerName.includes('beer') || 
-       lowerName.includes('pint') || lowerName.includes('draught')) && 
-      !lowerName.includes('bucket') && !lowerName.includes('pitcher') && 
-      !lowerName.includes('tower') && !lowerName.includes('free flow') && 
-      !lowerName.includes('1-for-1') && !lowerName.includes('1 for 1')) {
-    return 'beer_pint';
-  }
-  
-  if ((baseCategory?.includes('beer') || lowerName.includes('beer')) && 
-      lowerName.includes('bucket')) {
-    return 'beer_bucket';
-  }
-  
-  if ((baseCategory?.includes('beer') || lowerName.includes('beer')) && 
-      (lowerName.includes('1-for-1') || lowerName.includes('1 for 1'))) {
-    return 'beer_1for1';
-  }
-  
-  if ((baseCategory?.includes('beer') || lowerName.includes('beer')) && 
-      (lowerName.includes('free flow') || lowerName.includes('freeflow'))) {
-    return 'beer_freeflow';
-  }
-  
-  if ((baseCategory?.includes('beer') || lowerName.includes('beer')) && 
-      lowerName.includes('pitcher')) {
-    return 'beer_pitcher';
-  }
-  
-  if ((baseCategory?.includes('beer') || lowerName.includes('beer')) && 
-      lowerName.includes('tower')) {
-    return 'beer_tower';
-  }
+  BEER_PINT = 'beer_pint',
+  BEER_BUCKET = 'beer_bucket',
+  BEER_TOWER = 'beer_tower',
+  BEER_BOTTLE = 'beer_bottle',
+  BEER_CRAFT = 'beer_craft',
   
   // Wine categories
-  if ((baseCategory?.includes('wine') || lowerName.includes('wine')) && 
-      lowerName.includes('red') && !lowerName.includes('bottle') && 
-      !lowerName.includes('1-for-1') && !lowerName.includes('1 for 1') && 
-      !lowerName.includes('free flow') && !lowerName.includes('freeflow')) {
-    return 'wine_red_glass';
-  }
-  
-  if ((baseCategory?.includes('wine') || lowerName.includes('wine')) && 
-      lowerName.includes('white') && !lowerName.includes('bottle') && 
-      !lowerName.includes('1-for-1') && !lowerName.includes('1 for 1') && 
-      !lowerName.includes('free flow') && !lowerName.includes('freeflow')) {
-    return 'wine_white_glass';
-  }
-  
-  if ((lowerName.includes('bubbly') || lowerName.includes('champagne')) && 
-      !lowerName.includes('bottle') && !lowerName.includes('1-for-1') && 
-      !lowerName.includes('1 for 1') && !lowerName.includes('free flow') && 
-      !lowerName.includes('freeflow')) {
-    return 'wine_bubbly_glass';
-  }
-  
-  if (lowerName.includes('prosecco') && !lowerName.includes('bottle') && 
-      !lowerName.includes('1-for-1') && !lowerName.includes('1 for 1') && 
-      !lowerName.includes('free flow') && !lowerName.includes('freeflow')) {
-    return 'wine_prosecco_glass';
-  }
-  
-  if (lowerName.includes('sake') && !lowerName.includes('bottle')) {
-    return 'wine_sake_glass';
-  }
-  
-  if (lowerName.includes('soju') && !lowerName.includes('bottle')) {
-    return 'wine_soju_glass';
-  }
-  
-  // 1-for-1 wine deals
-  if ((baseCategory?.includes('wine') || lowerName.includes('wine')) && 
-      lowerName.includes('red') && (lowerName.includes('1-for-1') || 
-      lowerName.includes('1 for 1'))) {
-    return 'wine_red_1for1';
-  }
-  
-  if ((baseCategory?.includes('wine') || lowerName.includes('wine')) && 
-      lowerName.includes('white') && (lowerName.includes('1-for-1') || 
-      lowerName.includes('1 for 1'))) {
-    return 'wine_white_1for1';
-  }
-  
-  // Free flow wine deals
-  if ((baseCategory?.includes('wine') || lowerName.includes('wine')) && 
-      lowerName.includes('red') && (lowerName.includes('free flow') || 
-      lowerName.includes('freeflow'))) {
-    return 'wine_red_freeflow';
-  }
-  
-  if ((baseCategory?.includes('wine') || lowerName.includes('wine')) && 
-      lowerName.includes('white') && (lowerName.includes('free flow') || 
-      lowerName.includes('freeflow'))) {
-    return 'wine_white_freeflow';
-  }
+  WINE_RED = 'wine_red',
+  WINE_WHITE = 'wine_white',
+  WINE_ROSE = 'wine_rose',
+  WINE_SPARKLING = 'wine_sparkling',
+  WINE_BOTTLE = 'wine_bottle',
   
   // Cocktail categories
-  if (lowerName.includes('margarita')) {
-    return 'cocktail_margarita';
-  }
+  COCKTAIL_MARGARITA = 'cocktail_margarita',
+  COCKTAIL_MOJITO = 'cocktail_mojito',
+  COCKTAIL_MARTINI = 'cocktail_martini',
+  COCKTAIL_NEGRONI = 'cocktail_negroni',
+  COCKTAIL_OLDLNG_FASHIONED = 'cocktail_old_fashioned',
+  COCKTAIL_LONGISLAND = 'cocktail_long_island',
   
-  if (lowerName.includes('martini') && !lowerName.includes('espresso')) {
-    return 'cocktail_martini';
-  }
+  // Spirit categories
+  SPIRIT_WHISKY = 'spirit_whisky',
+  SPIRIT_VODKA = 'spirit_vodka',
+  SPIRIT_RUM = 'spirit_rum',
+  SPIRIT_GIN = 'spirit_gin',
+  SPIRIT_TEQUILA = 'spirit_tequila',
   
-  if (lowerName.includes('espresso martini') || lowerName.includes('espresso-martini')) {
-    return 'cocktail_espresso_martini';
-  }
-  
-  if (lowerName.includes('singapore sling') || lowerName.includes('singapore-sling')) {
-    return 'cocktail_singapore_sling';
-  }
-  
-  if (lowerName.includes('cosmopolitan')) {
-    return 'cocktail_cosmopolitan';
-  }
-  
-  if (lowerName.includes('highball')) {
-    return 'cocktail_highball';
-  }
-  
-  if (lowerName.includes('gin') && lowerName.includes('tonic')) {
-    return 'cocktail_gin_tonic';
-  }
-  
-  // Spirit glasses
-  if (lowerName.includes('whisky') || lowerName.includes('whiskey') || 
-      lowerName.includes('bourbon') || lowerName.includes('scotch')) {
-    if (!lowerName.includes('bottle')) {
-      return 'spirit_whisky_glass';
-    } else {
-      return 'spirit_whisky_bottle';
-    }
-  }
-  
-  if (lowerName.includes('vodka')) {
-    if (!lowerName.includes('bottle')) {
-      return 'spirit_vodka_glass';
-    } else {
-      return 'spirit_vodka_bottle';
-    }
-  }
-  
-  if (lowerName.includes('rum')) {
-    if (!lowerName.includes('bottle')) {
-      return 'spirit_rum_glass';
-    } else {
-      return 'spirit_rum_bottle';
-    }
-  }
-  
-  if (lowerName.includes('tequila') && lowerName.includes('bottle')) {
-    return 'spirit_tequila_bottle';
-  }
-  
-  if (lowerName.includes('gin') && lowerName.includes('bottle')) {
-    return 'spirit_gin_bottle';
-  }
-  
-  // Default fallback based on basic category
-  if (baseCategory?.includes('beer')) {
-    return 'beer_pint';
-  }
-  
-  if (baseCategory?.includes('wine')) {
-    return 'wine_red_glass';
-  }
-  
-  if (baseCategory?.includes('cocktail')) {
-    return 'cocktail_martini';
-  }
-  
-  if (baseCategory?.includes('whisky') || baseCategory?.includes('whiskey')) {
-    return 'spirit_whisky_glass';
-  }
-  
-  if (baseCategory?.includes('vodka')) {
-    return 'spirit_vodka_glass';
-  }
-  
-  if (baseCategory?.includes('rum')) {
-    return 'spirit_rum_glass';
-  }
-  
-  if (baseCategory?.includes('gin')) {
-    return 'spirit_gin_bottle';
-  }
-  
-  // Complete fallback
-  return 'unknown';
+  // General categories
+  GENERAL = 'general',
+  FOOD = 'food',
+  DESSERT = 'dessert',
 }
 
-// Get a consistent color for each drink category
-export function getDrinkCategoryColor(category?: DrinkCategory | string): string {
-  if (!category) return '#6b7280'; // Gray default
-  
-  const categoryStr = String(category).toLowerCase();
-  
-  // Beer colors (amber/golden)
-  if (categoryStr.includes('beer')) {
-    return '#f59e0b';
-  }
+// Color mapping for drink categories
+const CATEGORY_COLORS: Record<string, string> = {
+  // Beer colors
+  beer: '#F59E0B', // Amber
+  beer_pint: '#F59E0B',
+  beer_bucket: '#D97706',
+  beer_tower: '#B45309',
+  beer_bottle: '#92400E',
+  beer_craft: '#78350F',
   
   // Wine colors
-  if (categoryStr.includes('wine_red')) {
-    return '#7f1d1d';
-  }
-  
-  if (categoryStr.includes('wine_white')) {
-    return '#fef3c7';
-  }
-  
-  if (categoryStr.includes('wine_bubbly') || categoryStr.includes('wine_prosecco')) {
-    return '#fef9c3';
-  }
-  
-  if (categoryStr.includes('wine_sake') || categoryStr.includes('wine_soju')) {
-    return '#e5e7eb';
-  }
+  wine: '#BE123C', // Ruby red
+  wine_red: '#BE123C',
+  wine_white: '#FCD34D',
+  wine_rose: '#FB7185',
+  wine_sparkling: '#F43F5E',
+  wine_bottle: '#9F1239',
   
   // Cocktail colors
-  if (categoryStr.includes('cocktail_margarita')) {
-    return '#65a30d';
-  }
-  
-  if (categoryStr.includes('cocktail_martini')) {
-    return '#f3f4f6';
-  }
-  
-  if (categoryStr.includes('cocktail_espresso')) {
-    return '#44403c';
-  }
-  
-  if (categoryStr.includes('cocktail_singapore')) {
-    return '#ef4444';
-  }
-  
-  if (categoryStr.includes('cocktail_cosmopolitan')) {
-    return '#be185d';
-  }
-  
-  if (categoryStr.includes('cocktail')) {
-    return '#db2777';
-  }
+  cocktail: '#DB2777', // Pink
+  cocktail_margarita: '#EC4899',
+  cocktail_mojito: '#14B8A6',
+  cocktail_martini: '#A21CAF',
+  cocktail_negroni: '#E11D48',
+  cocktail_old_fashioned: '#B45309',
+  cocktail_long_island: '#6D28D9',
   
   // Spirit colors
-  if (categoryStr.includes('whisky') || categoryStr.includes('bourbon') || categoryStr.includes('scotch')) {
-    return '#92400e';
+  spirit: '#8B5CF6', // Purple
+  spirit_whisky: '#A16207',
+  spirit_vodka: '#94A3B8',
+  spirit_rum: '#B45309',
+  spirit_gin: '#0369A1',
+  spirit_tequila: '#F59E0B',
+  
+  // General colors
+  general: '#6B7280', // Gray
+  food: '#65A30D',    // Green
+  dessert: '#D946EF', // Purple-pink
+};
+
+// Default category colors by main type
+export const DEFAULT_CATEGORY_COLORS = {
+  beer: '#F59E0B',
+  wine: '#BE123C',
+  cocktail: '#DB2777',
+  spirit: '#8B5CF6',
+  food: '#65A30D',
+  dessert: '#D946EF',
+  general: '#6B7280',
+};
+
+/**
+ * Get the appropriate color for a drink category
+ */
+export function getDrinkCategoryColor(category?: string): string {
+  if (!category) return DEFAULT_CATEGORY_COLORS.general;
+  
+  // First try exact match
+  if (category in CATEGORY_COLORS) {
+    return CATEGORY_COLORS[category];
   }
   
-  if (categoryStr.includes('vodka')) {
-    return '#f3f4f6';
-  }
-  
-  if (categoryStr.includes('rum')) {
-    return '#78350f';
-  }
-  
-  if (categoryStr.includes('tequila')) {
-    return '#fcd34d';
-  }
-  
-  if (categoryStr.includes('gin')) {
-    return '#bfdbfe';
+  // Try matching main category
+  const mainCategory = category.split('_')[0];
+  if (mainCategory in DEFAULT_CATEGORY_COLORS) {
+    return DEFAULT_CATEGORY_COLORS[mainCategory as keyof typeof DEFAULT_CATEGORY_COLORS];
   }
   
   // Default fallback
-  return '#6b7280';
+  return DEFAULT_CATEGORY_COLORS.general;
 }
 
-// Client-side caching of image IDs to reduce API calls
-const IMAGE_CACHE_KEY = 'cloudflare_image_cache';
-interface ImageCacheEntry {
-  category: DrinkCategory;
-  timestamp: number;
-  imageId: string;
+/**
+ * Get the main category from a full category string
+ */
+export function getMainCategory(category?: string): string {
+  if (!category) return 'general';
+  
+  const parts = category.split('_');
+  return parts[0] || 'general';
 }
 
-// Store image IDs in local storage with category metadata
-export function cacheImageId(imageId: string, category: DrinkCategory): void {
-  try {
-    const cacheData = localStorage.getItem(IMAGE_CACHE_KEY);
-    const cache: Record<string, ImageCacheEntry> = cacheData ? JSON.parse(cacheData) : {};
-    
-    cache[category] = {
-      category,
-      timestamp: Date.now(),
-      imageId
-    };
-    
-    localStorage.setItem(IMAGE_CACHE_KEY, JSON.stringify(cache));
-  } catch (error) {
-    console.warn('Failed to cache image ID:', error);
+/**
+ * Convert a drink name to a likely category
+ */
+export function guessCategoryFromDrinkName(drinkName?: string): string {
+  if (!drinkName) return 'general';
+  
+  const nameLower = drinkName.toLowerCase();
+  
+  // Beer detection
+  if (/beer|lager|pint|draft|draught|ale|ipa|stout|porter|pilsner|hefeweizen/i.test(nameLower)) {
+    if (/bucket|tower/i.test(nameLower)) {
+      return nameLower.includes('bucket') ? 'beer_bucket' : 'beer_tower';
+    }
+    if (/bottle/i.test(nameLower)) return 'beer_bottle';
+    if (/craft|ipa|ale/i.test(nameLower)) return 'beer_craft';
+    return 'beer_pint';
+  }
+  
+  // Wine detection
+  if (/wine|vino|merlot|cabernet|sauvignon|chardonnay|pinot|riesling/i.test(nameLower)) {
+    if (/red/i.test(nameLower)) return 'wine_red';
+    if (/white/i.test(nameLower)) return 'wine_white';
+    if (/rose|rosé/i.test(nameLower)) return 'wine_rose';
+    if (/sparkl|champagne|prosecco|bubbly/i.test(nameLower)) return 'wine_sparkling';
+    if (/bottle/i.test(nameLower)) return 'wine_bottle';
+    return 'wine';
+  }
+  
+  // Cocktail detection
+  if (/cocktail|mixed|drink/i.test(nameLower)) {
+    if (/margarita/i.test(nameLower)) return 'cocktail_margarita';
+    if (/mojito/i.test(nameLower)) return 'cocktail_mojito';
+    if (/martini/i.test(nameLower)) return 'cocktail_martini';
+    if (/negroni/i.test(nameLower)) return 'cocktail_negroni';
+    if (/old.?fashion/i.test(nameLower)) return 'cocktail_old_fashioned';
+    if (/long.?island/i.test(nameLower)) return 'cocktail_long_island';
+    return 'cocktail';
+  }
+  
+  // Spirit detection
+  if (/whisky|whiskey|bourbon|scotch/i.test(nameLower)) return 'spirit_whisky';
+  if (/vodka/i.test(nameLower)) return 'spirit_vodka';
+  if (/rum/i.test(nameLower)) return 'spirit_rum';
+  if (/gin/i.test(nameLower)) return 'spirit_gin';
+  if (/tequila|mezcal/i.test(nameLower)) return 'spirit_tequila';
+  
+  // Food detection
+  if (/burger|pizza|pasta|nachos|fries|wings|snack|appetizer|food/i.test(nameLower)) return 'food';
+  
+  // Dessert detection
+  if (/dessert|cake|ice.?cream|brownie|sweet/i.test(nameLower)) return 'dessert';
+  
+  // Default fallback
+  return 'general';
+}
+
+// Cache for storing image IDs by category locally in the browser
+const IMAGE_ID_CACHE: Record<string, string[]> = {};
+
+/**
+ * Add an image ID to the local cache
+ */
+export function cacheImageId(category: string, imageId: string): void {
+  if (!IMAGE_ID_CACHE[category]) {
+    IMAGE_ID_CACHE[category] = [];
+  }
+  
+  // Don't add duplicates
+  if (!IMAGE_ID_CACHE[category].includes(imageId)) {
+    IMAGE_ID_CACHE[category].push(imageId);
   }
 }
 
-// Retrieve cached image ID by category
-export function getCachedImageId(category: DrinkCategory): string | null {
-  try {
-    const cacheData = localStorage.getItem(IMAGE_CACHE_KEY);
-    if (!cacheData) return null;
-    
-    const cache: Record<string, ImageCacheEntry> = JSON.parse(cacheData);
-    const entry = cache[category];
-    
-    if (!entry) return null;
-    
-    // Check if cache is fresh (less than 24 hours)
-    const isFresh = Date.now() - entry.timestamp < 24 * 60 * 60 * 1000;
-    return isFresh ? entry.imageId : null;
-  } catch (error) {
-    console.warn('Failed to retrieve cached image ID:', error);
-    return null;
-  }
+/**
+ * Get a random image ID from the cache for a category
+ */
+export function getRandomImageIdFromCache(category: string): string | null {
+  const ids = IMAGE_ID_CACHE[category];
+  if (!ids || ids.length === 0) return null;
+  
+  const randomIndex = Math.floor(Math.random() * ids.length);
+  return ids[randomIndex];
 }
 
-// Format a custom ID for Cloudflare based on category
-export function formatCloudflareCustomId(category: DrinkCategory, variant: number = 1): string {
-  return `${category.replace(/_/g, '/')}/${variant}`;
+/**
+ * Format a custom ID for Cloudflare Images
+ * This helps with organization and categorization
+ */
+export function formatCloudflareCustomId(
+  category: string, 
+  drinkName?: string
+): string {
+  const safeDrinkName = drinkName 
+    ? drinkName.toLowerCase().replace(/[^a-z0-9_-]/g, '_')
+    : '';
+    
+  const timestamp = Date.now();
+  
+  return `${category}${safeDrinkName ? '_' + safeDrinkName : ''}_${timestamp}`;
+}
+
+/**
+ * Map a string to a DrinkCategory enum
+ */
+export function mapToDrinkCategory(category: string): DrinkCategory {
+  // Try to match directly
+  if (Object.values(DrinkCategory).includes(category as DrinkCategory)) {
+    return category as DrinkCategory;
+  }
+  
+  // Try to find a close match
+  const mainCategory = category.split('_')[0];
+  
+  switch (mainCategory) {
+    case 'beer':
+      return DrinkCategory.BEER_PINT;
+    case 'wine':
+      return DrinkCategory.WINE_RED;
+    case 'cocktail':
+      return DrinkCategory.COCKTAIL_MARTINI;
+    case 'spirit':
+      return DrinkCategory.SPIRIT_WHISKY;
+    case 'food':
+      return DrinkCategory.FOOD;
+    case 'dessert':
+      return DrinkCategory.DESSERT;
+    default:
+      return DrinkCategory.GENERAL;
+  }
 }

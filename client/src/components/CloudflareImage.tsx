@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { mapToDrinkCategory, getDrinkCategoryColor } from '@/lib/image-category-utils';
+import { DrinkCategory, getDrinkCategoryColor } from '@/lib/image-category-utils';
 import { Loader2 } from 'lucide-react';
 import { CLOUDFLARE_ACCOUNT_ID, getCloudflareImageUrl, checkImageStatus } from '@/lib/cloudflare-config';
 
@@ -107,8 +107,8 @@ export function CloudflareImage({
     };
   }, [imageId, variant, retryCount, imageError]);
 
-  // Map to detailed drink category for better image organization
-  const detailedCategory = drinkName ? mapToDrinkCategory(drinkName, category) : category;
+  // Use category directly
+  const detailedCategory = category;
   
   // Generate simpler fallback without SVG which might cause issues
   const getCategoryColor = () => {
@@ -198,10 +198,8 @@ export function CloudflareImageUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Map to detailed category for better image organization
-  const detailedCategory = drinkName && category 
-    ? mapToDrinkCategory(drinkName, category) 
-    : category || 'general';
+  // Use category directly for better organization
+  const detailedCategory = category || 'general';
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

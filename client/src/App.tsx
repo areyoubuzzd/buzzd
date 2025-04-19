@@ -26,6 +26,7 @@ import CloudflareImagesTestPage from "@/pages/cloudflare-images-test";
 import CloudflareTestImagePage from "@/pages/cloudflare-test-image";
 import WorkingImageTest from "@/pages/working-image-test";
 import ImageUploadTest from "@/pages/image-upload-test";
+import LocalImageTest from "@/pages/local-image-test";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { LocationProvider } from "./contexts/location-context";
@@ -56,6 +57,7 @@ function Router() {
       <Route path="/cloudflare-test-image" component={CloudflareTestImagePage} />
       <Route path="/working-image-test" component={WorkingImageTest} />
       <Route path="/image-upload-test" component={ImageUploadTest} />
+      <Route path="/local-image-test" component={LocalImageTest} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/saved" component={SavedDealsPage} />
       <Route component={NotFound} />
