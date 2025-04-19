@@ -413,16 +413,13 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
                     </span>
                   </div>
                   
-                  {/* Time display with countdown if active */}
+                  {/* Time display - aligned to the right */}
                   {isActive && endTime && (
                     <div className="flex items-center">
-                      {isActive && (
-                        <DealCountdown 
-                          endTime={endTime} 
-                          isActive={true}
-                          variant="compact"
-                        />
-                      )}
+                      <FaClock className="h-2 w-2 text-green-600 mr-1" />
+                      <span className="text-xs text-green-600">
+                        Ends: {endTime}
+                      </span>
                     </div>
                   )}
                   {!isActive && startTime && hasHappyHourToday && (

@@ -660,13 +660,22 @@ function DealCard({
                 )}
               </div>
               
-              {/* Countdown Timer - if deal is active */}
+              {/* Time display - simple end/start time as requested */}
               {deal.isActive && deal.hh_end_time && (
-                <DealCountdown 
-                  endTime={deal.hh_end_time}
-                  isActive={deal.isActive}
-                  variant="compact"
-                />
+                <div className="flex items-center">
+                  <Clock size={12} className="text-green-400 mr-1" />
+                  <span className="text-green-400 text-xs font-medium">
+                    Ends: {formattedTimeRange.split('–')[1].trim()}
+                  </span>
+                </div>
+              )}
+              {!deal.isActive && deal.hh_start_time && (
+                <div className="flex items-center">
+                  <Clock size={12} className="text-yellow-400 mr-1" />
+                  <span className="text-yellow-400 text-xs font-medium">
+                    Starts: {formattedTimeRange.split('–')[0].trim()}
+                  </span>
+                </div>
               )}
             </div>
           </div>

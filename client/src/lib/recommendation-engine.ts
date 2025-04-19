@@ -83,7 +83,7 @@ export function getRecommendedDeals(
     }
     
     // Factor 4: Price range preferences
-    if (userPreferences?.priceRange) {
+    if (userPreferences?.priceRange && deal.happy_hour_price !== undefined) {
       const { min, max } = userPreferences.priceRange;
       const price = deal.happy_hour_price;
       

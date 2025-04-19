@@ -20,6 +20,20 @@ interface RestaurantHeatMapProps {
   className?: string;
 }
 
+/**
+ * Restaurant Heat Map Component
+ * 
+ * Displays a visual representation of the popularity/activity level of a restaurant
+ * based on its active deals.
+ * 
+ * Current popularity calculation:
+ * - By default, popularity is based on the number of deals (1 deal = Trending, 2-3 deals = Hot, 4+ deals = Top Rated)
+ * - The calculation can be refined in the future to include:
+ *   - User check-ins (via the suggested check-in feature)
+ *   - Deal savings/discounts amount
+ *   - User likes/ratings
+ *   - Deal engagement metrics
+ */
 export function RestaurantHeatMap({
   deals,
   popularity,
@@ -28,6 +42,8 @@ export function RestaurantHeatMap({
   className
 }: RestaurantHeatMapProps) {
   // Calculate popularity level (0-10) if not explicitly provided
+  // Formula: deals.length / 2, with min 0 and max 10
+  // This means: 2 deals = level 1, 4 deals = level 2, etc.
   const heatLevel = popularity !== undefined ? popularity : Math.min(10, Math.ceil(deals.length / 2));
   
   // Get responsive sizing based on size prop
@@ -37,10 +53,10 @@ export function RestaurantHeatMap({
     lg: 'h-3'
   };
   
-  // Determine heat level label
-  let heatLabel = 'Low Popularity';
-  if (heatLevel >= 7) heatLabel = 'High Popularity';
-  else if (heatLevel >= 4) heatLabel = 'Medium Popularity';
+  // Determine heat level label with more positive wording
+  let heatLabel = 'Trending';
+  if (heatLevel >= 7) heatLabel = 'Top Rated';
+  else if (heatLevel >= 4) heatLabel = 'Hot';
   
   // Gradient background based on heat level
   const gradientStyle = {
@@ -53,8 +69,8 @@ export function RestaurantHeatMap({
         <div className="flex justify-between items-center text-xs">
           <span className={cn(
             "font-medium",
-            heatLevel >= 7 ? "text-orange-500" : 
-            heatLevel >= 4 ? "text-yellow-500" : "text-green-500"
+            heatLevel >= 7 ? "text-green-600" : 
+            heatLevel >= 4 ? "text-green-500" : "text-yellow-500"
           )}>
             {heatLabel}
           </span>
@@ -86,14 +102,15 @@ export function RestaurantHeatMap({
 }
 
 // Generate appropriate gradient based on heat level
+// Now using yellow-green to green color scheme as requested
 function getGradientForHeatLevel(level: number): string {
   if (level >= 8) {
-    return 'linear-gradient(90deg, #FFB347 0%, #FF3A3A 100%)'; // Hot
+    return 'linear-gradient(90deg, #2E8B57 0%, #006400 100%)'; // Top Rated - Dark Green
   } else if (level >= 5) {
-    return 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)'; // Medium-hot
+    return 'linear-gradient(90deg, #32CD32 0%, #2E8B57 100%)'; // Hot - Medium Green
   } else if (level >= 3) {
-    return 'linear-gradient(90deg, #CCFF00 0%, #FFD700 100%)'; // Warm
+    return 'linear-gradient(90deg, #9ACD32 0%, #32CD32 100%)'; // Trending - Light Green
   } else {
-    return 'linear-gradient(90deg, #00FF7F 0%, #ADFF2F 100%)'; // Cool
+    return 'linear-gradient(90deg, #FFFF00 0%, #9ACD32 100%)'; // Yellow to Light Green
   }
 }
