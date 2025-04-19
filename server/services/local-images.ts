@@ -12,9 +12,9 @@ import sharp from 'sharp';
 const IMAGE_BASE_DIR = path.join(process.cwd(), 'public', 'images');
 const DRINKS_DIR = path.join(IMAGE_BASE_DIR, 'drinks');
 
-// Max dimensions for stored images
-const MAX_WIDTH = 1200;
-const MAX_HEIGHT = 800;
+// Fixed dimensions for stored images - 500x500 per requirements
+const IMAGE_WIDTH = 500;
+const IMAGE_HEIGHT = 500;
 
 // Make sure directories exist
 if (!fs.existsSync(IMAGE_BASE_DIR)) {
@@ -87,25 +87,23 @@ export async function saveImage(
     const filename = `${imageId}${fileExt}`;
     const destPath = path.join(categoryPath, filename);
     
-    // Process the image with sharp to resize and optimize
+    // Process the image with sharp to resize to exactly 500x500
     const image = sharp(filePath);
-    const metadata2 = await image.metadata();
     
-    // Resize if needed while maintaining aspect ratio
-    if (metadata2.width && metadata2.width > MAX_WIDTH || 
-        metadata2.height && metadata2.height > MAX_HEIGHT) {
-      await image
-        .resize({
-          width: MAX_WIDTH,
-          height: MAX_HEIGHT,
-          fit: sharp.fit.inside,
-          withoutEnlargement: true
-        })
-        .toFile(destPath);
-    } else {
-      // Just copy the file if no resizing needed
-      fs.copyFileSync(filePath, destPath);
-    }
+    // Always resize to exactly 500x500 square with cover fit
+    // This ensures all images are exactly 500x500 as required
+    await image
+      .resize({
+        width: IMAGE_WIDTH,
+        height: IMAGE_HEIGHT,
+        fit: sharp.fit.cover,  // Use cover to fill the square without distortion
+        position: 'center'     // Center the image to keep the important parts
+      })
+      // Convert to either JPEG or WebP (based on original format)
+      .toFormat(path.extname(metadata.originalName).toLowerCase() === '.webp' ? 'webp' : 'jpeg', {
+        quality: 85  // Good balance of quality and file size
+      })
+      .toFile(destPath);
     
     // Get final image dimensions
     const finalMetadata = await sharp(destPath).metadata();
