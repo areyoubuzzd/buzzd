@@ -396,10 +396,10 @@ export default function RestaurantsPage() {
 
   return (
     <div className="pb-20 bg-[#232946]">
-      <div className="bg-[#FFC300] text-[#F4F4F9] px-4 sticky top-0 z-10">
-        <div className="flex justify-between items-center h-18"> {/* Fixed height of h-18 (4.5rem) */}
+      <div className="bg-[#FFC300] text-[#F4F4F9] px-4 sticky top-0 z-10 pb-0 mb-0">
+        <div className="flex justify-between items-center h-[4.5rem]"> {/* Fixed height to match header */}
           <motion.h1
-            className="text-2xl font-bold"
+            className="text-3xl font-bold pb-1"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ 
@@ -438,8 +438,8 @@ export default function RestaurantsPage() {
         </div>
       </div>
       
-      {/* Location Header Component - moved 8px lower and 2px to the left */}
-      <div className="pt-[8px] pl-[2px]">
+      {/* Location Header Component */}
+      <div className="mt-0">
         <LocationHeader onOpenFilters={() => console.log("Open filters")} />
       </div>
       

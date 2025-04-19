@@ -34,7 +34,7 @@ export default function Header() {
                 <img 
                   src={logoBlack} 
                   alt="Buzzd Logo" 
-                  className="h-12" /* Using the new black logo */
+                  className="h-[3.6rem]" /* Increased logo size by 20% from 12 (3rem) to 3.6rem */
                 />
               </div>
             </Link>

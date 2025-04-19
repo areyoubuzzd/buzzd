@@ -12,7 +12,7 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#FFC300] border-t border-[#e8b100] shadow-lg z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#FF6F61] border-t border-[#e86355] shadow-lg z-50">
       <div className="flex justify-around items-center h-16">
         <Link href="/">
           <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
