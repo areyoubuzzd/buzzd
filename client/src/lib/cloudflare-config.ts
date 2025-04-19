@@ -8,8 +8,45 @@
 // Using the actual account ID from the environment variables
 export const CLOUDFLARE_ACCOUNT_ID = import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID as string;
 
-// Add a cache to temporarily store image IDs with custom IDs
-const customIdCache = new Map<string, string>();
+// Add a cache to store recently uploaded images by category
+const categoryImageCache = new Map<string, string[]>();
+
+// Add a function to get real image IDs for a specific category
+export function getCategoryImages(category: string): string[] {
+  // First check if we have any cached images for this category
+  const cachedImages = categoryImageCache.get(category);
+  if (cachedImages && cachedImages.length > 0) {
+    return cachedImages;
+  }
+  
+  // If not in the cache, return an empty array
+  return [];
+}
+
+// Add a function to store an image ID for a category
+export function addImageToCategory(category: string, imageId: string) {
+  const existingImages = categoryImageCache.get(category) || [];
+  categoryImageCache.set(category, [...existingImages, imageId]);
+  // Save to local storage for persistence
+  try {
+    localStorage.setItem('categoryImages', JSON.stringify(Array.from(categoryImageCache.entries())));
+  } catch (e) {
+    console.warn('Failed to save category images to local storage', e);
+  }
+}
+
+// Load cached images from local storage on initialization
+try {
+  const storedCache = localStorage.getItem('categoryImages');
+  if (storedCache) {
+    const parsedCache = JSON.parse(storedCache);
+    for (const [category, images] of parsedCache) {
+      categoryImageCache.set(category, images);
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load category images from local storage', e);
+}
 
 // Generate an image delivery URL for a given image ID and variant
 export function getCloudflareImageUrl(

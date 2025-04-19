@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DrinkCategory, mapToDrinkCategory, getDrinkCategoryColor, formatCloudflareCustomId, cacheImageId } from '@/lib/image-category-utils';
 import { CloudflareImage } from '@/components/CloudflareImage';
+import { addImageToCategory, getCategoryImages } from '@/lib/cloudflare-config';
 import { Loader2, UploadCloud, Check } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -100,6 +101,9 @@ export default function ImageUploadTest() {
         
         // Cache the image ID for future use
         cacheImageId(data.result.id, category);
+        
+        // Add to our category cache for immediate display
+        addImageToCategory(category, data.result.id);
         
         // Reset form
         setSelectedFile(null);
@@ -376,21 +380,40 @@ export default function ImageUploadTest() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.from({ length: 5 }).map((_, idx) => (
-                    <div key={idx} className="flex flex-col items-center">
-                      <p className="text-sm font-medium mb-2">Variant {idx + 1}</p>
-                      <div className="aspect-square w-full rounded-md overflow-hidden relative">
-                        <div 
-                          className="bg-gray-100 rounded-md w-full h-full"
-                          style={{ backgroundColor: getDrinkCategoryColor(testCategory) }}
-                        >
-                          <p className="text-sm text-center p-4 text-white">
-                            {testCategory.replace(/_/g, ' ')} (variant {idx + 1})
-                          </p>
+                  {Array.from({ length: 5 }).map((_, idx) => {
+                    // Check if we have real uploaded images for this category
+                    const categoryImages = getCategoryImages(testCategory);
+                    const realImageId = categoryImages[idx];
+                    
+                    return (
+                      <div key={idx} className="flex flex-col items-center">
+                        <p className="text-sm font-medium mb-2">
+                          {realImageId ? 'Uploaded Image' : 'Variant'} {idx + 1}
+                        </p>
+                        <div className="aspect-square w-full rounded-md overflow-hidden relative">
+                          {realImageId ? (
+                            <CloudflareImage 
+                              imageId={realImageId}
+                              alt={`${testCategory} variant ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                              drinkName={testCategory.replace(/_/g, ' ')}
+                              category={testCategory}
+                              fallbackColor={getDrinkCategoryColor(testCategory)}
+                            />
+                          ) : (
+                            <div 
+                              className="flex items-center justify-center bg-gray-100 rounded-md w-full h-full"
+                              style={{ backgroundColor: getDrinkCategoryColor(testCategory) }}
+                            >
+                              <p className="text-sm text-center p-4 text-white">
+                                {testCategory.replace(/_/g, ' ')} (variant {idx + 1})
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </CardContent>
