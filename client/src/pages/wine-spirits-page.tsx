@@ -2,20 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FiSearch, FiFilter, FiX, FiClock } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import { useLocation } from 'wouter';
+import { useLocation as useWouterLocation } from 'wouter';
+import { Link } from 'wouter';
 
 import { Button } from '@/components/ui/button';
-import Header from '@/components/layout/header';
 import Navigation from '@/components/layout/navigation';
-import LocationBar from '@/components/location-bar';
+import { LocationHeader } from '@/components/location/location-header';
+import { useLocation } from '@/contexts/location-context';
 import { Input } from '@/components/ui/input';
-import DealCard from '@/components/deals/deal-card';
 import SquareDealCard from '@/components/deals/square-deal-card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { isDealActiveNow } from '@/lib/time-utils';
+import logoBlack from '@/assets/logo_black.png';
 
 type Deal = {
   id: number;

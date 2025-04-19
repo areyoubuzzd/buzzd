@@ -2,19 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FiSearch, FiFilter, FiX, FiClock } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import { useLocation } from 'wouter';
+import { useLocation as useWouterLocation } from 'wouter';
+import { Link } from 'wouter';
 
 import { Button } from '@/components/ui/button';
-import Header from '@/components/layout/header';
 import Navigation from '@/components/layout/navigation';
-import LocationBar from '@/components/location-bar';
+import { LocationHeader } from '@/components/location/location-header';
+import { useLocation } from '@/contexts/location-context';
 import { Input } from '@/components/ui/input';
-import DealCard from '@/components/deals/deal-card';
 import SquareDealCard from '@/components/deals/square-deal-card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { isDealActiveNow } from '@/lib/time-utils';
+import logoBlack from '@/assets/logo_black.png';
 
 type Deal = {
   id: number;
@@ -47,16 +48,12 @@ type Deal = {
 
 export default function BeerPage() {
   const queryClient = useQueryClient();
-  const [location, setLocation] = useState<{ lat: number; lng: number }>({ 
-    // Default to Singapore
-    lat: 1.3521, 
-    lng: 103.8198 
-  });
   const [searchQuery, setSearchQuery] = useState('');
   const [activeOnly, setActiveOnly] = useState(false);
-  const [userPostalCode, setUserPostalCode] = useState('');
-  const [userRoadName, setUserRoadName] = useState('Singapore');
-  const [, setLocation_] = useLocation();
+  const [, navigate] = useWouterLocation();
+  
+  // Get location from context
+  const { location } = useLocation();
 
   // Fetch all beer deals from the API
   const { data: dealsData, isLoading } = useQuery({
@@ -105,74 +102,50 @@ export default function BeerPage() {
     });
   }, [dealsData, searchQuery, activeOnly]);
 
+  // Store the current page in sessionStorage for proper back navigation
   useEffect(() => {
-    // Try to get user's location on mount
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          // Default to Singapore
-        }
-      );
-    }
-    
-    // Listen for postal code and road name updates
-    const handlePostalCodeUpdate = (event: CustomEvent) => {
-      if (event.detail) {
-        if (event.detail.postalCode) {
-          setUserPostalCode(event.detail.postalCode);
-        }
-        if (event.detail.roadName) {
-          setUserRoadName(event.detail.roadName);
-        }
-      }
-    };
-    
-    window.addEventListener('postalCodeUpdated', handlePostalCodeUpdate as EventListener);
-    
-    return () => {
-      window.removeEventListener('postalCodeUpdated', handlePostalCodeUpdate as EventListener);
-    };
+    sessionStorage.setItem('lastVisitedPage', '/beer');
+    console.log('Set lastVisitedPage to /beer in sessionStorage');
   }, []);
-
-  const handleLocationChange = (newLocation: { lat: number; lng: number }) => {
-    setLocation(newLocation);
-    
-    // Invalidate query to refetch with new location
-    queryClient.invalidateQueries({ 
-      queryKey: ['/api/deals/collections/all', { lat: newLocation.lat, lng: newLocation.lng }]
-    });
-  };
 
   const handleSearchClear = () => {
     setSearchQuery('');
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-20">
-      <Header />
+    <div className="flex flex-col min-h-screen pb-20 bg-[#232946]">
+      {/* Header with Logo */}
+      <header className="sticky top-0 z-50 bg-[#D3D3D3] shadow-md">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-[4.5rem]">
+            <div className="flex items-center">
+              <Link href="/">
+                <div className="flex items-center cursor-pointer">
+                  <img 
+                    src={logoBlack} 
+                    alt="Buzzd Logo" 
+                    className="h-[4rem]"
+                  />
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
       
-      <LocationBar 
-        onLocationChange={handleLocationChange}
-        onOpenFilters={() => {}} 
-      />
+      {/* Location Header */}
+      <LocationHeader onOpenFilters={() => console.log("Open filters")} />
       
       {/* Beer Page Heading */}
-      <div className="bg-amber-50 px-4 py-6 border-b border-amber-100">
+      <div className="bg-[#232946] px-4 py-6 border-b border-[#353e6b]">
         <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-amber-900">Beer Deals</h1>
-          <p className="text-amber-700 mt-1">Find the best beer deals near you</p>
+          <h1 className="text-2xl font-bold text-white">Beer Deals</h1>
+          <p className="text-gray-300 mt-1">Find the best beer deals near you</p>
         </div>
       </div>
       
       {/* Search and Filters */}
-      <div className="bg-white px-4 py-3 border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-[#282f57] px-4 py-3 border-b border-[#353e6b] sticky top-[4.5rem] z-10">
         <div className="container mx-auto">
           <div className="relative">
             <Input
@@ -180,7 +153,7 @@ export default function BeerPage() {
               placeholder="Search beer by name, type or bar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10 py-2 w-full rounded-lg border-gray-300"
+              className="pl-10 pr-10 py-2 w-full rounded-lg border-[#353e6b]"
             />
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             {searchQuery && (
@@ -199,8 +172,8 @@ export default function BeerPage() {
           {/* Active Only Toggle */}
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center space-x-2">
-              <FiClock className="h-4 w-4 text-amber-600" />
-              <Label htmlFor="active-toggle" className="text-sm font-medium text-gray-700">
+              <FiClock className="h-4 w-4 text-amber-400" />
+              <Label htmlFor="active-toggle" className="text-sm font-medium text-gray-200">
                 Show active deals only
               </Label>
             </div>
@@ -214,9 +187,9 @@ export default function BeerPage() {
       </div>
       
       {/* Results Count */}
-      <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+      <div className="bg-[#232946] px-4 py-2 border-b border-[#353e6b]">
         <div className="container mx-auto">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-300">
             {beerDeals.length} beer {beerDeals.length === 1 ? 'deal' : 'deals'} found
             {activeOnly ? ' (active now)' : ''}
             {searchQuery ? ` for "${searchQuery}"` : ''}
@@ -225,23 +198,23 @@ export default function BeerPage() {
       </div>
       
       {/* Beer Deals List */}
-      <div className="flex-1 bg-gray-100">
+      <div className="flex-1 bg-[#232946]">
         <div className="container mx-auto px-4 py-6">
           {isLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-pulse flex flex-col items-center">
                 <div className="h-8 w-8 bg-amber-300 rounded-full mb-2"></div>
-                <div className="h-4 w-32 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                <div className="h-4 w-32 bg-[#353e6b] rounded mb-2"></div>
+                <div className="h-3 w-24 bg-[#353e6b] rounded"></div>
               </div>
             </div>
           ) : beerDeals.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-              <div className="bg-amber-100 p-4 rounded-full mb-4">
-                <FiFilter className="h-8 w-8 text-amber-500" />
+              <div className="bg-[#353e6b] p-4 rounded-full mb-4">
+                <FiFilter className="h-8 w-8 text-amber-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No beer deals found</h3>
-              <p className="text-gray-500 max-w-md">
+              <h3 className="text-lg font-medium text-white mb-1">No beer deals found</h3>
+              <p className="text-gray-300 max-w-md">
                 {activeOnly 
                   ? "There are no active beer deals right now. Try turning off the 'active only' filter."
                   : searchQuery 
@@ -253,7 +226,7 @@ export default function BeerPage() {
                   {activeOnly && (
                     <Badge 
                       variant="outline" 
-                      className="flex items-center gap-1 cursor-pointer hover:bg-amber-50"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-[#353e6b] border-amber-400 text-amber-400"
                       onClick={() => setActiveOnly(false)}
                     >
                       Active only <FiX className="h-3 w-3" />
@@ -262,7 +235,7 @@ export default function BeerPage() {
                   {searchQuery && (
                     <Badge 
                       variant="outline" 
-                      className="flex items-center gap-1 cursor-pointer hover:bg-amber-50"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-[#353e6b] border-amber-400 text-amber-400"
                       onClick={handleSearchClear}
                     >
                       "{searchQuery}" <FiX className="h-3 w-3" />
