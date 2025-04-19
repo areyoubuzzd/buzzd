@@ -1139,15 +1139,26 @@ export default function HomePage() {
     result.push(...sortedTagCollections);
   }
     
-    // Sort the final result by priority to ensure consistent order
+    // Sort the final result by active deals first, then by priority
     const sortedResult = [...result].sort((a, b) => {
-      // Use the priority property directly from the collection object
+      // First check if collection has ANY active deals
+      const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
+      const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
+      
+      // If one has active deals but the other doesn't, show the active one first
+      if (aHasActiveDeals && !bHasActiveDeals) return -1;
+      if (!aHasActiveDeals && bHasActiveDeals) return 1;
+      
+      // If both have the same active status, sort by priority
       return a.priority - b.priority;
     });
     
-    // Log the final collection ordering
-    console.log("Returning collections sorted by priority:", 
-      sortedResult.map(c => `${c.name} (priority: ${c.priority})`));
+    // Log the final collection ordering with active status
+    console.log("Returning collections sorted by active deals first, then priority:", 
+      sortedResult.map(c => {
+        const hasActiveDeals = c.deals.some(deal => isDealActiveNow(deal));
+        return `${c.name} (priority: ${c.priority}, active: ${hasActiveDeals})`;
+      }));
     
     return sortedResult;
   }, [dealsData, location, apiCollections]);
