@@ -1,282 +1,208 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
-import { FaClock } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { Clock } from 'lucide-react';
 
 interface DealCountdownProps {
-  endTime: string; // Format: "HH:MM"
+  endTime: string; // Format: "HH:MM" or "HH:MM:SS" or "HH:MM AM/PM"
   isActive: boolean;
   variant?: 'default' | 'compact' | 'card' | 'featured';
 }
 
 export function DealCountdown({ 
-  endTime, 
-  isActive, 
-  variant = 'default' 
+  endTime,
+  isActive,
+  variant = 'default'
 }: DealCountdownProps) {
-  const [timeLeft, setTimeLeft] = useState<{
+  const [timeRemaining, setTimeRemaining] = useState<{
     hours: number;
     minutes: number;
     seconds: number;
-    totalSeconds: number;
-  }>({ hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 });
+    percentage: number;
+  }>({ hours: 0, minutes: 0, seconds: 0, percentage: 100 });
   
-  const [isUrgent, setIsUrgent] = useState<boolean>(false);
-  const [isVeryUrgent, setIsVeryUrgent] = useState<boolean>(false);
-  const [isCritical, setIsCritical] = useState<boolean>(false);
+  const [urgencyLevel, setUrgencyLevel] = useState<'low' | 'medium' | 'high'>('low');
   
-  const pulseAnimation = useAnimation();
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
   // Parse the end time into hours and minutes
   useEffect(() => {
-    if (!isActive || !endTime) return;
+    // Parse the end time into hours and minutes
+    let endHours = 0;
+    let endMinutes = 0;
     
-    const calculateTimeLeft = () => {
-      const now = new Date();
+    console.log(`Start time raw: "${endTime}", parsed: ${endHours * 60 + endMinutes}`);
+    
+    if (endTime.includes(':')) {
       const [hoursStr, minutesStr] = endTime.split(':');
-      
-      const endTimeDate = new Date();
-      endTimeDate.setHours(parseInt(hoursStr));
-      endTimeDate.setMinutes(parseInt(minutesStr));
-      endTimeDate.setSeconds(0);
-      
-      // If end time is in the past for today, countdown is over
-      if (endTimeDate <= now) {
-        return { hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 };
-      }
-      
-      const diffMs = endTimeDate.getTime() - now.getTime();
-      const diffSec = Math.floor(diffMs / 1000);
-      const hours = Math.floor(diffSec / 3600);
-      const minutes = Math.floor((diffSec % 3600) / 60);
-      const seconds = diffSec % 60;
-      
-      // Set urgency flags
-      const newIsUrgent = diffSec <= 60 * 60; // Last hour
-      const newIsVeryUrgent = diffSec <= 30 * 60; // Last 30 minutes
-      const newIsCritical = diffSec <= 10 * 60; // Last 10 minutes
-      
-      setIsUrgent(newIsUrgent);
-      setIsVeryUrgent(newIsVeryUrgent);
-      setIsCritical(newIsCritical);
-      
-      return { hours, minutes, seconds, totalSeconds: diffSec };
-    };
-    
-    // Initial calculation
-    setTimeLeft(calculateTimeLeft());
-    
-    // Update every second
-    intervalRef.current = setInterval(() => {
-      const newTimeLeft = calculateTimeLeft();
-      setTimeLeft(newTimeLeft);
-      
-      // If countdown is over, clear interval
-      if (newTimeLeft.totalSeconds <= 0) {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      }
-    }, 1000);
-    
-    // Clean up interval on unmount
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [endTime, isActive]);
-  
-  // Pulse animation effect
-  useEffect(() => {
-    if (isActive && timeLeft.totalSeconds > 0) {
-      if (isCritical) {
-        // Fast, intense pulsing for critical time
-        pulseAnimation.start({
-          scale: [1, 1.1, 1],
-          opacity: [1, 0.7, 1],
-          transition: { duration: 0.8, repeat: Infinity, ease: "easeInOut" }
-        });
-      } else if (isVeryUrgent) {
-        // Medium-paced pulsing for very urgent time
-        pulseAnimation.start({
-          scale: [1, 1.05, 1],
-          opacity: [1, 0.8, 1],
-          transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
-        });
-      } else if (isUrgent) {
-        // Slow, subtle pulsing for urgent time
-        pulseAnimation.start({
-          scale: [1, 1.03, 1],
-          opacity: [1, 0.9, 1],
-          transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-        });
-      } else {
-        // No animation for normal time
-        pulseAnimation.start({
-          scale: 1,
-          opacity: 1
-        });
-      }
+      endHours = parseInt(hoursStr);
+      endMinutes = parseInt(minutesStr);
     } else {
-      // No animation if not active or time is up
-      pulseAnimation.stop();
-    }
-  }, [isActive, isUrgent, isVeryUrgent, isCritical, timeLeft, pulseAnimation]);
-  
-  // Determine colors based on urgency
-  const getColors = () => {
-    if (!isActive || timeLeft.totalSeconds <= 0) {
-      return {
-        text: 'text-gray-500',
-        bg: 'bg-gray-100',
-        border: 'border-gray-200',
-        icon: 'text-gray-400'
-      };
-    }
-    
-    if (isCritical) {
-      return {
-        text: 'text-red-600',
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        icon: 'text-red-500'
-      };
+      // Format like "1700"
+      if (endTime.length <= 2) {
+        // Just hours like "9" or "17"
+        endHours = parseInt(endTime);
+        endMinutes = 0;
+      } else if (endTime.length === 3) {
+        // Format like "930" (9:30)
+        endHours = parseInt(endTime.substring(0, 1));
+        endMinutes = parseInt(endTime.substring(1));
+      } else {
+        // Format like "0930" or "1700"
+        endHours = parseInt(endTime.substring(0, 2));
+        endMinutes = parseInt(endTime.substring(2));
+      }
     }
     
-    if (isVeryUrgent) {
-      return {
-        text: 'text-orange-600',
-        bg: 'bg-orange-50',
-        border: 'border-orange-200',
-        icon: 'text-orange-500'
-      };
-    }
+    console.log(`End time raw: "${endTime}", parsed: ${endHours * 60 + endMinutes}`);
     
-    if (isUrgent) {
-      return {
-        text: 'text-yellow-600',
-        bg: 'bg-yellow-50',
-        border: 'border-yellow-200',
-        icon: 'text-yellow-500'
-      };
-    }
-    
-    return {
-      text: 'text-green-600',
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      icon: 'text-green-500'
+    // Function to update countdown
+    const updateCountdown = () => {
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const currentSeconds = now.getSeconds();
+      
+      // Calculate total seconds in current time and end time
+      const currentTimeValue = currentHours * 60 + currentMinutes;
+      
+      console.log(`Current time value: ${currentTimeValue}`);
+      
+      // Calculate end time in minutes since midnight
+      const endTimeValue = endHours * 60 + endMinutes;
+      
+      // Calculate time remaining (in seconds)
+      let remainingMinutes = endTimeValue - currentTimeValue;
+      
+      // Handle overnight case (if end time is tomorrow)
+      if (remainingMinutes < 0) {
+        remainingMinutes += 24 * 60; // Add 24 hours
+      }
+      
+      // Convert to hours, minutes
+      const hours = Math.floor(remainingMinutes / 60);
+      const minutes = Math.floor(remainingMinutes % 60);
+      const seconds = 60 - currentSeconds;
+      
+      // Calculate percentage of time remaining (assuming most happy hours are ~4 hours)
+      // So we'll use 4 hours as the baseline for a "full" deal
+      const totalMinutesInFullDeal = 4 * 60; // 4 hours
+      const percentageRemaining = Math.min(100, Math.max(0, (remainingMinutes / totalMinutesInFullDeal) * 100));
+      
+      // Set urgency level based on time remaining
+      let newUrgencyLevel: 'low' | 'medium' | 'high' = 'low';
+      if (remainingMinutes <= 30) newUrgencyLevel = 'high';
+      else if (remainingMinutes <= 60) newUrgencyLevel = 'medium';
+      
+      setTimeRemaining({
+        hours,
+        minutes,
+        seconds,
+        percentage: percentageRemaining
+      });
+      
+      setUrgencyLevel(newUrgencyLevel);
     };
-  };
+    
+    // Initial update
+    updateCountdown();
+    
+    // Set up interval to update every second
+    const interval = setInterval(updateCountdown, 1000);
+    
+    // Clean up interval
+    return () => clearInterval(interval);
+  }, [endTime]);
   
-  const colors = getColors();
-  
-  // If not active or time is up, don't display countdown
-  if (!isActive || timeLeft.totalSeconds <= 0) {
+  // Shortcut if deal is not active
+  if (!isActive) {
     return null;
   }
   
-  // Different variants for different use cases
-  switch (variant) {
-    case 'compact':
-      return (
-        <motion.div
-          animate={pulseAnimation}
-          className={`flex items-center gap-1 text-xs ${colors.text}`}
-        >
-          <FaClock className={`h-3 w-3 ${colors.icon}`} />
-          <span>
-            {timeLeft.hours > 0 && `${timeLeft.hours}h `}
-            {timeLeft.minutes}m
-          </span>
-        </motion.div>
-      );
-      
-    case 'card':
-      return (
-        <motion.div
-          animate={pulseAnimation}
-          className={`flex items-center justify-center space-x-1 px-2 py-1 rounded-full ${colors.bg} ${colors.border} border`}
-        >
-          <FaClock className={`h-3 w-3 ${colors.icon}`} />
-          <span className={`text-xs font-medium ${colors.text}`}>
-            {timeLeft.hours > 0 ? `${timeLeft.hours}h ${timeLeft.minutes}m` : `${timeLeft.minutes}m ${timeLeft.seconds}s`}
-          </span>
-        </motion.div>
-      );
-      
-    case 'featured':
-      return (
-        <motion.div
-          animate={pulseAnimation}
-          className={`flex flex-col items-center p-2 rounded-lg ${colors.bg} ${colors.border} border`}
-        >
-          <div className="text-sm font-medium mb-1">Ending In</div>
-          <div className="flex items-center justify-center space-x-2">
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={`h-${timeLeft.hours}`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`flex flex-col items-center p-1.5 rounded ${colors.border} border`}
-              >
-                <span className={`text-xl font-bold ${colors.text}`}>
-                  {timeLeft.hours.toString().padStart(2, '0')}
-                </span>
-                <span className="text-xs">hrs</span>
-              </motion.div>
-            </AnimatePresence>
-            
-            <span className={`text-xl font-bold ${colors.text}`}>:</span>
-            
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={`m-${timeLeft.minutes}`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`flex flex-col items-center p-1.5 rounded ${colors.border} border`}
-              >
-                <span className={`text-xl font-bold ${colors.text}`}>
-                  {timeLeft.minutes.toString().padStart(2, '0')}
-                </span>
-                <span className="text-xs">min</span>
-              </motion.div>
-            </AnimatePresence>
-            
-            <span className={`text-xl font-bold ${colors.text}`}>:</span>
-            
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={`s-${timeLeft.seconds}`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`flex flex-col items-center p-1.5 rounded ${colors.border} border`}
-              >
-                <span className={`text-xl font-bold ${colors.text}`}>
-                  {timeLeft.seconds.toString().padStart(2, '0')}
-                </span>
-                <span className="text-xs">sec</span>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      );
-      
-    default: // 'default'
-      return (
-        <motion.div
-          animate={pulseAnimation}
-          className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full ${colors.bg} ${colors.border} border`}
-        >
-          <FaClock className={`h-3.5 w-3.5 ${colors.icon}`} />
-          <span className={`text-sm font-medium ${colors.text}`}>
-            {timeLeft.hours > 0 ? (
-              `${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`
-            ) : (
-              `${timeLeft.minutes}m ${timeLeft.seconds}s`
-            )}
-          </span>
-        </motion.div>
-      );
+  // Get variant-specific styles
+  const variantClasses = {
+    default: "bg-black/70 text-white px-2 py-1 rounded-md",
+    compact: "inline-flex items-center gap-0.5",
+    card: "bg-black/50 text-white px-1.5 py-0.5 rounded-md text-xs",
+    featured: "bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold px-3 py-1.5 rounded-md shadow-md"
+  };
+  
+  const textSizeClasses = {
+    default: "text-sm",
+    compact: "text-xs",
+    card: "text-xs",
+    featured: "text-base"
+  };
+  
+  // Colors based on urgency
+  const urgencyColors = {
+    low: "text-green-400",
+    medium: "text-amber-400",
+    high: "text-red-400"
+  };
+  
+  // Format display time
+  const formattedHours = timeRemaining.hours > 0 ? `${timeRemaining.hours}h ` : '';
+  const formattedMinutes = `${timeRemaining.minutes.toString().padStart(2, '0')}m`;
+  const formattedSeconds = variant === 'featured' ? `:${timeRemaining.seconds.toString().padStart(2, '0')}s` : '';
+  
+  const displayTime = `${formattedHours}${formattedMinutes}${formattedSeconds}`;
+  
+  // Construct classNames based on variant and urgency
+  const containerClasses = cn(
+    variantClasses[variant],
+    urgencyLevel === 'high' && "animate-pulse"
+  );
+  
+  const timeClasses = cn(
+    textSizeClasses[variant],
+    urgencyColors[urgencyLevel],
+    "font-mono font-medium"
+  );
+  
+  // Animations for compact and card variants
+  if (variant === 'compact') {
+    return (
+      <div className={containerClasses}>
+        <Clock size={10} className={urgencyColors[urgencyLevel]} />
+        <span className={timeClasses}>{displayTime}</span>
+      </div>
+    );
   }
+  
+  // Animation for default and featured variants
+  return (
+    <div className={containerClasses}>
+      <div className="flex items-center gap-1.5">
+        <Clock size={variant === 'featured' ? 18 : 14} className={urgencyColors[urgencyLevel]} />
+        <div className="flex flex-col">
+          <span className={timeClasses}>{displayTime}</span>
+          {variant === 'featured' && (
+            <span className="text-xs text-white/80">remaining</span>
+          )}
+        </div>
+      </div>
+      
+      {/* Progress bar */}
+      {variant === 'default' || variant === 'card' || variant === 'featured' ? (
+        <motion.div 
+          className="h-1 bg-gray-700 rounded-full mt-1 overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.div
+            className={cn(
+              "h-full rounded-full",
+              urgencyLevel === 'high' ? "bg-red-500" : 
+              urgencyLevel === 'medium' ? "bg-amber-500" : "bg-green-500"
+            )}
+            initial={{ width: '100%' }}
+            animate={{ 
+              width: `${timeRemaining.percentage}%`,
+              transition: { duration: 0.5 }
+            }}
+          />
+        </motion.div>
+      ) : null}
+    </div>
+  );
 }

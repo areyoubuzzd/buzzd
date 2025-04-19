@@ -1,294 +1,185 @@
 /**
- * Recommendation Engine for personalized deal suggestions
- * This engine uses various factors to personalize deals for users:
- * - Location proximity
- * - User preferences (drink types, price ranges)
- * - Deal popularity
- * - Time of day and active status
- * - Past interactions (if available)
+ * Recommendation Engine
+ * 
+ * This module provides utilities for generating deal recommendations
+ * based on user preferences, location, and deal popularity metrics.
  */
 
-import { Deal, Establishment } from '@/types/api-types';
-
-// Weights for different recommendation factors
-const WEIGHTS = {
-  DISTANCE: 0.35,       // Distance from user
-  PRICE: 0.20,          // Deal price factor
-  ACTIVE_STATUS: 0.25,  // Whether the deal is currently active
-  POPULARITY: 0.10,     // Deal popularity (to be implemented)
-  PREFERENCE_MATCH: 0.10 // Match to user preferences
-};
-
-// Distance buckets (in km)
-const DISTANCE_BUCKETS = {
-  VERY_CLOSE: 1,  // < 1km
-  CLOSE: 3,       // < 3km
-  MEDIUM: 5,      // < 5km
-  FAR: 10         // < 10km
-};
-
-// Deal categories to track for user preferences
-export type DrinkCategory = 
-  | 'Beer' 
-  | 'Wine / Spirits' 
-  | 'Cocktail'
-  | 'Food';
-
-// Price ranges to track for user preferences
-export type PriceRange = 
-  | 'under_10' 
-  | '10_to_15' 
-  | '15_to_20'
-  | 'above_20';
-
-// User preference model
-export interface UserPreferences {
-  favoriteCategories: {
-    [key in DrinkCategory]?: number; // Preference score 0-10
-  };
-  pricePreferences: {
-    [key in PriceRange]?: number; // Preference score 0-10
-  };
-  viewHistory: {
-    [dealId: string]: number; // Number of views
-  };
-  locationHistory: {
-    [locationId: string]: number; // Number of visits
-  };
+// Define interfaces locally to avoid import issues
+interface Deal {
+  id?: number;
+  establishmentId?: number;
+  alcohol_category?: string;
+  alcohol_subcategory?: string;
+  drink_name?: string;
+  standard_price?: number;
+  happy_hour_price?: number;
+  savings?: number;
+  savings_percentage?: number;
+  valid_days?: string;
+  hh_start_time?: string;
+  hh_end_time?: string;
+  isActive?: boolean;
+  establishment?: Establishment;
 }
 
-// Default empty user preferences
-export const DEFAULT_USER_PREFERENCES: UserPreferences = {
-  favoriteCategories: {
-    'Beer': 5,
-    'Wine / Spirits': 5,
-    'Cocktail': 5,
-    'Food': 5
-  },
-  pricePreferences: {
-    'under_10': 7,
-    '10_to_15': 6,
-    '15_to_20': 5,
-    'above_20': 3
-  },
-  viewHistory: {},
-  locationHistory: {}
-};
-
-/**
- * Get price range category for a deal
- */
-function getPriceRangeCategory(price: number): PriceRange {
-  if (price < 10) return 'under_10';
-  if (price < 15) return '10_to_15';
-  if (price < 20) return '15_to_20';
-  return 'above_20';
+interface Establishment {
+  id?: number;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  activeDeals?: Deal[];
 }
 
-/**
- * Calculate distance score (higher is better)
- * 1.0 = very close, 0.0 = very far
- */
-function calculateDistanceScore(distanceInKm: number): number {
-  if (distanceInKm < DISTANCE_BUCKETS.VERY_CLOSE) return 1.0;
-  if (distanceInKm < DISTANCE_BUCKETS.CLOSE) return 0.8;
-  if (distanceInKm < DISTANCE_BUCKETS.MEDIUM) return 0.6;
-  if (distanceInKm < DISTANCE_BUCKETS.FAR) return 0.3;
-  return 0.1; // Very far
-}
-
-/**
- * Calculate price score (higher is better)
- * Lower prices get higher scores
- */
-function calculatePriceScore(price: number): number {
-  if (price < 8) return 1.0;
-  if (price < 12) return 0.9;
-  if (price < 15) return 0.7;
-  if (price < 20) return 0.5;
-  if (price < 30) return 0.3;
-  return 0.1;
-}
-
-/**
- * Calculate user preference match score
- */
-function calculatePreferenceScore(
-  deal: Deal,
-  userPreferences: UserPreferences
-): number {
-  // Category preference
-  const categoryScore = userPreferences.favoriteCategories[deal.alcohol_category as DrinkCategory] || 5;
-  
-  // Price preference
-  const priceRange = getPriceRangeCategory(deal.happy_hour_price);
-  const priceScore = userPreferences.pricePreferences[priceRange] || 5;
-  
-  // View history (familiarity bonus)
-  const viewCount = userPreferences.viewHistory[deal.id.toString()] || 0;
-  const viewScore = Math.min(viewCount, 5) / 5; // Normalized to 0-1
-  
-  // Location familiarity
-  const locationVisits = userPreferences.locationHistory[deal.establishmentId.toString()] || 0;
-  const locationScore = Math.min(locationVisits, 10) / 10; // Normalized to 0-1
-  
-  // Combine scores (weighted average)
-  return (
-    (categoryScore / 10) * 0.4 + 
-    (priceScore / 10) * 0.4 + 
-    viewScore * 0.1 + 
-    locationScore * 0.1
-  );
-}
-
-/**
- * Calculate recommendation score for a deal
- * Higher score = more recommended
- */
-export function calculateDealScore(
-  deal: Deal, 
-  establishment: Establishment,
-  userPosition: { lat: number, lng: number } | null,
-  isActive: boolean,
-  distanceInKm: number | null,
-  userPreferences: UserPreferences = DEFAULT_USER_PREFERENCES
-): number {
-  // Distance score - 0 if position unknown
-  const distanceScore = distanceInKm !== null 
-    ? calculateDistanceScore(distanceInKm)
-    : 0;
-  
-  // Price score
-  const priceScore = calculatePriceScore(deal.happy_hour_price);
-  
-  // Active status score
-  const activeScore = isActive ? 1.0 : 0.3;
-  
-  // Popularity - placeholder for now, to be implemented with real data
-  const popularityScore = 0.5;
-  
-  // User preference match
-  const preferenceScore = calculatePreferenceScore(deal, userPreferences);
-  
-  // Final weighted score
-  return (
-    distanceScore * WEIGHTS.DISTANCE +
-    priceScore * WEIGHTS.PRICE +
-    activeScore * WEIGHTS.ACTIVE_STATUS +
-    popularityScore * WEIGHTS.POPULARITY +
-    preferenceScore * WEIGHTS.PREFERENCE_MATCH
-  );
-}
-
-/**
- * Sort deals based on personalized recommendation score
- */
+// Function to score and sort deals based on various factors
 export function getRecommendedDeals(
   deals: Deal[],
-  establishments: Map<number, Establishment>,
-  userPosition: { lat: number, lng: number } | null,
-  isActiveFn: (deal: Deal) => boolean,
-  calculateDistanceFn: (establishment: Establishment) => number | null,
-  userPreferences: UserPreferences = DEFAULT_USER_PREFERENCES,
-  limit: number = 20
+  userLocation?: { lat: number; lng: number },
+  userPreferences?: {
+    favoriteDrinkTypes?: string[];
+    priceRange?: { min: number; max: number };
+    maxDistance?: number;
+  }
 ): Deal[] {
-  // Calculate scores for each deal
-  const scoredDeals = deals.map(deal => {
-    const establishment = establishments.get(deal.establishmentId);
-    if (!establishment) return { deal, score: 0 };
-
-    const isActive = isActiveFn(deal);
-    const distance = calculateDistanceFn(establishment);
-
-    const score = calculateDealScore(
-      deal,
-      establishment,
-      userPosition,
-      isActive,
-      distance,
-      userPreferences
-    );
-
-    return { deal, score };
-  });
-
-  // Sort by score (highest first)
-  scoredDeals.sort((a, b) => b.score - a.score);
-
-  // Return the top N deals
-  return scoredDeals.slice(0, limit).map(item => item.deal);
-}
-
-/**
- * Helper to load user preferences from localStorage
- */
-export function loadUserPreferences(): UserPreferences {
-  try {
-    const savedPrefs = localStorage.getItem('userPreferences');
-    if (savedPrefs) {
-      return JSON.parse(savedPrefs);
+  if (!deals || deals.length === 0) return [];
+  
+  // Create a copy of deals to avoid mutation
+  const scoredDeals = [...deals].map(deal => {
+    let score = 100; // Base score
+    
+    // Factor 1: Price discount percentage (higher = better)
+    if (deal.savings_percentage) {
+      score += deal.savings_percentage * 2; // Weight of 2x
     }
-  } catch (error) {
-    console.error('Error loading user preferences:', error);
+    
+    // Factor 2: Distance if user location is provided
+    if (userLocation && deal.establishment?.latitude && deal.establishment?.longitude) {
+      const distance = calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        deal.establishment.latitude,
+        deal.establishment.longitude
+      );
+      
+      // Distance penalty: -5 points per km
+      if (distance > 0) {
+        score -= Math.min(50, distance * 5); // Cap at -50 points
+      }
+    }
+    
+    // Factor 3: User drink preferences
+    if (userPreferences?.favoriteDrinkTypes && userPreferences.favoriteDrinkTypes.length > 0) {
+      const drinkType = deal.alcohol_category?.toLowerCase() || '';
+      const drinkSubType = deal.alcohol_subcategory?.toLowerCase() || '';
+      
+      const isPreferred = userPreferences.favoriteDrinkTypes.some(pref => {
+        const prefLower = pref.toLowerCase();
+        return drinkType.includes(prefLower) || drinkSubType.includes(prefLower);
+      });
+      
+      if (isPreferred) {
+        score += 30; // Preference bonus
+      }
+    }
+    
+    // Factor 4: Price range preferences
+    if (userPreferences?.priceRange) {
+      const { min, max } = userPreferences.priceRange;
+      const price = deal.happy_hour_price;
+      
+      if (price < min) {
+        // Too cheap - slight penalty
+        score -= 10;
+      } else if (price > max) {
+        // Too expensive - significant penalty
+        score -= 30;
+      } else {
+        // Within range - bonus
+        score += 20;
+      }
+    }
+    
+    // Return the original deal with an added score
+    return { ...deal, _score: score };
+  });
+  
+  // Sort by score descending
+  return scoredDeals
+    .sort((a: any, b: any) => b._score - a._score)
+    .map(deal => {
+      // Remove the temporary score property
+      const { _score, ...cleanDeal } = deal;
+      return cleanDeal as Deal;
+    });
+}
+
+// Calculate distance between two points using Haversine formula
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c; // Distance in km
+  return Math.round(distance * 10) / 10; // Round to 1 decimal place
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI/180);
+}
+
+// Calculate deal popularity based on various factors
+export function calculateDealPopularity(deal: Deal): number {
+  let popularity = 0;
+  
+  // Factor 1: Savings percentage
+  if (deal.savings_percentage) {
+    popularity += Math.min(5, Math.floor(deal.savings_percentage / 10));
   }
-  return DEFAULT_USER_PREFERENCES;
+  
+  // Factor 2: Deal price point (mid-range deals tend to be more popular)
+  const price = deal.happy_hour_price || 0;
+  if (price < 5) popularity += 1;
+  else if (price < 10) popularity += 3;
+  else if (price < 15) popularity += 4;
+  else if (price < 20) popularity += 3;
+  else if (price < 30) popularity += 2;
+  else popularity += 1;
+  
+  // Cap at 10
+  return Math.min(10, popularity);
 }
 
-/**
- * Helper to save user preferences to localStorage
- */
-export function saveUserPreferences(preferences: UserPreferences): void {
-  try {
-    localStorage.setItem('userPreferences', JSON.stringify(preferences));
-  } catch (error) {
-    console.error('Error saving user preferences:', error);
-  }
-}
-
-/**
- * Record that a user viewed a deal
- */
-export function recordDealView(dealId: number): void {
-  const prefs = loadUserPreferences();
-  const dealIdStr = dealId.toString();
+// Generate establishments with popular happy hours nearby
+export function getPopularEstablishmentsNearby(
+  establishments: Establishment[],
+  userLocation: { lat: number; lng: number },
+  radius: number = 5 // km
+): Establishment[] {
+  if (!establishments || establishments.length === 0 || !userLocation) return [];
   
-  prefs.viewHistory[dealIdStr] = (prefs.viewHistory[dealIdStr] || 0) + 1;
-  saveUserPreferences(prefs);
-}
-
-/**
- * Record that a user visited a location/establishment
- */
-export function recordLocationVisit(establishmentId: number): void {
-  const prefs = loadUserPreferences();
-  const locationIdStr = establishmentId.toString();
+  // Filter establishments by radius
+  const nearbyEstablishments = establishments.filter(est => {
+    if (!est.latitude || !est.longitude) return false;
+    
+    const distance = calculateDistance(
+      userLocation.lat, 
+      userLocation.lng,
+      est.latitude,
+      est.longitude
+    );
+    
+    return distance <= radius;
+  });
   
-  prefs.locationHistory[locationIdStr] = (prefs.locationHistory[locationIdStr] || 0) + 1;
-  saveUserPreferences(prefs);
-}
-
-/**
- * Update user category preference
- */
-export function updateCategoryPreference(category: DrinkCategory, increment: boolean): void {
-  const prefs = loadUserPreferences();
-  
-  const currentValue = prefs.favoriteCategories[category] || 5;
-  const newValue = Math.max(1, Math.min(10, increment ? currentValue + 1 : currentValue - 1));
-  
-  prefs.favoriteCategories[category] = newValue;
-  saveUserPreferences(prefs);
-}
-
-/**
- * Update user price preference
- */
-export function updatePricePreference(priceRange: PriceRange, increment: boolean): void {
-  const prefs = loadUserPreferences();
-  
-  const currentValue = prefs.pricePreferences[priceRange] || 5;
-  const newValue = Math.max(1, Math.min(10, increment ? currentValue + 1 : currentValue - 1));
-  
-  prefs.pricePreferences[priceRange] = newValue;
-  saveUserPreferences(prefs);
+  // Sort by active deals count (descending)
+  return nearbyEstablishments.sort((a, b) => {
+    const aDeals = a.activeDeals?.length || 0;
+    const bDeals = b.activeDeals?.length || 0;
+    return bDeals - aDeals;
+  });
 }

@@ -1,6 +1,16 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Deal } from '@/types/api-types';
+
+// Define a simplified Deal interface to avoid import issues
+interface Deal {
+  id?: number;
+  valid_days?: string;
+  hh_start_time?: string;
+  hh_end_time?: string;
+  happy_hour_price?: number;
+  savings_percentage?: number;
+  alcohol_category?: string;
+}
 
 interface RestaurantHeatMapProps {
   deals: Deal[];
