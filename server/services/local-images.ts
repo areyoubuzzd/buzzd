@@ -120,7 +120,7 @@ export async function saveImage(
       size: fs.statSync(destPath).size,
       createdAt: new Date(),
       path: destPath,
-      url: `/images/drinks/${category}/${filename}`
+      url: `/direct-image/${category}/${filename}` // Use direct image route for reliable serving
     };
     
     // Cache the metadata

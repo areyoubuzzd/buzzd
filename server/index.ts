@@ -14,6 +14,11 @@ const imagePath = path.join(process.cwd(), 'public/images');
 console.log('Serving static images from:', imagePath);
 app.use('/images', express.static(imagePath));
 
+// Explicit route for drink images 
+const drinkImagesPath = path.join(process.cwd(), 'public/images/drinks');
+console.log('Serving drink images from:', drinkImagesPath);
+app.use('/images/drinks', express.static(drinkImagesPath));
+
 // Also add a special route for debugging image existence
 app.get('/debug/images/:category/:id', (req, res) => {
   const filePath = path.join(process.cwd(), 'public/images/drinks', req.params.category, req.params.id);
@@ -24,6 +29,28 @@ app.get('/debug/images/:category/:id', (req, res) => {
     exists,
     fullPath: filePath
   });
+});
+
+// Add direct file serving for debugging
+app.get('/direct-image/:category/:id', (req, res) => {
+  const { category, id } = req.params;
+  const filePath = path.join(process.cwd(), 'public/images/drinks', category, id);
+  
+  if (fs.existsSync(filePath)) {
+    // Determine content type based on file extension
+    const ext = path.extname(id).toLowerCase();
+    let contentType = 'image/jpeg'; // Default
+    
+    if (ext === '.png') contentType = 'image/png';
+    else if (ext === '.webp') contentType = 'image/webp';
+    
+    res.setHeader('Content-Type', contentType);
+    
+    // Stream the file directly to the response
+    fs.createReadStream(filePath).pipe(res);
+  } else {
+    res.status(404).send('Image not found');
+  }
 });
 
 app.use((req, res, next) => {

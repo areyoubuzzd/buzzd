@@ -83,8 +83,9 @@ export function LocalImage({
   if (width) dimensionParams.push(`width=${width}`);
   if (height) dimensionParams.push(`height=${height}`);
   
-  // Construct the local image URL with the correct path
-  const imageUrl = `/images/drinks/${category}/${imageId}${dimensionParams.length > 0 ? `?${dimensionParams.join('&')}` : ''}`;
+  // Construct the local image URL - try direct image route 
+  const fileExtension = imageId.includes('.') ? '' : '.jpeg'; // Add extension if not present
+  const imageUrl = `/direct-image/${category}/${imageId}${fileExtension}${dimensionParams.length > 0 ? `?${dimensionParams.join('&')}` : ''}`;
   
   // Image is ready to display
   return (
