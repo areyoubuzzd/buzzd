@@ -598,12 +598,12 @@ export default function EstablishmentDetailsPage() {
                   >
                     <FaGlobe className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Website</p>
+                      <p className="font-medium text-[#F4F4F9]">Website</p>
                       <a 
                         href={establishment.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline break-all"
+                        className="text-sm text-blue-400 hover:text-blue-300 hover:underline break-all"
                       >
                         {establishment.website}
                       </a>
@@ -620,12 +620,12 @@ export default function EstablishmentDetailsPage() {
                   >
                     <FaMapMarkedAlt className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Directions</p>
+                      <p className="font-medium text-[#F4F4F9]">Directions</p>
                       <a 
                         href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
                       >
                         Open in Google Maps
                       </a>
@@ -639,7 +639,7 @@ export default function EstablishmentDetailsPage() {
 
         {establishment.latitude && establishment.longitude && (
           <motion.div 
-            className="rounded-xl overflow-hidden h-48 bg-gray-100 mb-6 shadow-sm"
+            className="rounded-xl overflow-hidden h-48 bg-[#2a3158] mb-6 shadow-md border border-[#3a4174]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ 
@@ -657,7 +657,7 @@ export default function EstablishmentDetailsPage() {
               href={`https://www.google.com/maps/search/?api=1&query=${establishment.latitude},${establishment.longitude}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-full h-full bg-gray-50 text-gray-700"
+              className="flex items-center justify-center w-full h-full bg-[#2a3158] text-[#F4F4F9]"
             >
               <div className="text-center">
                 <motion.div 
