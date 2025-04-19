@@ -8,6 +8,8 @@ import { motion } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa';
 import { LocationHeader } from '@/components/location/location-header';
 import { useLocation } from '@/contexts/location-context';
+import { Link } from 'wouter';
+import logoBlack from '@/assets/logo_black.png';
 
 interface Deal {
   valid_days: string;
@@ -396,47 +398,60 @@ export default function RestaurantsPage() {
 
   return (
     <div className="pb-20 bg-[#232946]">
-      <div className="bg-[#FFC300] text-[#F4F4F9] px-4 sticky top-0 z-10 pb-0 mb-0">
-        <div className="flex justify-between items-center h-[4.5rem]"> {/* Fixed height to match header */}
-          <motion.h1
-            className="text-3xl font-bold pb-1"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 400,
-              damping: 15
-            }}
-          >
-            Restaurants
-          </motion.h1>
+      <header className="sticky top-0 z-50 bg-[#FFC300] shadow-md">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-[4.5rem]">
+            <div className="flex items-center">
+              <Link href="/">
+                <div className="flex items-center cursor-pointer">
+                  <img 
+                    src={logoBlack} 
+                    alt="Buzzd Logo" 
+                    className="h-[4rem]"
+                  />
+                </div>
+              </Link>
+              <motion.h1
+                className="ml-4 text-3xl font-bold text-[#F4F4F9]"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 15
+                }}
+              >
+                Restaurants
+              </motion.h1>
+            </div>
 
-          {/* Search bar - made smaller and moved to the right */}
-          <motion.div 
-            className="relative w-40"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ 
-              delay: 0.1,
-              duration: 0.3
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
+            {/* Search bar */}
+            <motion.div 
+              className="relative w-40"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ 
+                delay: 0.1,
+                duration: 0.3
+              }}
             >
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              </motion.div>
+              <Input
+                className="bg-white/10 border-0 focus-visible:ring-1 text-[#F4F4F9] pl-8 h-8 text-sm"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </motion.div>
-            <Input
-              className="bg-white/10 border-0 focus-visible:ring-1 text-[#F4F4F9] pl-8 h-8 text-sm"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </motion.div>
+          </div>
         </div>
-      </div>
+      </header>
       
       {/* Location Header Component */}
       <div className="mt-0">
