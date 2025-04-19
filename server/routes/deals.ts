@@ -315,11 +315,17 @@ router.get('/collections/:collectionName', async (req, res) => {
       };
     });
     
-    // Sort by active status first (active deals first), then by other criteria
+    // IMPORTANT FIX: Sort by active status first (active deals first), then by other criteria
+    // The critical part is that active deals MUST come first before ANY other sorting
     const sortedDeals = dealsWithActiveStatus.sort((a, b) => {
-      // First sort by active status (active deals first)
+      // FIRST: Active deals MUST come before inactive deals (highest priority)
       if (a.isActive && !b.isActive) return -1;
       if (!a.isActive && b.isActive) return 1;
+      
+      // For deals with same active status, sort by price (lower first)
+      if (a.happy_hour_price !== undefined && b.happy_hour_price !== undefined) {
+        return a.happy_hour_price - b.happy_hour_price;
+      }
       
       // Then sort by distance if available
       if (a.distance !== undefined && b.distance !== undefined) {
@@ -328,6 +334,13 @@ router.get('/collections/:collectionName', async (req, res) => {
       
       // Default to sorting by ID if no distance
       return a.id - b.id;
+    });
+
+    // Debug logging to check the first 5 sorted deals
+    console.log(`COLLECTION DEALS SORTING: Collection "${collectionName}" has ${sortedDeals.length} deals`);
+    console.log(`FIRST 5 DEALS IN COLLECTION:`);
+    sortedDeals.slice(0, 5).forEach((deal, i) => {
+      console.log(`Deal #${i+1}: ${deal.drink_name} - ACTIVE: ${deal.isActive}, Price: $${deal.happy_hour_price}`);
     });
     
     res.json(sortedDeals);

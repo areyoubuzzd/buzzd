@@ -190,3 +190,35 @@ export function sortCollectionsByPriority(collections: string[]): string[] {
     return getFriendlyCollectionName(a).localeCompare(getFriendlyCollectionName(b));
   });
 }
+
+/**
+ * Sort deals by active status first (active deals first), then by distance, then by price
+ * This ensures consistent sorting across the entire application
+ * 
+ * @param deals Array of deals to sort
+ * @returns Sorted array with active deals first
+ */
+export function sortDealsByActiveStatus<T extends { isActive?: boolean; distance?: number; happy_hour_price?: number }>(deals: T[]): T[] {
+  return [...deals].sort((a, b) => {
+    // First sort by active status (active deals first)
+    const aActive = a.isActive === true;
+    const bActive = b.isActive === true;
+    if (aActive && !bActive) return -1;
+    if (!aActive && bActive) return 1;
+    
+    // Then sort by distance if available
+    if (a.distance !== undefined && b.distance !== undefined) {
+      if (a.distance !== b.distance) {
+        return a.distance - b.distance;
+      }
+    }
+    
+    // Then sort by price if available
+    if (a.happy_hour_price !== undefined && b.happy_hour_price !== undefined) {
+      return a.happy_hour_price - b.happy_hour_price;
+    }
+    
+    // Default case: return as is
+    return 0;
+  });
+}
