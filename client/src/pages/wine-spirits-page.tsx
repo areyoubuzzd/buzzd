@@ -132,12 +132,12 @@ export default function WineSpiritsPage() {
   return (
     <div className="flex flex-col min-h-screen pb-20 bg-[#232946]">
       {/* Header with Logo */}
-      <header className="sticky top-0 z-50 bg-[#D3D3D3] shadow-md">
+      <header className="sticky top-0 z-50 bg-[#EAE6E1] shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-[4.5rem]">
             <div className="flex items-center">
               <Link href="/">
-                <div className="flex items-center cursor-pointer">
+                <div className="flex items-center cursor-pointer" style={{ marginLeft: "-12px" }}>
                   <img 
                     src={logoBlack} 
                     alt="Buzzd Logo" 
@@ -145,6 +145,18 @@ export default function WineSpiritsPage() {
                   />
                 </div>
               </Link>
+            </div>
+            
+            {/* Search bar */}
+            <div className="relative w-40">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-9 rounded-md border-gray-300 text-sm"
+              />
             </div>
           </div>
         </div>
