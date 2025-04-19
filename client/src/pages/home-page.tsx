@@ -4,9 +4,9 @@ import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
 import { useLocation, LocationContext } from "@/contexts/location-context";
 import { LocationHeader } from "@/components/location/location-header";
-// Import LocationBar and LocationAutocomplete for correct type references
-import LocationBar from "@/components/location/location-bar";
-import LocationAutocomplete from "@/components/location/location-autocomplete";
+// Import any location components by their actual exported names (non-default exports)
+import { LocationBar } from "@/components/location/location-bar";
+import { LocationAutocomplete } from "@/components/location/location-autocomplete";
 // Removed import for DealsList which was using dummy data
 
 // Helper function to calculate string similarity between two strings
@@ -141,13 +141,16 @@ export default function HomePage() {
   
   // Helper function to check if deal is active right now (based on day and time)
   const isDealActiveNow = (deal: Deal): boolean => {
+    // Don't log every deal check to avoid console flood
+    const isLoggingEnabled = deal.establishmentId === 1 || deal.establishmentId === 2; 
+    
     const now = new Date();
     
-    // Get Singapore time - print current time for debugging
-    console.log(`Current time: ${now.toLocaleString()}`);
+    // Get Singapore time - print current time for debugging (only for first few deals)
+    if (isLoggingEnabled) console.log(`Current time: ${now.toLocaleString()}`);
     const sgOptions = { timeZone: 'Asia/Singapore' };
     const sgTime = new Date(now.toLocaleString('en-US', sgOptions));
-    console.log(`Singapore time: ${sgTime.toLocaleString()}`);
+    if (isLoggingEnabled) console.log(`Singapore time: ${sgTime.toLocaleString()}`);
     
     // Get day of week in Singapore time (0 = Sunday, 1 = Monday, etc.)
     const currentDay = sgTime.getDay();
@@ -354,30 +357,68 @@ export default function HomePage() {
       }));
     };
     
-    // Enhanced sort deals function - double-checks active status at sort time
+    // CRITICAL FIX: Enhanced sort deals function that GUARANTEES active deals come first
     const sortDeals = (deals: (Deal & { isActive: boolean; distance: number })[]) => {
-      // Make a debug log of how many active deals we have before sorting
-      const activeCount = deals.filter(d => isDealActiveNow(d)).length;
-      console.log(`Sorting ${deals.length} deals, ${activeCount} are currently active`);
+      // This is a CRITICAL fix - our sort function was possibly being overridden
+      // We need to force active deals to ALWAYS appear first, no exceptions
       
-      return [...deals].sort((a, b) => {
-        // Get REAL-TIME active status (more accurate than the cached isActive property)
-        // This ensures we're using the most up-to-date active status
-        const aIsActive = isDealActiveNow(a);
-        const bIsActive = isDealActiveNow(b);
+      // Force pre-check all deals and track which ones are active right now
+      const activeStatusMap = new Map<number, boolean>();
+      
+      // Collect IDs of active and inactive establishments for debugging
+      const activeEstablishmentIds: number[] = [];
+      const inactiveEstablishmentIds: number[] = [];
+      
+      deals.forEach(deal => {
+        const realTimeActive = isDealActiveNow(deal);
+        activeStatusMap.set(deal.id, realTimeActive);
         
-        // 1. ALWAYS prioritize active deals first (this is the most important criterion)
-        if (aIsActive && !bIsActive) return -1;
-        if (!aIsActive && bIsActive) return 1;
-        
-        // 2. Then by distance (only if active status is the same)
+        // Track which establishments are active vs inactive for debugging
+        if (realTimeActive) {
+          if (!activeEstablishmentIds.includes(deal.establishmentId)) {
+            activeEstablishmentIds.push(deal.establishmentId);
+          }
+        } else {
+          if (!inactiveEstablishmentIds.includes(deal.establishmentId)) {
+            inactiveEstablishmentIds.push(deal.establishmentId);
+          }
+        }
+      });
+      
+      // Print debug info about active/inactive establishments
+      console.log(`ACTIVE ESTABLISHMENTS: ${activeEstablishmentIds.join(', ')}`);
+      console.log(`INACTIVE ESTABLISHMENTS: ${inactiveEstablishmentIds.join(', ')}`);
+      console.log(`Sorting ${deals.length} deals - ${activeStatusMap.size} checked for active status`);
+      
+      // Split the deals into active and inactive groups
+      const activeDeals = deals.filter(d => activeStatusMap.get(d.id) === true);
+      const inactiveDeals = deals.filter(d => activeStatusMap.get(d.id) !== true);
+      
+      console.log(`Split into ${activeDeals.length} active deals and ${inactiveDeals.length} inactive deals`);
+      
+      // Sort active deals by distance, then price
+      const sortedActiveDeals = [...activeDeals].sort((a, b) => {
+        // First by distance
         if (a.distance !== b.distance) {
           return a.distance - b.distance;
         }
-        
-        // 3. Then by price (cheaper first)
+        // Then by price
         return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
       });
+      
+      // Sort inactive deals by distance, then price
+      const sortedInactiveDeals = [...inactiveDeals].sort((a, b) => {
+        // First by distance
+        if (a.distance !== b.distance) {
+          return a.distance - b.distance;
+        }
+        // Then by price
+        return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
+      });
+      
+      // ALWAYS prioritize all active deals before ANY inactive deals
+      // This ensures active deals always appear first, no matter what
+      return [...sortedActiveDeals, ...sortedInactiveDeals];
     };
     
     // The final array of collections we'll return
@@ -575,16 +616,23 @@ export default function HomePage() {
         });
       }
       
-      // STEP 5: Within collections, prioritize active deals first, then sort by distance
-      // Use the enhanced sortDeals function for consistent sorting logic
-      console.log(`Step 5: Sorting ${activeDealsFromActiveRestaurants.length} deals from active restaurants`);
+      // STEP 5: Force sorting with active deals first using our improved sortDeals function
+      console.log(`Step 5: Sorting ${activeDealsFromActiveRestaurants.length} deals from happy hour restaurants`);
       
       // Debug which deals are active right now
       const activeDealsCount = activeDealsFromActiveRestaurants.filter(deal => isDealActiveNow(deal)).length;
       console.log(`Step 5: Found ${activeDealsCount} currently active deals out of ${activeDealsFromActiveRestaurants.length} total`);
       
-      // Use the global sortDeals function (the enhanced one we just implemented)
+      // CRITICAL FIX: Force-sort ALL deals from restaurants with active happy hours
+      // This ensures we show ACTIVE deals first, then inactive ones by distance
       const sortedDeals = sortDeals(activeDealsFromActiveRestaurants);
+      
+      // Log the top 5 deals to verify active deals are first
+      console.log("TOP 5 SORTED DEALS:");
+      sortedDeals.slice(0, 5).forEach((deal, i) => {
+        const isActive = isDealActiveNow(deal);
+        console.log(`Deal #${i+1}: ${deal.drink_name} from establishment ${deal.establishmentId} - ACTIVE: ${isActive}, Distance: ${deal.distance.toFixed(2)}km`);
+      });
       
       console.log(`Step 5: Sorted ${sortedDeals.length} deals by active status and distance`);
       
@@ -1215,16 +1263,9 @@ export default function HomePage() {
     // IMPORTANT: This is the key function that updates location
     console.log("Updating location to:", newLocation);
     
-    // Update the location in state which will trigger all components to re-render
-    // with the new location coordinates
-    setLocation(newLocation);
-    
-    // Reset deals data to force a refresh based on new location
-    // We pass the location coordinates as part of the query key to ensure
-    // the cache is properly invalidated and data is refetched
-    queryClient.invalidateQueries({ 
-      queryKey: ['/api/deals/collections/all', { lat: newLocation.lat, lng: newLocation.lng }]
-    });
+    // Use context's updateLocation function which will properly update all state
+    // and trigger cache invalidation automatically
+    updateLocation(newLocation, userRoadName);
     
     // Simulate different number of deals
     setTotalDealsFound(Math.floor(Math.random() * 20) + 10);
@@ -1270,13 +1311,10 @@ export default function HomePage() {
                     setUserRoadName("My Location");
                     setIsUsingDefaultLocation(true);
                     
-                    // Update UI with new location value
-                    setLocation({ lat: newLat, lng: newLng });
+                    // Update location through context's updateLocation function
+                    updateLocation({ lat: newLat, lng: newLng }, "My Location");
                     
-                    // Trigger a location change after a brief delay
-                    setTimeout(() => {
-                      handleLocationChange({ lat: newLat, lng: newLng });
-                    }, 300);
+                    // No need for timeout or separate handleLocationChange call as updateLocation handles everything
                     
                     // Close the location selector
                     setIsLocationSelectOpen(false);
