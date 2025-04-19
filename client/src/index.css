@@ -21,8 +21,7 @@
   body {
     @apply font-sans antialiased;
     color: #333333; /* Dark gray text for better readability on light background */
-    background-color: #d6cfc7; /* Updated background color as requested */
-    background-image: none; /* Remove gradient background */
+    background: linear-gradient(135deg, #232946 0%, #353e6b 100%); /* Gradient background with dark blue colors */
   }
   
   /* Improve text visibility across the app */

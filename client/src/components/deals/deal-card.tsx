@@ -670,7 +670,7 @@ function DealCard({
                 </div>
               )}
               {/* Only show start time for deals happening today but currently inactive */}
-              {!deal.isActive && deal.hh_start_time && isDealActiveToday && (
+              {!deal.isActive && deal.hh_start_time && isValidToday && (
                 <div className="flex items-center">
                   <Clock size={12} className="text-yellow-400 mr-1" />
                   <span className="text-yellow-400 text-xs font-medium">

@@ -25,7 +25,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FFC300] shadow-md">
+    <header className="sticky top-0 z-50 bg-[#D3D3D3] shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-[4.5rem]"> {/* Increased height by 10px */}
           <div className="flex items-center">
