@@ -374,7 +374,7 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
         }}
         whileTap={{ scale: 0.98 }}
       >
-        <Card className="overflow-hidden cursor-pointer h-full flex flex-col rounded-xl">
+        <Card className="overflow-hidden cursor-pointer h-full flex flex-col rounded-xl scale-90 transform origin-top-left">
           <motion.div 
             className="aspect-square bg-cover bg-center w-full"
             style={{ backgroundImage: `url(${imageUrlToUse})` }}
@@ -383,7 +383,7 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
               transition: { duration: 0.3 }
             }}
           />
-          <CardContent className="p-5 flex-grow">
+          <CardContent className="p-3 flex-grow">
             <motion.div>
               <motion.h3 
                 className="font-medium text-base line-clamp-1"
@@ -488,9 +488,9 @@ export function RestaurantCardSkeleton() {
         damping: 20
       }}
     >
-      <Card className="overflow-hidden h-full flex flex-col rounded-xl">
+      <Card className="overflow-hidden h-full flex flex-col rounded-xl scale-90 transform origin-top-left">
         <div className="aspect-square bg-gray-200 animate-pulse w-full" />
-        <CardContent className="p-5 flex-grow">
+        <CardContent className="p-3 flex-grow">
           {/* Restaurant name */}
           <motion.div 
             className="h-5 bg-gray-200 animate-pulse w-3/4 rounded-md mb-3"

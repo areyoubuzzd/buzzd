@@ -445,7 +445,7 @@ export default function RestaurantsPage() {
       
       <div className="px-4 py-4">
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {[...Array(6)].map((_, i) => (
               <RestaurantCardSkeleton key={i} />
             ))}
@@ -484,7 +484,7 @@ export default function RestaurantsPage() {
           </motion.div>
         ) : (
           <motion.div 
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
