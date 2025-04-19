@@ -110,55 +110,30 @@ export function CloudflareImage({
   // Map to detailed drink category for better image organization
   const detailedCategory = drinkName ? mapToDrinkCategory(drinkName, category) : category;
   
-  // Generate category-specific fallback if no fallbackSrc is provided
-  const getCategoryFallback = () => {
-    if (fallbackSrc) return fallbackSrc;
-    
-    // Always return an SVG fallback for reliability
-    // This ensures we always have an image that can load immediately
-    const bgcolor = getDrinkCategoryColor(detailedCategory);
-    const textColor = '#ffffff';
-    const categoryShortName = detailedCategory?.split('_').join(' ') || 'drink';
-    const drinkText = drinkName || categoryShortName;
-    
-    // Create a more informative SVG with the drink name and category
-    // Encode special characters for SVG data URL
-    const encodedDrinkText = drinkText.replace(/[<>&"']/g, c => {
-      switch (c) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '&': return '&amp;';
-        case '"': return '&quot;';
-        case "'": return '&apos;';
-        default: return c;
-      }
-    });
-    
-    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='${bgcolor}'/%3E%3Ctext x='150' y='100' font-family='Arial' font-size='16' fill='${textColor}' text-anchor='middle'%3E${encodedDrinkText}%3C/text%3E%3C/svg%3E`;
+  // Generate simpler fallback without SVG which might cause issues
+  const getCategoryColor = () => {
+    return fallbackColor || getDrinkCategoryColor(detailedCategory);
   };
 
-  // If no imageId or there was an error, use the fallback
+  // If no imageId or there was an error, use the fallback color with text
   if (!imageId || imageError) {
+    const displayText = drinkName || (detailedCategory ? detailedCategory.replace(/_/g, ' ') : 'Drink');
+    const bgColor = getCategoryColor();
+    
     return (
       <div 
-        className={cn("relative overflow-hidden", className)}
+        className={cn("relative overflow-hidden flex items-center justify-center", className)}
         style={{ 
           width: width ? `${width}px` : 'auto', 
           height: height ? `${height}px` : 'auto', 
-          backgroundColor: fallbackColor 
+          backgroundColor: bgColor 
         }}
       >
-        <img
-          src={getCategoryFallback()}
-          alt={alt}
-          width={width}
-          height={height}
-          className={cn("object-cover w-full h-full", className)}
-          onError={() => {
-            // If even the fallback fails, just show the color background
-            console.warn(`Fallback image failed to load for ${alt}`);
-          }}
-        />
+        <div className="text-white text-center p-4">
+          <p className="font-medium text-sm break-words max-w-full">
+            {displayText}
+          </p>
+        </div>
       </div>
     );
   }
