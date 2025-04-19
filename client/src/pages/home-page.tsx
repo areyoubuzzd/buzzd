@@ -2,8 +2,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/header";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
-import { useLocation } from "@/contexts/location-context";
+import { useLocation, LocationContext } from "@/contexts/location-context";
 import { LocationHeader } from "@/components/location/location-header";
+// Import LocationBar and LocationAutocomplete for correct type references
+import LocationBar from "@/components/location/location-bar";
+import LocationAutocomplete from "@/components/location/location-autocomplete";
 // Removed import for DealsList which was using dummy data
 
 // Helper function to calculate string similarity between two strings
@@ -104,8 +107,20 @@ export default function HomePage() {
     console.log('HomePage: Set lastVisitedPage to / in sessionStorage');
   }, []);
   
-  // Get location from global context
-  const { location, userRoadName, isUsingDefaultLocation } = useLocation();
+  // Get location, state setters, and other functions from global context
+  const { 
+    location, 
+    userRoadName, 
+    isUsingDefaultLocation, 
+    userPosition,
+    updateLocation,
+    setUserRoadName,
+    setIsUsingDefaultLocation 
+  } = useLocation();
+  
+  // Create state variables for location UI
+  const [isLocationSelectOpen, setIsLocationSelectOpen] = useState(false);
+  const [userPostalCode, setUserPostalCode] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [totalDealsFound, setTotalDealsFound] = useState<number>(30); // Total deals from API
   const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search input field
@@ -339,14 +354,23 @@ export default function HomePage() {
       }));
     };
     
-    // Sort deals by active status (active first), then distance, then price
+    // Enhanced sort deals function - double-checks active status at sort time
     const sortDeals = (deals: (Deal & { isActive: boolean; distance: number })[]) => {
+      // Make a debug log of how many active deals we have before sorting
+      const activeCount = deals.filter(d => isDealActiveNow(d)).length;
+      console.log(`Sorting ${deals.length} deals, ${activeCount} are currently active`);
+      
       return [...deals].sort((a, b) => {
-        // 1. Active deals first
-        if (a.isActive && !b.isActive) return -1;
-        if (!a.isActive && b.isActive) return 1;
+        // Get REAL-TIME active status (more accurate than the cached isActive property)
+        // This ensures we're using the most up-to-date active status
+        const aIsActive = isDealActiveNow(a);
+        const bIsActive = isDealActiveNow(b);
         
-        // 2. Then by distance
+        // 1. ALWAYS prioritize active deals first (this is the most important criterion)
+        if (aIsActive && !bIsActive) return -1;
+        if (!aIsActive && bIsActive) return 1;
+        
+        // 2. Then by distance (only if active status is the same)
         if (a.distance !== b.distance) {
           return a.distance - b.distance;
         }
@@ -552,17 +576,15 @@ export default function HomePage() {
       }
       
       // STEP 5: Within collections, prioritize active deals first, then sort by distance
-      const sortedDeals = activeDealsFromActiveRestaurants.sort((a, b) => {
-        // First by active status
-        const aIsActive = isDealActiveNow(a);
-        const bIsActive = isDealActiveNow(b);
-        
-        if (aIsActive && !bIsActive) return -1;
-        if (!aIsActive && bIsActive) return 1;
-        
-        // Then by distance
-        return a.distance - b.distance;
-      });
+      // Use the enhanced sortDeals function for consistent sorting logic
+      console.log(`Step 5: Sorting ${activeDealsFromActiveRestaurants.length} deals from active restaurants`);
+      
+      // Debug which deals are active right now
+      const activeDealsCount = activeDealsFromActiveRestaurants.filter(deal => isDealActiveNow(deal)).length;
+      console.log(`Step 5: Found ${activeDealsCount} currently active deals out of ${activeDealsFromActiveRestaurants.length} total`);
+      
+      // Use the global sortDeals function (the enhanced one we just implemented)
+      const sortedDeals = sortDeals(activeDealsFromActiveRestaurants);
       
       console.log(`Step 5: Sorted ${sortedDeals.length} deals by active status and distance`);
       
