@@ -12,9 +12,9 @@ import sharp from 'sharp';
 const IMAGE_BASE_DIR = path.join(process.cwd(), 'public', 'images');
 const DRINKS_DIR = path.join(IMAGE_BASE_DIR, 'drinks');
 
-// Fixed dimensions for stored images - 500x500 per requirements
-const IMAGE_WIDTH = 500;
-const IMAGE_HEIGHT = 500;
+// Fixed dimensions for stored images - reduced to 300x300 for efficiency
+const IMAGE_WIDTH = 300;
+const IMAGE_HEIGHT = 300;
 
 // Make sure directories exist
 if (!fs.existsSync(IMAGE_BASE_DIR)) {
@@ -87,11 +87,11 @@ export async function saveImage(
     const filename = `${imageId}${fileExt}`;
     const destPath = path.join(categoryPath, filename);
     
-    // Process the image with sharp to resize to exactly 500x500
+    // Process the image with sharp to resize to exactly 300x300
     const image = sharp(filePath);
     
-    // Always resize to exactly 500x500 square with cover fit
-    // This ensures all images are exactly 500x500 as required
+    // Always resize to exactly 300x300 square with cover fit
+    // This ensures all images are exactly 300x300 for consistency
     await image
       .resize({
         width: IMAGE_WIDTH,

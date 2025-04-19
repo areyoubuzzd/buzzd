@@ -16,6 +16,7 @@ import establishmentsRoutes from "./routes/establishments";
 import imageGenerationRoutes from "./routes/imageGenerationRoutes";
 import locationRoutes from "./routes/locationRoutes";
 import locationSearchRoutes from "./routes/locationSearchRoutes";
+import localImagesRouter from "./routes/local-images";
 import { db, pool } from "./db";
 import { checkConnection as checkCloudflareConnection } from "./services/cloudflare-images";
 
@@ -31,6 +32,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register Cloudflare Direct Upload routes
   app.use(cloudflareDirectUploadRouter);
+  
+  // Register Local Images routes
+  app.use('/api/local-images', localImagesRouter);
   
   // Register menu analysis routes
   app.use('/api/menu-analysis', menuAnalysisRoutes);
