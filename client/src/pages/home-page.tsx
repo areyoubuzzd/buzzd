@@ -417,8 +417,8 @@ export default function HomePage() {
         console.log(`Establishment IDs in response: ${establishmentIds.join(', ')}`);
       }
       
-      // STEP 0: FIRST PRIORITY - Get all deals from active_happy_hours collection
-      // This new step ensures we prioritize the deals added by post-data-refresh.ts script
+      // ABSOLUTELY CRITICAL FIX - STEP 0: ALWAYS use active_happy_hours collection deals
+      // This step guarantees we use the 25 deals added by post-data-refresh.ts script
       const collectionDeals = enrichedDeals.filter(deal => {
         const collectionTags = getCollectionTags(deal);
         return collectionTags.includes('active_happy_hours');
@@ -426,11 +426,12 @@ export default function HomePage() {
       
       console.log(`Step 0: Found ${collectionDeals.length} deals with active_happy_hours collection tag`);
       
-      // If we already have enough deals from the collection, we can use those exclusively
-      if (collectionDeals.length >= 20) {
-        console.log('Using active_happy_hours collection deals exclusively - more than 20 available');
+      // ALWAYS use the active_happy_hours collection as the source of truth
+      // This ensures we consistently show the same deals regardless of other factors
+      if (collectionDeals.length > 0) {
+        console.log('CRITICAL FIX: Using active_happy_hours collection deals exclusively');
         // Sort these by active status first, then by distance, then by price
-        return sortDeals(collectionDeals).slice(0, 25);
+        return sortDeals(collectionDeals);
       }
       
       // If we have some but not enough, continue with normal logic and combine at the end
@@ -1134,33 +1135,65 @@ export default function HomePage() {
     result.push(...sortedTagCollections);
   }
     
-    // CRITICAL FIX: Sort collections with priority as the highest criteria
-  // This ensures "Happy Hours Nearby" always comes first regardless of active status
-  const sortedResult = [...result].sort((a, b) => {
-    // Special case: Always ensure "Happy Hours Nearby" is first
-    if (a.name === "Happy Hours Nearby") return -1;
-    if (b.name === "Happy Hours Nearby") return 1;
+    // ABSOLUTELY CRITICAL FIX: Create a new array with "Happy Hours Nearby" manually placed first
+    // This approach guarantees it's always first by avoiding any sorting whatsoever
+    let sortedResult = [];
     
-    // Then sort by standard priority
-    const aPriority = a.priority || 999;
-    const bPriority = b.priority || 999;
-
-    // If priorities are different, sort by priority
-    if (aPriority !== bPriority) {
-      return aPriority - bPriority;
+    // First, manually find and add the Happy Hours Nearby collection
+    const happyHoursCollection = result.find(c => c.name === "Happy Hours Nearby");
+    if (happyHoursCollection) {
+      sortedResult.push(happyHoursCollection);
+      
+      // Then sort all other collections by priority
+      const otherCollections = result.filter(c => c.name !== "Happy Hours Nearby")
+        .sort((a, b) => {
+          // Sort by priority first
+          const aPriority = a.priority || 999;
+          const bPriority = b.priority || 999;
+          
+          if (aPriority !== bPriority) {
+            return aPriority - bPriority;
+          }
+          
+          // For same priority, sort active collections first
+          const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
+          const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
+          
+          if (aHasActiveDeals && !bHasActiveDeals) return -1;
+          if (!aHasActiveDeals && bHasActiveDeals) return 1;
+          
+          // Finally sort by name
+          return a.name.localeCompare(b.name);
+        });
+      
+      // Add all other collections after Happy Hours Nearby
+      sortedResult = [...sortedResult, ...otherCollections];
+    } else {
+      // If Happy Hours Nearby doesn't exist (which shouldn't happen), just sort everything
+      console.error("CRITICAL ERROR: Happy Hours Nearby collection not found!");
+      sortedResult = [...result].sort((a, b) => {
+        // Apply the same sorting logic as above
+        const aPriority = a.priority || 999;
+        const bPriority = b.priority || 999;
+        
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
+        }
+        
+        const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
+        const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
+        
+        if (aHasActiveDeals && !bHasActiveDeals) return -1;
+        if (!aHasActiveDeals && bHasActiveDeals) return 1;
+        
+        return a.name.localeCompare(b.name);
+      });
     }
     
-    // For collections with the same priority, active deals should come first
-    const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
-    const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
-    
-    // If one has active deals but the other doesn't, show the active one first
-    if (aHasActiveDeals && !bHasActiveDeals) return -1;
-    if (!aHasActiveDeals && bHasActiveDeals) return 1;
-    
-    // If both have the same active status, sort alphabetically
-    return a.name.localeCompare(b.name);
-  });
+    // Verify the first collection is Happy Hours Nearby
+    if (sortedResult.length > 0 && sortedResult[0].name !== "Happy Hours Nearby") {
+      console.error("CRITICAL ERROR: First collection is not Happy Hours Nearby after sorting!");
+    }
     
     // Log the final collection ordering with active status
     console.log("Returning collections sorted by active deals first, then priority:", 

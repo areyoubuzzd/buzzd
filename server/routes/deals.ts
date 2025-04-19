@@ -267,7 +267,15 @@ router.get('/collections/:collectionName', async (req, res) => {
   try {
     const collectionName = req.params.collectionName;
     
-    // Fetch deals that have this collection in their collections field
+    // Get optional query parameters for location
+    const lat = req.query.lat ? parseFloat(req.query.lat as string) : null;
+    const lng = req.query.lng ? parseFloat(req.query.lng as string) : null;
+    const radius = req.query.radius ? parseFloat(req.query.radius as string) : 5;
+    
+    console.log(`Collection deals API called for "${collectionName}" with location: lat=${lat}, lng=${lng}, radius=${radius}`);
+    
+    // ABSOLUTELY CRITICAL FIX: For active_happy_hours collection, ALWAYS return all 25 deals
+    // regardless of distance constraints
     const result = await db
       .select({
         deal: deals,
@@ -277,37 +285,123 @@ router.get('/collections/:collectionName', async (req, res) => {
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
       .where(sql`${deals.collections} LIKE ${'%' + collectionName + '%'}`);
     
-    // Transform to DealWithEstablishment format
-    const dealsInCollection = result.map(item => ({
-      ...item.deal,
-      establishment: item.establishment
-    }));
+    console.log(`Fetched ${result.length} deals from database for collection "${collectionName}"`);
+    
+    // Transform to DealWithEstablishment format - with distance calculation
+    const dealsInCollection = result.map(item => {
+      // Calculate distance if location is provided
+      let distance = null;
+      if (lat !== null && lng !== null) {
+        const R = 6371; // Radius of the earth in km
+        const lat1 = lat;
+        const lon1 = lng;
+        const lat2 = item.establishment.latitude;
+        const lon2 = item.establishment.longitude;
+        
+        if (lat2 !== null && lon2 !== null) {
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLon = (lon2 - lon1) * Math.PI / 180;
+          
+          const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+          
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const calculatedDistance = R * c; // Distance in km
+          
+          distance = parseFloat(calculatedDistance.toFixed(2));
+          
+          // Log establishments near the boundary
+          if (distance > radius * 0.95 && distance <= radius * 1.1) {
+            console.log(`Establishment ${item.establishment.name} is near radius boundary: ${distance} km (radius: ${radius} km)`);
+          }
+        }
+      }
+      
+      return {
+        ...item.deal,
+        establishment: item.establishment,
+        distance
+      };
+    });
     
     // Add active status to each deal based on current day and time
     const now = new Date();
-    const currentDay = now.getDay();
-    // Convert hours and minutes to a decimal value for easy comparison
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    // Convert hours and minutes to a decimal value for easy comparison (in minutes)
     const currentTime = now.getHours() * 60 + now.getMinutes();
     
+    // Debug time value
+    console.log(`Current day: ${currentDay}, time value: ${currentTime} minutes`);
+    
     const dealsWithActiveStatus = dealsInCollection.map(deal => {
-      // Parse happy hour days
-      const happyHourDays = deal.happyHourDays ? deal.happyHourDays.split(',').map(day => parseInt(day.trim())) : [];
+      // Parse valid days from the deal's valid_days field
+      const validDaysLower = deal.valid_days ? deal.valid_days.toLowerCase() : 'none';
+      let isDealActiveDay = false;
       
-      // Check if today is a happy hour day
-      const isDealActiveDay = happyHourDays.includes(currentDay);
+      // Check if the current day matches the valid days
+      if (validDaysLower === 'all days' || validDaysLower.includes('everyday') || validDaysLower.includes('all')) {
+        // "all days", "everyday", "all" mean the deal is valid any day
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('mon') && currentDay === 1) {
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('tue') && currentDay === 2) {
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('wed') && currentDay === 3) {
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('thu') && currentDay === 4) {
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('fri') && currentDay === 5) {
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('sat') && currentDay === 6) {
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('sun') && currentDay === 0) {
+        isDealActiveDay = true;
+      } else if (validDaysLower.includes('-')) {
+        // Handle day ranges like "mon-fri"
+        const dayParts = validDaysLower.split('-');
+        if (dayParts.length === 2) {
+          const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+          const startDayValue = days.findIndex(d => dayParts[0].trim().toLowerCase().startsWith(d));
+          const endDayValue = days.findIndex(d => dayParts[1].trim().toLowerCase().startsWith(d));
+          
+          if (startDayValue !== -1 && endDayValue !== -1) {
+            isDealActiveDay = currentDay >= startDayValue && currentDay <= endDayValue;
+            console.log(`Range check: ${startDayValue} <= ${currentDay} <= ${endDayValue} => ${isDealActiveDay}`);
+          }
+        }
+      }
       
-      // Parse start and end times
-      const startTimeParts = deal.startTime ? deal.startTime.split(':') : ['0', '0'];
-      const endTimeParts = deal.endTime ? deal.endTime.split(':') : ['0', '0'];
+      // Parse start and end times from hh_start_time and hh_end_time fields
+      const startTimeStr = deal.hh_start_time || "00:00";
+      const endTimeStr = deal.hh_end_time || "00:00";
       
-      const startTimeValue = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
-      const endTimeValue = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+      // Convert HH:MM to minutes
+      const convertTimeToMinutes = (timeStr: string): number => {
+        const parts = timeStr.split(':');
+        if (parts.length === 2) {
+          return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+        return 0;
+      };
+      
+      const startTimeValue = convertTimeToMinutes(startTimeStr);
+      const endTimeValue = convertTimeToMinutes(endTimeStr);
+      
+      console.log(`Start time raw: "${startTimeStr}", parsed: ${startTimeValue}`);
+      console.log(`End time raw: "${endTimeStr}", parsed: ${endTimeValue}`);
+      console.log(`Current time value: ${currentTime}`);
       
       // Check if current time is within happy hour
       const isActiveTime = currentTime >= startTimeValue && currentTime <= endTimeValue;
       
       // Deal is active if both day and time conditions are met
       const isActive = isDealActiveDay && isActiveTime;
+      
+      if (isActive) {
+        console.log(`Deal "${deal.drink_name}" from establishment ${deal.establishmentId} is ACTIVE (${currentTime} is between ${startTimeValue} and ${endTimeValue})`);
+      }
       
       return {
         ...deal,
