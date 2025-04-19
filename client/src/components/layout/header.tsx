@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import logoLight from "@/assets/logo.png";
 import logoDark from "@/assets/logo_dark.png";
+import logoBlack from "@/assets/logo_black.png";
 
 export default function Header() {
   const { user, logoutMutation } = useAuth();
@@ -31,9 +32,9 @@ export default function Header() {
             <Link href="/">
               <div className="flex items-center cursor-pointer">
                 <img 
-                  src={logoLight} 
+                  src={logoBlack} 
                   alt="Buzzd Logo" 
-                  className="h-10" /* Reduced from 12 to fit in the 4.5rem height */
+                  className="h-12" /* Using the new black logo */
                 />
               </div>
             </Link>

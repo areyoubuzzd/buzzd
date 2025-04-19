@@ -67,12 +67,12 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
             />
           ) : (
             <div 
-              className="flex items-center text-sm text-gray-700 cursor-pointer h-full"
+              className="flex items-center text-sm text-[#232946] cursor-pointer h-full"
               onClick={() => {
                 setIsLocationSelectOpen(true);
               }}
             >
-              <FiMapPin className="mr-1.5 h-4 w-4 text-gray-500" />
+              <FiMapPin className="mr-1.5 h-4 w-4 text-[#232946]" />
               <span className="font-medium">{userRoadName}</span>
             </div>
           )}
@@ -81,11 +81,11 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
             type="button" 
             variant="ghost" 
             size="sm" 
-            className="border border-gray-300 hover:bg-gray-100 rounded-lg p-2 shrink-0"
-            style={{ background: "#c9c2ba" }}
+            className="border border-[#232946]/20 hover:bg-[#FFC300]/80 rounded-lg p-2 shrink-0"
+            style={{ background: "#FFC300" }}
             onClick={handleOpenFilters}
           >
-            <FiFilter className="h-4 w-4 text-[#191632]" />
+            <FiFilter className="h-4 w-4 text-[#232946]" />
           </Button>
         </div>
       </div>
