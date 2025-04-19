@@ -315,25 +315,44 @@ router.get('/collections/:collectionName', async (req, res) => {
       };
     });
     
-    // IMPORTANT FIX: Sort by active status first (active deals first), then by other criteria
-    // The critical part is that active deals MUST come first before ANY other sorting
-    const sortedDeals = dealsWithActiveStatus.sort((a, b) => {
-      // FIRST: Active deals MUST come before inactive deals (highest priority)
-      if (a.isActive && !b.isActive) return -1;
-      if (!a.isActive && b.isActive) return 1;
+    // CRITICAL FIX: Force active deals to ALWAYS come first, then sort by other criteria
+    // Add a numeric "sort_value" property to each deal for precise sorting
+    const dealsWithSortValue = dealsWithActiveStatus.map(deal => {
+      let sortValue = 0;
       
-      // For deals with same active status, sort by price (lower first)
-      if (a.happy_hour_price !== undefined && b.happy_hour_price !== undefined) {
-        return a.happy_hour_price - b.happy_hour_price;
+      // Active status is the most important (1000 points)
+      if (deal.isActive) {
+        sortValue += 1000;
       }
       
-      // Then sort by distance if available
-      if (a.distance !== undefined && b.distance !== undefined) {
-        return a.distance - b.distance;
+      // Sort order is second most important (if present) - up to 100 points
+      if (deal.sort_order !== undefined && deal.sort_order !== null) {
+        // Lower sort_order values should come first (higher sortValue)
+        sortValue += 100 - Math.min(99, deal.sort_order);
       }
       
-      // Default to sorting by ID if no distance
-      return a.id - b.id;
+      // Distance is third most important - up to 10 points
+      // Closer distances get higher sortValue
+      if (deal.distance !== undefined && deal.distance !== null) {
+        // Max 10 points for distance - transform from 0-50km to 10-0 points
+        const distancePoints = Math.max(0, 10 - (deal.distance / 5));
+        sortValue += distancePoints;
+      }
+      
+      // Price is least important - up to 1 point
+      // Lower prices get higher sortValue
+      if (deal.happy_hour_price !== undefined && deal.happy_hour_price !== null) {
+        // Max 1 point for price - transform from $0-$100 to 1-0 points
+        const pricePoints = Math.max(0, 1 - (deal.happy_hour_price / 100));
+        sortValue += pricePoints;
+      }
+      
+      return { ...deal, sort_value: sortValue };
+    });
+    
+    // Sort using the calculated sort value (higher values first)
+    const sortedDeals = dealsWithSortValue.sort((a, b) => {
+      return b.sort_value - a.sort_value;
     });
 
     // Debug logging to check the first 5 sorted deals

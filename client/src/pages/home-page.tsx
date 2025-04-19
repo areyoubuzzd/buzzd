@@ -1134,19 +1134,33 @@ export default function HomePage() {
     result.push(...sortedTagCollections);
   }
     
-    // Sort the final result by active deals first, then by priority
-    const sortedResult = [...result].sort((a, b) => {
-      // First check if collection has ANY active deals
-      const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
-      const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
-      
-      // If one has active deals but the other doesn't, show the active one first
-      if (aHasActiveDeals && !bHasActiveDeals) return -1;
-      if (!aHasActiveDeals && bHasActiveDeals) return 1;
-      
-      // If both have the same active status, sort by priority
-      return a.priority - b.priority;
-    });
+    // CRITICAL FIX: Sort collections with priority as the highest criteria
+  // This ensures "Happy Hours Nearby" always comes first regardless of active status
+  const sortedResult = [...result].sort((a, b) => {
+    // Special case: Always ensure "Happy Hours Nearby" is first
+    if (a.name === "Happy Hours Nearby") return -1;
+    if (b.name === "Happy Hours Nearby") return 1;
+    
+    // Then sort by standard priority
+    const aPriority = a.priority || 999;
+    const bPriority = b.priority || 999;
+
+    // If priorities are different, sort by priority
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
+    }
+    
+    // For collections with the same priority, active deals should come first
+    const aHasActiveDeals = a.deals.some(deal => isDealActiveNow(deal));
+    const bHasActiveDeals = b.deals.some(deal => isDealActiveNow(deal));
+    
+    // If one has active deals but the other doesn't, show the active one first
+    if (aHasActiveDeals && !bHasActiveDeals) return -1;
+    if (!aHasActiveDeals && bHasActiveDeals) return 1;
+    
+    // If both have the same active status, sort alphabetically
+    return a.name.localeCompare(b.name);
+  });
     
     // Log the final collection ordering with active status
     console.log("Returning collections sorted by active deals first, then priority:", 
