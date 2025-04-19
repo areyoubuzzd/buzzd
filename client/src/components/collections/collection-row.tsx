@@ -136,7 +136,7 @@ export default function CollectionRow({ title, deals, description, userLocation,
     >
       <div className="flex items-center justify-between mb-3">
         <motion.h2 
-          className="text-lg font-semibold text-slate-800"
+          className="text-lg font-semibold text-[#F4F4F9]"
           variants={titleVariants}
         >
           {title}

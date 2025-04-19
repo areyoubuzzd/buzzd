@@ -26,7 +26,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-[#FFC300] shadow-md">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-18"> {/* Fixed height to match restaurant page */}
+        <div className="flex items-center justify-between h-[4.5rem]"> {/* Increased height by 10px */}
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">

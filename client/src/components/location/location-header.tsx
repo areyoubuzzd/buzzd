@@ -30,7 +30,7 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
   };
 
   return (
-    <div className="bg-[#d6cfc7] px-4 border-b border-gray-200">
+    <div className="bg-[#FFC300] px-4 border-b border-gray-200">
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-12"> {/* Fixed height for consistency */}
           {isLocationSelectOpen ? (
