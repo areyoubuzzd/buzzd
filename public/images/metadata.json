@@ -24,5 +24,92 @@
     "createdAt": "2025-04-19T06:19:21.179Z",
     "path": "/home/runner/workspace/public/images/drinks/beer_pint/ddde69fe-2d77-4d1c-94b6-c3392ed2de3c.jpeg",
     "url": "/images/drinks/beer_pint/ddde69fe-2d77-4d1c-94b6-c3392ed2de3c.jpeg"
+  },
+  "ffeab1f9-ed22-4d6e-96d9-59b249a19365": {
+    "id": "ffeab1f9-ed22-4d6e-96d9-59b249a19365",
+    "originalName": "lager_1.jpeg",
+    "category": "beer_pint",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/jpeg",
+    "size": 22086,
+    "createdAt": "2025-04-19T06:51:29.708Z",
+    "path": "/home/runner/workspace/public/images/drinks/beer_pint/ffeab1f9-ed22-4d6e-96d9-59b249a19365.jpeg",
+    "url": "/direct-image/beer_pint/ffeab1f9-ed22-4d6e-96d9-59b249a19365.jpeg"
+  },
+  "fc63536c-917e-4963-a8e8-04e1768f6b4e": {
+    "id": "fc63536c-917e-4963-a8e8-04e1768f6b4e",
+    "originalName": "lager2.jpeg",
+    "category": "beer_pint",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/jpeg",
+    "size": 24172,
+    "createdAt": "2025-04-19T06:51:53.918Z",
+    "path": "/home/runner/workspace/public/images/drinks/beer_pint/fc63536c-917e-4963-a8e8-04e1768f6b4e.jpeg",
+    "url": "/direct-image/beer_pint/fc63536c-917e-4963-a8e8-04e1768f6b4e.jpeg"
+  },
+  "29a316ad-7b27-4e40-bc95-56fa08bdce16": {
+    "id": "29a316ad-7b27-4e40-bc95-56fa08bdce16",
+    "originalName": "lager_1.jpeg",
+    "category": "beer_pint",
+    "drinkName": "asahi_pint",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/jpeg",
+    "size": 22086,
+    "createdAt": "2025-04-19T06:52:09.927Z",
+    "path": "/home/runner/workspace/public/images/drinks/beer_pint/29a316ad-7b27-4e40-bc95-56fa08bdce16.jpeg",
+    "url": "/direct-image/beer_pint/29a316ad-7b27-4e40-bc95-56fa08bdce16.jpeg"
+  },
+  "8ebb7a44-cb5d-4007-b219-2cb3c816dfc7": {
+    "id": "8ebb7a44-cb5d-4007-b219-2cb3c816dfc7",
+    "originalName": "lager3.jpeg",
+    "category": "beer_pint",
+    "drinkName": "asahi_pint",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/jpeg",
+    "size": 23942,
+    "createdAt": "2025-04-19T06:52:22.281Z",
+    "path": "/home/runner/workspace/public/images/drinks/beer_pint/8ebb7a44-cb5d-4007-b219-2cb3c816dfc7.jpeg",
+    "url": "/direct-image/beer_pint/8ebb7a44-cb5d-4007-b219-2cb3c816dfc7.jpeg"
+  },
+  "5e4963f0-6762-43a2-bb5f-4d9ed6998447": {
+    "id": "5e4963f0-6762-43a2-bb5f-4d9ed6998447",
+    "originalName": "red_wine_glass_500x500_1.jpg",
+    "category": "wine_red",
+    "drinkName": "red_wine_glass_1",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/jpeg",
+    "size": 14650,
+    "createdAt": "2025-04-19T06:52:55.528Z",
+    "path": "/home/runner/workspace/public/images/drinks/wine_red/5e4963f0-6762-43a2-bb5f-4d9ed6998447.jpg",
+    "url": "/direct-image/wine_red/5e4963f0-6762-43a2-bb5f-4d9ed6998447.jpg"
+  },
+  "34e5fc0d-5adf-4263-912f-5c3417220708": {
+    "id": "34e5fc0d-5adf-4263-912f-5c3417220708",
+    "originalName": "white_wine_500x500_1.png",
+    "category": "wine_white",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/png",
+    "size": 22610,
+    "createdAt": "2025-04-19T06:53:17.193Z",
+    "path": "/home/runner/workspace/public/images/drinks/wine_white/34e5fc0d-5adf-4263-912f-5c3417220708.png",
+    "url": "/direct-image/wine_white/34e5fc0d-5adf-4263-912f-5c3417220708.png"
+  },
+  "2f51537d-57ae-42ed-bd91-f6acdd6ca077": {
+    "id": "2f51537d-57ae-42ed-bd91-f6acdd6ca077",
+    "originalName": "margarita1.jpeg",
+    "category": "cocktail_margarita",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/jpeg",
+    "size": 21887,
+    "createdAt": "2025-04-19T06:54:16.774Z",
+    "path": "/home/runner/workspace/public/images/drinks/cocktail_margarita/2f51537d-57ae-42ed-bd91-f6acdd6ca077.jpeg",
+    "url": "/direct-image/cocktail_margarita/2f51537d-57ae-42ed-bd91-f6acdd6ca077.jpeg"
   }
 }

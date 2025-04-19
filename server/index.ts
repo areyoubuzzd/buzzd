@@ -34,11 +34,30 @@ app.get('/debug/images/:category/:id', (req, res) => {
 // Add direct file serving for debugging
 app.get('/direct-image/:category/:id', (req, res) => {
   const { category, id } = req.params;
-  const filePath = path.join(process.cwd(), 'public/images/drinks', category, id);
   
-  if (fs.existsSync(filePath)) {
+  // Try to find the file with different extensions if it doesn't have one
+  let filePath = path.join(process.cwd(), 'public/images/drinks', category, id);
+  let fileExists = fs.existsSync(filePath);
+  let ext = path.extname(id).toLowerCase();
+  
+  // If no extension in ID and file doesn't exist, try with common extensions
+  if (!ext && !fileExists) {
+    console.log('No extension in ID, trying to find file with extension...');
+    const possibleExtensions = ['.jpeg', '.jpg', '.png', '.webp'];
+    for (const extension of possibleExtensions) {
+      const testPath = path.join(process.cwd(), 'public/images/drinks', category, `${id}${extension}`);
+      if (fs.existsSync(testPath)) {
+        filePath = testPath;
+        fileExists = true;
+        ext = extension;
+        console.log(`Found file with extension: ${extension}`);
+        break;
+      }
+    }
+  }
+  
+  if (fileExists) {
     // Determine content type based on file extension
-    const ext = path.extname(id).toLowerCase();
     let contentType = 'image/jpeg'; // Default
     
     if (ext === '.png') contentType = 'image/png';
@@ -49,6 +68,7 @@ app.get('/direct-image/:category/:id', (req, res) => {
     // Stream the file directly to the response
     fs.createReadStream(filePath).pipe(res);
   } else {
+    console.log(`Image not found: ${filePath}`);
     res.status(404).send('Image not found');
   }
 });

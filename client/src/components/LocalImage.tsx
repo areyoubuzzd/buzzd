@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import { getDrinkCategoryColor } from '@/lib/image-category-utils';
+import { getDrinkCategoryColor, getLocalImageUrl } from '@/lib/image-category-utils';
 
 interface LocalImageProps {
   imageId?: string | null;
@@ -83,9 +83,8 @@ export function LocalImage({
   if (width) dimensionParams.push(`width=${width}`);
   if (height) dimensionParams.push(`height=${height}`);
   
-  // Construct the local image URL - try direct image route 
-  const fileExtension = imageId.includes('.') ? '' : '.jpeg'; // Add extension if not present
-  const imageUrl = `/direct-image/${category}/${imageId}${fileExtension}${dimensionParams.length > 0 ? `?${dimensionParams.join('&')}` : ''}`;
+  // Construct the local image URL using our utility function
+  const imageUrl = getLocalImageUrl(category, imageId, { width, height });
   
   // Image is ready to display
   return (

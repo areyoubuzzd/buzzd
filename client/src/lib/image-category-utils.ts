@@ -252,3 +252,25 @@ export function mapToDrinkCategory(category: string): DrinkCategory {
       return DrinkCategory.GENERAL;
   }
 }
+
+/**
+ * Format a URL for serving local images
+ */
+export function getLocalImageUrl(
+  category: string,
+  imageId: string,
+  options?: { width?: number; height?: number }
+): string {
+  // Make sure imageId has an extension
+  const fileExtension = imageId.includes('.') ? '' : '.jpeg';
+  
+  // Build URL parameters if needed
+  const params: string[] = [];
+  if (options?.width) params.push(`width=${options.width}`);
+  if (options?.height) params.push(`height=${options.height}`);
+  
+  const queryString = params.length > 0 ? `?${params.join('&')}` : '';
+  
+  // Use the direct image route for reliable serving
+  return `/direct-image/${category}/${imageId}${fileExtension}${queryString}`;
+}
