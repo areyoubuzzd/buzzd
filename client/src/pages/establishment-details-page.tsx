@@ -396,7 +396,7 @@ export default function EstablishmentDetailsPage() {
   const happyHour = getHappyHourSummary(activeDeals);
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 bg-[#232946]">
       <div 
         className="h-48 bg-cover bg-center relative"
         style={{ 
