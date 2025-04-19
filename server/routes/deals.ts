@@ -315,45 +315,46 @@ router.get('/collections/:collectionName', async (req, res) => {
       };
     });
     
-    // CRITICAL FIX: Force active deals to ALWAYS come first, then sort by other criteria
-    // Add a numeric "sort_value" property to each deal for precise sorting
-    const dealsWithSortValue = dealsWithActiveStatus.map(deal => {
-      let sortValue = 0;
-      
-      // Active status is the most important (1000 points)
-      if (deal.isActive) {
-        sortValue += 1000;
-      }
-      
-      // Sort order is second most important (if present) - up to 100 points
-      if (deal.sort_order !== undefined && deal.sort_order !== null) {
-        // Lower sort_order values should come first (higher sortValue)
-        sortValue += 100 - Math.min(99, deal.sort_order);
-      }
-      
-      // Distance is third most important - up to 10 points
-      // Closer distances get higher sortValue
-      if (deal.distance !== undefined && deal.distance !== null) {
-        // Max 10 points for distance - transform from 0-50km to 10-0 points
-        const distancePoints = Math.max(0, 10 - (deal.distance / 5));
-        sortValue += distancePoints;
-      }
-      
-      // Price is least important - up to 1 point
-      // Lower prices get higher sortValue
-      if (deal.happy_hour_price !== undefined && deal.happy_hour_price !== null) {
-        // Max 1 point for price - transform from $0-$100 to 1-0 points
-        const pricePoints = Math.max(0, 1 - (deal.happy_hour_price / 100));
-        sortValue += pricePoints;
-      }
-      
-      return { ...deal, sort_value: sortValue };
-    });
+    // ABSOLUTELY CRITICAL FIX: Force active deals to ALWAYS come first using a two-step sort
+    // First split active and inactive deals into separate arrays
+    const activeDeals = dealsWithActiveStatus.filter(deal => deal.isActive);
+    const inactiveDeals = dealsWithActiveStatus.filter(deal => !deal.isActive);
     
-    // Sort using the calculated sort value (higher values first)
-    const sortedDeals = dealsWithSortValue.sort((a, b) => {
-      return b.sort_value - a.sort_value;
-    });
+    console.log(`SPLIT DEALS: ${activeDeals.length} active deals, ${inactiveDeals.length} inactive deals`);
+    
+    // Now sort each array individually by secondary criteria
+    function sortDealsBySecondaryFactors(deals) {
+      return deals.sort((a, b) => {
+        // First sort by sort_order if available
+        if (a.sort_order !== undefined && b.sort_order !== undefined) {
+          if (a.sort_order !== b.sort_order) {
+            return a.sort_order - b.sort_order;
+          }
+        }
+        
+        // Then by distance if available
+        if (a.distance !== undefined && b.distance !== undefined) {
+          if (a.distance !== b.distance) {
+            return a.distance - b.distance;
+          }
+        }
+        
+        // Finally by price
+        if (a.happy_hour_price !== undefined && b.happy_hour_price !== undefined) {
+          return a.happy_hour_price - b.happy_hour_price;
+        }
+        
+        // Default to ID if nothing else works
+        return a.id - b.id;
+      });
+    }
+    
+    // Sort each group by secondary factors
+    const sortedActiveDeals = sortDealsBySecondaryFactors(activeDeals);
+    const sortedInactiveDeals = sortDealsBySecondaryFactors(inactiveDeals);
+    
+    // Finally, combine the arrays - active deals will ALWAYS come first
+    const sortedDeals = [...sortedActiveDeals, ...sortedInactiveDeals];
 
     // Debug logging to check the first 5 sorted deals
     console.log(`COLLECTION DEALS SORTING: Collection "${collectionName}" has ${sortedDeals.length} deals`);

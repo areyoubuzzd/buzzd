@@ -10,16 +10,64 @@ const router = Router();
 // Get all collections
 router.get('/', async (_req, res) => {
   try {
-    // Get all collections and sort them by priority on the server
-    const allCollections = await db
-      .select()
-      .from(collections)
-      .orderBy(collections.priority);
+    // CRITICAL FIX: Get all collections from DB 
+    // Force a manual sort to guarantee the correct order
+    // This ensures Happy Hours Nearby is always first
+    const allCollections = await db.select().from(collections);
+    
+    // Define a special sort function that ensures correct ordering
+    const manualSortOrder: Record<string, number> = {
+      'active_happy_hours': 1,    // Always first
+      'all_deals': 2,             // Always second
+      'beers_under_12': 10,
+      'beers_under_15': 11,
+      'craft_beers': 12,
+      'beer_buckets_under_40': 13,
+      'wines_under_12': 20,
+      'wines_under_15': 21,
+      'bottles_under_100': 22,
+      'cocktails_under_12': 30,
+      'cocktails_under_15': 31,
+      'signature_cocktails': 32,
+      'whisky_deals': 40,
+      'gin_deals': 41,
+      '1for1_deals': 50,
+      'freeflow_deals': 51,
+      'two_bottle_discounts': 52,
+      'cbd_deals': 60,
+      'orchard_deals': 61,
+      'holland_village_deals': 62
+    };
+    
+    // Sort collections using our manual ordering
+    const sortedCollections = [...allCollections].sort((a, b) => {
+      // Make sure "active_happy_hours" always comes first
+      if (a.slug === 'active_happy_hours') return -999; // Always first
+      if (b.slug === 'active_happy_hours') return 999;  // Always first
+      
+      // Use the manual sort order if available (with type safety)
+      const aOrder = a.slug ? (manualSortOrder[a.slug] || a.priority || 999) : 999;
+      const bOrder = b.slug ? (manualSortOrder[b.slug] || b.priority || 999) : 999;
+      return aOrder - bOrder;
+    });
+    
+    // Check if Happy Hours is first
+    if (sortedCollections.length > 0) {
+      const first = sortedCollections[0];
+      if (first.slug !== 'active_happy_hours') {
+        console.error('WARNING: Happy Hours Nearby is not the first collection!');
+      }
+    }
     
     console.log('Returning collections sorted by priority:', 
-      allCollections.map(c => `${c.name} (priority: ${c.priority})`));
+      sortedCollections.map(c => `${c.name} (priority: ${c.priority})`));
     
-    return res.json(allCollections);
+    // Clear the cache for this response to ensure fresh data
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Expires', '-1');
+    res.setHeader('Pragma', 'no-cache');
+    
+    return res.json(sortedCollections);
   } catch (error) {
     console.error('Error fetching collections:', error);
     return res.status(500).json({ error: 'Failed to fetch collections' });
