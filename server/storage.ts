@@ -339,7 +339,7 @@ export class DatabaseStorage implements IStorage {
         lte(haversine, radiusKm)
       ))
       .orderBy(asc(haversine))
-      .limit(50);
+      .limit(200); // Increased limit to show more deals
 
     return result.filter(item => item.distance <= radiusKm).map(item => ({
       ...item.deal,
@@ -402,7 +402,7 @@ export class DatabaseStorage implements IStorage {
         sql`${haversine} <= ${radiusKm}`
       ))
       .orderBy(asc(haversine))
-      .limit(50);
+      .limit(200); // Increased limit to show more deals
 
     return result.map(item => ({
       ...item.deal,
@@ -461,7 +461,7 @@ export class DatabaseStorage implements IStorage {
         sql`${haversine} <= ${radiusKm}`
       ))
       .orderBy(asc(haversine))
-      .limit(50);
+      .limit(200); // Increased limit to show more deals
 
     return result.filter(item => item.distance <= radiusKm).map(item => ({
       ...item.deal,
