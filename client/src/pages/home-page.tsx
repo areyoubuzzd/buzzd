@@ -403,7 +403,7 @@ export default function HomePage() {
     // =======================================================
     
     const activeHappyHoursDeals = (() => {
-      console.log('Generating Happy Hours Nearby using enhanced 6-step logic');
+      console.log('Generating Happy Hours Nearby using enhanced 6-step logic with prioritized active_happy_hours collection');
       const enrichedDeals = enrichDeals(allDeals);
       
       // Debug logging
@@ -416,6 +416,25 @@ export default function HomePage() {
         const establishmentIds = Array.from(new Set(enrichedDeals.map(d => d.establishmentId)));
         console.log(`Establishment IDs in response: ${establishmentIds.join(', ')}`);
       }
+      
+      // STEP 0: FIRST PRIORITY - Get all deals from active_happy_hours collection
+      // This new step ensures we prioritize the deals added by post-data-refresh.ts script
+      const collectionDeals = enrichedDeals.filter(deal => {
+        const collectionTags = getCollectionTags(deal);
+        return collectionTags.includes('active_happy_hours');
+      });
+      
+      console.log(`Step 0: Found ${collectionDeals.length} deals with active_happy_hours collection tag`);
+      
+      // If we already have enough deals from the collection, we can use those exclusively
+      if (collectionDeals.length >= 20) {
+        console.log('Using active_happy_hours collection deals exclusively - more than 20 available');
+        // Sort these by active status first, then by distance, then by price
+        return sortDeals(collectionDeals).slice(0, 25);
+      }
+      
+      // If we have some but not enough, continue with normal logic and combine at the end
+      console.log(`Found some active_happy_hours deals (${collectionDeals.length}) but not enough, continuing with normal logic`);
       
       // STEP 1: First search for restaurants within 5KM radius of user's location
       const dealsWithin5km = enrichedDeals.filter(deal => deal.distance <= 5);
@@ -593,20 +612,39 @@ export default function HomePage() {
       
       console.log(`Step 5: Sorted ${sortedDeals.length} deals by active status and distance`);
       
-      // STEP 6: Avoid placing identical drink images adjacent to each other
-      // For this, we'd need to shuffle deals with the same category but keep the order otherwise
-      // Since we can't easily do that without the image selection logic, we'll just return the sorted deals for now
+      // STEP 6: First prioritize deals that are explicitly in the active_happy_hours collection,
+      // then augment with our computed active deals to reach a total of 25
+      const finalDeals = [...collectionDeals];
       
-      // Limit to 25 deals max
-      return sortedDeals.slice(0, 25);
+      // Now add sorted deals that are not already in the collection
+      for (const deal of sortedDeals) {
+        // Skip if the deal is already in finalDeals (from collectionDeals)
+        if (!finalDeals.some(d => d.id === deal.id)) {
+          finalDeals.push(deal);
+          // Stop once we have 25 deals
+          if (finalDeals.length >= 25) break;
+        }
+      }
+      
+      // Final sort to ensure active deals come first
+      return sortDeals(finalDeals).slice(0, 25);
     })();
     
-    // Keeping activeHappyHoursDeals for API-based collections but not adding it directly
-    // We'll only add it if it comes from the API collections
-    
-    // Remember we've used this name (both formats)
-    usedCollectionNames.add("happy hours nearby");
-    usedCollectionNames.add("happy_hours_nearby");
+    // Now ALWAYS add the Active Happy Hours directly as the first collection
+    // This is critical to ensure it always appears in the correct position
+    if (activeHappyHoursDeals.length > 0) {
+      result.push({
+        name: "Happy Hours Nearby",
+        description: "Active happy hour deals near your location",
+        deals: activeHappyHoursDeals,
+        priority: 1 // Highest priority - always first
+      });
+      
+      // Remember we've used this name (both formats)
+      usedCollectionNames.add("happy hours nearby");
+      usedCollectionNames.add("happy_hours_nearby");
+      usedCollectionNames.add("active_happy_hours");
+    }
     
     // =======================================================
     // 2. Create "Beers Under $10" collection (always second)
