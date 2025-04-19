@@ -157,7 +157,8 @@ function DealCard({
         <div className="relative p-4 flex-grow">
           {/* Discount badge */}
           {savingsAmount && (
-            <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg font-bold">
+            <div className="absolute top-3 left-3 px-2 py-1 rounded-lg font-bold"
+                 style={{ backgroundColor: "#232946", color: "#EAE6E1" }}>
               {savingsAmount}
             </div>
           )}

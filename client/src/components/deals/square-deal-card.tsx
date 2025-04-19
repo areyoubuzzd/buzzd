@@ -327,7 +327,8 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
               
               {/* Savings badge */}
               <motion.div 
-                className="absolute top-2 right-2 bg-primary text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+                className="absolute top-2 right-2 bg-primary px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+                style={{ backgroundColor: "#232946", color: "#EAE6E1" }}
                 variants={badgeVariants}
               >
                 {savingsInfo}
