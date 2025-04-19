@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa';
+import { FiSearch } from 'react-icons/fi';
 import { LocationHeader } from '@/components/location/location-header';
 import { useLocation } from '@/contexts/location-context';
 import { Link } from 'wouter';
@@ -398,12 +399,12 @@ export default function RestaurantsPage() {
 
   return (
     <div className="pb-20 bg-[#232946]">
-      <header className="sticky top-0 z-50 bg-[#FFC300] shadow-md">
+      <header className="sticky top-0 z-50 bg-[#EAE6E1] shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-[4.5rem]">
             <div className="flex items-center">
               <Link href="/">
-                <div className="flex items-center cursor-pointer">
+                <div className="flex items-center cursor-pointer" style={{ marginLeft: "-12px" }}>
                   <img 
                     src={logoBlack} 
                     alt="Buzzd Logo" 
@@ -411,33 +412,19 @@ export default function RestaurantsPage() {
                   />
                 </div>
               </Link>
-
             </div>
 
             {/* Search bar */}
-            <motion.div 
-              className="relative w-40"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ 
-                delay: 0.1,
-                duration: 0.3
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              </motion.div>
+            <div className="relative w-40">
+              <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
-                className="bg-white/10 border-0 focus-visible:ring-1 text-[#F4F4F9] pl-8 h-8 text-sm"
-                placeholder="Search..."
+                type="text"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-9 rounded-md border-gray-300 text-sm"
               />
-            </motion.div>
+            </div>
           </div>
         </div>
       </header>

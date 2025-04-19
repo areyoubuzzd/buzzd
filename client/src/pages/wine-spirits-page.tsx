@@ -149,7 +149,7 @@ export default function WineSpiritsPage() {
             
             {/* Search bar */}
             <div className="relative w-40">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
                 type="text"
                 placeholder="Search"
