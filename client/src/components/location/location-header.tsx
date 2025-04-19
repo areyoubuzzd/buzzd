@@ -30,7 +30,7 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
   };
 
   return (
-    <div className="bg-[#D3D3D3] px-4 shadow-none">
+    <div className="bg-[#EAE6E1] px-4 shadow-none">
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-12"> {/* Fixed height for consistency */}
           {isLocationSelectOpen ? (
@@ -81,8 +81,8 @@ export function LocationHeader({ onOpenFilters }: LocationHeaderProps) {
             type="button" 
             variant="ghost" 
             size="sm" 
-            className="border border-[#232946]/20 hover:bg-[#D3D3D3]/80 rounded-lg p-2 shrink-0"
-            style={{ background: "#D3D3D3" }}
+            className="border border-[#232946]/20 hover:bg-[#EAE6E1]/80 rounded-lg p-2 shrink-0"
+            style={{ background: "#EAE6E1" }}
             onClick={handleOpenFilters}
           >
             <FiFilter className="h-4 w-4 text-[#232946]" />
