@@ -7,49 +7,70 @@ This guide explains how to refresh your deals data from Google Sheets while pres
 Make sure you have the following environment variables set in your `.env` file:
 
 ```
-GOOGLE_SHEETS_SPREADSHEET_ID=your_google_sheet_id
+GOOGLE_SHEETS_SPREADSHEET_ID=1mvmQLAe326ABsIfe2m1dZDd8StlrZrBKjujcT4nGpy0
 GOOGLE_SHEETS_CLIENT_EMAIL=your_service_account_email
 GOOGLE_SHEETS_PRIVATE_KEY=your_private_key
 ```
 
 ## Steps to Refresh Deals
 
-1. **Run the refresh script**:
+### Method 1: Using the import-from-gsheets script
+
+1. **Run the import script**:
 
    ```bash
-   # Make the script executable (first time only)
-   chmod +x refresh-deals.sh
+   # Check which tab names are available in your spreadsheet
+   npx tsx scripts/list-sheets.ts
    
-   # Run the refresh script
-   ./refresh-deals.sh
+   # Import from the "Deals" tab (or whatever your tab is named)
+   npx tsx scripts/import-from-gsheets.ts 1mvmQLAe326ABsIfe2m1dZDd8StlrZrBKjujcT4nGpy0 Deals
    ```
 
-   Alternatively, you can run the TypeScript file directly:
-
-   ```bash
-   npx tsx scripts/refresh-deals-data.ts
-   ```
+   Replace `Deals` with your actual tab name from the spreadsheet.
 
 2. **Restart the application**:
 
-   After the refresh completes, restart the application to see the updated deals data.
+   After the import completes, restart the application to see the updated deals data.
 
-## What the Refresh Script Does
+### Method 2: Using import-deals script
 
-The refresh script does the following:
+If you want to use the dedicated deals import script:
 
-1. Loads all existing deals from the database
-2. Fetches the latest deal data from Google Sheets
-3. Updates existing deals with new information (prices, times, descriptions)
-4. Preserves all existing deal attributes that should not change
-5. Maintains all existing logic for deal display and filtering
+```bash
+npx tsx scripts/import-deals.ts
+```
+
+This script is specifically designed for the deals table and may have specialized logic.
+
+### Method 3: Using import-deals-batch script (for large datasets)
+
+If you have a large number of deals, the batch import script can help avoid timeouts:
+
+```bash
+npx tsx scripts/import-deals-batch.ts
+```
+
+## Verifying the Import
+
+After importing, you can verify that the data was successfully imported by:
+
+1. Checking the console output for any errors
+2. Refreshing the application and verifying deals are displayed correctly
+3. Checking that active/inactive status is working properly
 
 ## Troubleshooting
 
 If you encounter any issues:
 
-1. Check that your Google Sheets credentials are correct
-2. Verify that the spreadsheet structure matches what the script expects
-3. Review the error messages displayed during the refresh process
+1. Check that your Google Sheets credentials are correct and up to date
+2. Verify that the spreadsheet structure matches what the import script expects:
+   - Make sure column headers match the expected field names
+   - Check that date formats are consistent
+   - Ensure all required fields have values
+3. Review the error messages displayed during the import process
 
-For more complex issues, you can modify the `scripts/refresh-deals-data.ts` file to address specific requirements.
+## Important Notes
+
+- The import preserves all existing logic for deal display and filtering
+- Deal images will not be affected by the data refresh
+- The spreadsheet ID `1mvmQLAe326ABsIfe2m1dZDd8StlrZrBKjujcT4nGpy0` is already configured
