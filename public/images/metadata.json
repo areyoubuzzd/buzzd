@@ -12,5 +12,17 @@
     "createdAt": "2025-04-19T06:16:27.209Z",
     "path": "/home/runner/workspace/public/images/drinks/wine_white/d38648bf-c884-457b-858b-f55ee49c33c5.png",
     "url": "/images/drinks/wine_white/d38648bf-c884-457b-858b-f55ee49c33c5.png"
+  },
+  "ddde69fe-2d77-4d1c-94b6-c3392ed2de3c": {
+    "id": "ddde69fe-2d77-4d1c-94b6-c3392ed2de3c",
+    "originalName": "lager_1.jpeg",
+    "category": "beer_pint",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/jpeg",
+    "size": 22086,
+    "createdAt": "2025-04-19T06:19:21.179Z",
+    "path": "/home/runner/workspace/public/images/drinks/beer_pint/ddde69fe-2d77-4d1c-94b6-c3392ed2de3c.jpeg",
+    "url": "/images/drinks/beer_pint/ddde69fe-2d77-4d1c-94b6-c3392ed2de3c.jpeg"
   }
 }

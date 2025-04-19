@@ -3,13 +3,28 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { checkConnection as checkCloudflareConnection } from "./services/cloudflare-images";
 import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve images from the public/images directory
-app.use('/images', express.static(path.join(process.cwd(), 'public/images')));
+// Explicitly serve images from the public/images directory
+const imagePath = path.join(process.cwd(), 'public/images');
+console.log('Serving static images from:', imagePath);
+app.use('/images', express.static(imagePath));
+
+// Also add a special route for debugging image existence
+app.get('/debug/images/:category/:id', (req, res) => {
+  const filePath = path.join(process.cwd(), 'public/images/drinks', req.params.category, req.params.id);
+  const exists = fs.existsSync(filePath);
+  
+  res.json({
+    requested: `/images/drinks/${req.params.category}/${req.params.id}`,
+    exists,
+    fullPath: filePath
+  });
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
