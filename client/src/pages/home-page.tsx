@@ -1142,6 +1142,28 @@ export default function HomePage() {
     // First, manually find and add the Happy Hours Nearby collection
     const happyHoursCollection = result.find(c => c.name === "Happy Hours Nearby");
     if (happyHoursCollection) {
+      // CRITICAL FIX: Ensure Happy Hours Nearby always has at least 25 deals
+      // For active_happy_hours, directly fetch fresh data if needed
+      if (happyHoursCollection.deals.length < 25) {
+        console.log(`FIXING ISSUE: Happy Hours Nearby only has ${happyHoursCollection.deals.length} deals, should have 25`);
+        
+        // Use a direct API call to get all active_happy_hours deals
+        fetch('/api/deals/collections/active_happy_hours')
+          .then(res => res.json())
+          .then(deals => {
+            console.log(`Received ${deals.length} deals from active_happy_hours collection API`);
+            
+            if (deals.length > 0) {
+              // Update the deals in this collection
+              happyHoursCollection.deals = deals;
+              console.log(`Updated Happy Hours Nearby with ${deals.length} deals`);
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching active_happy_hours deals:', err);
+          });
+      }
+      
       sortedResult.push(happyHoursCollection);
       
       // Then sort all other collections by priority

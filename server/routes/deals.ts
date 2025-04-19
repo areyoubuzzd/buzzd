@@ -274,18 +274,36 @@ router.get('/collections/:collectionName', async (req, res) => {
     
     console.log(`Collection deals API called for "${collectionName}" with location: lat=${lat}, lng=${lng}, radius=${radius}`);
     
-    // ABSOLUTELY CRITICAL FIX: For active_happy_hours collection, ALWAYS return all 25 deals
-    // regardless of distance constraints
-    const result = await db
-      .select({
-        deal: deals,
-        establishment: establishments
-      })
-      .from(deals)
-      .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
-      .where(sql`${deals.collections} LIKE ${'%' + collectionName + '%'}`);
+    // ABSOLUTELY CRITICAL FIX: Special handling for active_happy_hours collection
+    let result;
     
-    console.log(`Fetched ${result.length} deals from database for collection "${collectionName}"`);
+    if (collectionName === 'active_happy_hours') {
+      console.log('SPECIAL HANDLING: active_happy_hours collection - fetching ALL 25 deals regardless of distance');
+      
+      // For active_happy_hours, fetch ALL deals with this collection tag without filtering
+      result = await db
+        .select({
+          deal: deals,
+          establishment: establishments
+        })
+        .from(deals)
+        .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
+        .where(sql`${deals.collections} LIKE ${'%active_happy_hours%'}`);
+      
+      console.log(`Fetched ${result.length} deals from database for active_happy_hours`);
+    } else {
+      // For other collections, use the normal query with distance filtering
+      result = await db
+        .select({
+          deal: deals,
+          establishment: establishments
+        })
+        .from(deals)
+        .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
+        .where(sql`${deals.collections} LIKE ${'%' + collectionName + '%'}`);
+        
+      console.log(`Fetched ${result.length} deals from database for "${collectionName}"`);
+    }
     
     // Transform to DealWithEstablishment format - with distance calculation
     const dealsInCollection = result.map(item => {
