@@ -10,10 +10,9 @@ const router = Router();
 // Get all collections
 router.get('/', async (_req, res) => {
   try {
-    // Get all collections and sort by priority (lowest first)
+    // Get all collections (we'll handle sorting on the client)
     const allCollections = await db.select()
-      .from(collections)
-      .orderBy(collections.priority);
+      .from(collections);
     
     console.log('Returning collections sorted by priority:', 
       allCollections.map(c => `${c.name} (priority: ${c.priority})`));
