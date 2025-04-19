@@ -6,6 +6,8 @@ import { FaStar, FaWalking, FaClock } from 'react-icons/fa';
 import { calculateDistance, formatDistance, getCurrentPosition, DEFAULT_POSITION } from '@/lib/distance-utils';
 import { motion } from 'framer-motion';
 import { isValidDay, shortDaysOfWeek, shortDaysOfWeekLowercase } from '@/lib/time-utils';
+import { RestaurantHeatMap } from './restaurant-heat-map';
+import { DealCountdown } from '../deals/deal-countdown';
 
 interface Deal {
   valid_days: string;
@@ -411,13 +413,16 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
                     </span>
                   </div>
                   
-                  {/* Time display - aligned to the right */}
+                  {/* Time display with countdown if active */}
                   {isActive && endTime && (
                     <div className="flex items-center">
-                      <FaClock className="h-2 w-2 text-green-600 mr-1" />
-                      <span className="text-xs text-green-600">
-                        Ends: {endTime}
-                      </span>
+                      {isActive && (
+                        <DealCountdown 
+                          endTime={endTime} 
+                          isActive={true}
+                          variant="compact"
+                        />
+                      )}
                     </div>
                   )}
                   {!isActive && startTime && hasHappyHourToday && (
@@ -429,6 +434,22 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
                     </div>
                   )}
                 </motion.div>
+                
+                {/* Heat Map */}
+                {activeDeals && activeDeals.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-2"
+                  >
+                    <RestaurantHeatMap 
+                      deals={activeDeals}
+                      size="md"
+                      showLabel={true}
+                    />
+                  </motion.div>
+                )}
               </div>
               
               {/* Rating and distance on same line */}

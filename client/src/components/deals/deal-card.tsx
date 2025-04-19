@@ -3,6 +3,8 @@ import { Clock, Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { heroes, getHeroImage } from "@/assets/heroes";
 import { useLocation } from "wouter";
+import { DealCountdown } from "./deal-countdown";
+import { RestaurantHeatMap } from "../restaurants/restaurant-heat-map";
 
 // Create a safe fallback SVG as data URI - guaranteed to work in all browsers
 // even if imports and Cloudinary fail completely
@@ -633,16 +635,38 @@ function DealCard({
               {dealName}
             </h3>
             
+            {/* Heat Map showing popularity */}
+            {deal.establishment && (
+              <div className="w-full mt-1 mb-0.5">
+                <RestaurantHeatMap 
+                  deals={deal.establishment.activeDeals || []}
+                  size="sm"
+                  showLabel={false}
+                />
+              </div>
+            )}
+            
             {/* Time and establishment */}
-            <div className="flex items-center gap-1 text-white/90 text-xs mt-1">
-              <Clock size={12} className="text-white/80" />
-              <span>{formattedTimeRange}</span>
-              {distance && (
-                <>
-                  <span className="px-1">•</span>
-                  <MapPin size={12} className="text-white/80" />
-                  <span>{distance}</span>
-                </>
+            <div className="flex items-center justify-between w-full text-white/90 text-xs mt-1">
+              <div className="flex items-center gap-1">
+                <Clock size={12} className="text-white/80" />
+                <span>{formattedTimeRange}</span>
+                {distance && (
+                  <>
+                    <span className="px-1">•</span>
+                    <MapPin size={12} className="text-white/80" />
+                    <span>{distance}</span>
+                  </>
+                )}
+              </div>
+              
+              {/* Countdown Timer - if deal is active */}
+              {deal.isActive && deal.hh_end_time && (
+                <DealCountdown 
+                  endTime={deal.hh_end_time}
+                  isActive={deal.isActive}
+                  variant="compact"
+                />
               )}
             </div>
           </div>
