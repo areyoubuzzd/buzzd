@@ -396,52 +396,39 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
               
               {/* Status badges */}
               <div className="mt-1.5 mb-2">
-                {/* Active/Inactive status */}
+                {/* Status and time on same line */}
                 <motion.div 
-                  className="flex items-center"
+                  className="flex items-center justify-between"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <div className={`w-2 h-2 rounded-full mr-1.5 ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-                  <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </motion.div>
-                
-                {/* Time display */}
-                {isActive && endTime && (
-                  <motion.div 
-                    className="flex mt-0.5"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.25 }}
-                  >
-                    <div className="w-2 mr-1.5"></div>
+                  {/* Active/Inactive status */}
+                  <div className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full mr-1.5 ${isActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+                    <span className={`text-xs ${isActive ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  
+                  {/* Time display - aligned to the right */}
+                  {isActive && endTime && (
                     <div className="flex items-center">
                       <FaClock className="h-2 w-2 text-green-600 mr-1" />
                       <span className="text-xs text-green-600">
                         Ends: {endTime}
                       </span>
                     </div>
-                  </motion.div>
-                )}
-                {!isActive && startTime && hasHappyHourToday && (
-                  <motion.div 
-                    className="flex mt-0.5"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.25 }}
-                  >
-                    <div className="w-2 mr-1.5"></div>
+                  )}
+                  {!isActive && startTime && hasHappyHourToday && (
                     <div className="flex items-center">
                       <FaClock className="h-2 w-2 text-yellow-600 mr-1" />
                       <span className="text-xs text-yellow-600">
                         Starts: {startTime}
                       </span>
                     </div>
-                  </motion.div>
-                )}
+                  )}
+                </motion.div>
               </div>
               
               {/* Rating and distance on same line */}
@@ -499,24 +486,18 @@ export function RestaurantCardSkeleton() {
             transition={{ delay: 0.1 }}
           />
           
-          {/* Active status */}
+          {/* Active status and time */}
           <div className="mt-1.5 mb-2">
             <motion.div 
-              className="flex items-center"
+              className="flex items-center justify-between"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse mr-1.5"></div>
-              <div className="h-4 bg-gray-200 animate-pulse w-16 rounded-md"></div>
-            </motion.div>
-            <motion.div 
-              className="flex mt-0.5"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              <div className="w-2 mr-1.5"></div>
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-gray-200 animate-pulse mr-1.5"></div>
+                <div className="h-4 bg-gray-200 animate-pulse w-16 rounded-md"></div>
+              </div>
               <div className="flex items-center">
                 <div className="h-2 w-2 bg-gray-200 animate-pulse rounded-full mr-1"></div>
                 <div className="h-4 bg-gray-200 animate-pulse w-20 rounded-md"></div>

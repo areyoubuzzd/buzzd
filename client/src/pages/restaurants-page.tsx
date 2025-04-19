@@ -411,18 +411,7 @@ export default function RestaurantsPage() {
                   />
                 </div>
               </Link>
-              <motion.h1
-                className="ml-4 text-3xl font-bold text-[#F4F4F9]"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 15
-                }}
-              >
-                Restaurants
-              </motion.h1>
+
             </div>
 
             {/* Search bar */}
