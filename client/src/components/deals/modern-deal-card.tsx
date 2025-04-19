@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Clock, Heart } from "lucide-react";
+import { LocalImage } from "@/components/LocalImage";
 
 export interface ModernDealCardProps {
   id: number;
@@ -100,14 +101,30 @@ export function ModernDealCard({
                 className="h-full max-h-24 object-contain" 
                 onError={(e) => {
                   console.error(`Failed to load hero image: ${heroImageUrl}`);
-                  e.currentTarget.style.display = 'none';
+                  // Try LocalImage as a fallback
+                  const imgContainer = e.currentTarget.parentElement;
+                  if (imgContainer) {
+                    // Create a container for the LocalImage
+                    const localImgContainer = document.createElement('div');
+                    localImgContainer.className = 'h-full w-full flex items-center justify-center';
+                    imgContainer.appendChild(localImgContainer);
+                    
+                    // Hide the failed image
+                    e.currentTarget.style.display = 'none';
+                  }
                 }}
               />
             ) : (
-              // Placeholder with category name when no image
-              <div className="text-white text-opacity-70 text-lg">
-                {category}
-              </div>
+              // Placeholder with LocalImage
+              <LocalImage
+                imageId={null}
+                category={category.toLowerCase()}
+                alt={dealType} 
+                drinkName={dealType}
+                width={100}
+                height={100}
+                className="h-full max-h-24 object-contain"
+              />
             )}
           </div>
         </div>

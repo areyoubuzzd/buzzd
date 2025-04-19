@@ -205,14 +205,16 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
             <div className="relative h-full">
               {/* Deal image from local storage */}
               {deal.imageId ? (
-                <LocalImage
-                  imageId={deal.imageId}
-                  alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
-                  category={deal.alcohol_category || 'beer'}
-                  drinkName={deal.drink_name}
-                  className="w-full h-full object-cover"
-                  fallbackColor="#d6cfc7"
-                />
+                <div className="w-full h-full">
+                  <LocalImage
+                    imageId={deal.imageId}
+                    alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
+                    category={deal.alcohol_category?.toLowerCase() || 'beer'}
+                    drinkName={deal.drink_name}
+                    className="w-full h-full object-cover"
+                    fallbackColor="#d6cfc7"
+                  />
+                </div>
               ) : (
                 <img 
                   src={createFallbackSvg(deal.alcohol_category || 'beer')}

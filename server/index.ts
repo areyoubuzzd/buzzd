@@ -169,6 +169,15 @@ app.use((req, res, next) => {
     next();
   }, (await import('./routes/cloudflare-images')).default);
   
+  // Register local images routes
+  app.use('/', (req, res, next) => {
+    // Don't set Content-Type for file uploads
+    if (!req.url.includes('/upload')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
+    next();
+  }, (await import('./routes/local-images')).default);
+  
   // Register rest of the routes
   const server = await registerRoutes(app);
 

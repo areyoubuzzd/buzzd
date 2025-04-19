@@ -1,251 +1,256 @@
-import React, { useState } from 'react';
-import { LocalImage, LocalImageUploader } from '@/components/LocalImage';
-import { DrinkCategory, getDrinkCategoryColor } from '@/lib/image-category-utils';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, Info } from 'lucide-react';
-import { Link } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { LocalImage, LocalImageUploader } from '@/components/LocalImage';
+import { DrinkCategory } from '@/lib/image-category-utils';
 
-export default function LocalImageTestPage() {
-  const [activeTab, setActiveTab] = useState('upload');
-  const [uploadedImageId, setUploadedImageId] = useState<string | null>(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>(DrinkCategory.BEER_PINT);
-  const [drinkName, setDrinkName] = useState<string>('');
+export default function LocalImageTest() {
+  const [uploadedImages, setUploadedImages] = useState<{category: string, imageId: string, url: string}[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('beer_pint');
+  const [testImages, setTestImages] = useState<{ [key: string]: string[] }>({});
   
-  // Simple array of common drink categories for testing
-  const commonCategories = [
-    // Beer categories
-    { id: DrinkCategory.BEER_PINT, name: 'Beer (Pint)' },
-    { id: DrinkCategory.BEER_BUCKET, name: 'Beer Bucket' },
-    { id: DrinkCategory.BEER_TOWER, name: 'Beer Tower' },
-    { id: DrinkCategory.BEER_BOTTLE, name: 'Beer Bottle' },
+  // Load test images when component mounts
+  useEffect(() => {
+    async function loadTestImages() {
+      try {
+        const response = await fetch('/api/local-images/all');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setTestImages(data.images || {});
+          }
+        }
+      } catch (error) {
+        console.error('Error loading test images:', error);
+      }
+    }
     
-    // Wine categories
-    { id: DrinkCategory.WINE_RED, name: 'Red Wine' },
-    { id: DrinkCategory.WINE_WHITE, name: 'White Wine' },
-    { id: DrinkCategory.WINE_ROSE, name: 'Rosé Wine' },
-    { id: DrinkCategory.WINE_SPARKLING, name: 'Sparkling Wine' },
-    
-    // Cocktail categories
-    { id: DrinkCategory.COCKTAIL_MARGARITA, name: 'Margarita' },
-    { id: DrinkCategory.COCKTAIL_MOJITO, name: 'Mojito' },
-    { id: DrinkCategory.COCKTAIL_MARTINI, name: 'Martini' },
-    { id: DrinkCategory.COCKTAIL_NEGRONI, name: 'Negroni' },
-    
-    // Spirit categories
-    { id: DrinkCategory.SPIRIT_WHISKY, name: 'Whisky' },
-    { id: DrinkCategory.SPIRIT_VODKA, name: 'Vodka' },
-    { id: DrinkCategory.SPIRIT_RUM, name: 'Rum' },
-    { id: DrinkCategory.SPIRIT_GIN, name: 'Gin' },
-    
-    // Food and other categories
-    { id: DrinkCategory.FOOD, name: 'Food' },
-    { id: DrinkCategory.DESSERT, name: 'Dessert' },
-  ];
+    loadTestImages();
+  }, []);
   
-  // Handle image upload completion
+  // Handle when an image is uploaded
   const handleUploadComplete = (imageId: string, url: string) => {
-    console.log('Upload complete:', { imageId, url });
-    setUploadedImageId(imageId);
-    setUploadedImageUrl(url);
+    console.log("Upload complete:", {imageId, url});
+    setUploadedImages(prev => [
+      ...prev, 
+      {category: selectedCategory, imageId, url}
+    ]);
     
-    // Switch to display tab after successful upload
-    setActiveTab('display');
+    // Refresh image list
+    fetch('/api/local-images/all').then(async response => {
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setTestImages(data.images || {});
+        }
+      }
+    }).catch(error => {
+      console.error('Error refreshing test images:', error);
+    });
   };
   
+  // Get categories from DrinkCategory enum
+  const categories = Object.values(DrinkCategory);
+  
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-6">
-        <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
-        </Link>
-      </div>
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Local Image Test</h1>
       
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Local Image Storage Tester</h1>
-        <p className="text-gray-600 mb-4">
-          Test uploading and displaying images using the local image storage service.
-          Images are stored at 300x300 size for efficiency.
-        </p>
-        
-        <Alert className="bg-blue-50 border-blue-200">
-          <Info className="h-4 w-4" />
-          <AlertTitle>About Local Image Storage</AlertTitle>
-          <AlertDescription>
-            This implementation stores images directly on the server for reliability.
-            All images are automatically optimized and resized to 300x300 pixels.
-          </AlertDescription>
-        </Alert>
-      </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList className="grid w-full grid-cols-2 mb-8">
+      <Tabs defaultValue="upload">
+        <TabsList className="mb-4">
           <TabsTrigger value="upload">Upload Images</TabsTrigger>
-          <TabsTrigger value="display">Display Test</TabsTrigger>
+          <TabsTrigger value="test">Test Images</TabsTrigger>
+          <TabsTrigger value="view-all">View All Images</TabsTrigger>
         </TabsList>
         
         {/* Upload Tab */}
-        <TabsContent value="upload" className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-bold mb-4">Upload a New Image</h2>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1" htmlFor="category">
-                Select Category
-              </label>
-              <select
-                id="category"
-                className="w-full p-2 border rounded-md"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                {commonCategories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1" htmlFor="drinkName">
-                Drink Name (Optional)
-              </label>
-              <input
-                id="drinkName"
-                type="text"
-                className="w-full p-2 border rounded-md"
-                value={drinkName}
-                onChange={(e) => setDrinkName(e.target.value)}
-                placeholder="e.g., Heineken Pint, House Red Wine"
-              />
-            </div>
-            
-            <div className="mt-6">
-              <LocalImageUploader
-                onUploadComplete={handleUploadComplete}
-                category={selectedCategory}
-                drinkName={drinkName || undefined}
-              />
-            </div>
-            
-            {uploadedImageId && (
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-green-800 font-medium">Image uploaded successfully!</p>
-                <p className="text-sm text-green-700 mt-1">Image ID: {uploadedImageId}</p>
-                <Button 
-                  variant="link" 
-                  className="p-0 h-auto text-sm text-blue-600" 
-                  onClick={() => setActiveTab('display')}
-                >
-                  Switch to Display tab to view your image
-                </Button>
+        <TabsContent value="upload">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload New Image</CardTitle>
+              <CardDescription>
+                Upload a new image for testing the LocalImage component
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Select Category</label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category} value={category}>
+                          {category.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <LocalImageUploader 
+                    category={selectedCategory}
+                    onUploadComplete={handleUploadComplete}
+                  />
+                </div>
               </div>
-            )}
+            </CardContent>
           </Card>
           
-          <Card className="p-6">
-            <h2 className="text-xl font-bold mb-4">How It Works</h2>
-            <p className="text-gray-700 mb-4">
-              This page demonstrates our local image storage solution with:
-            </p>
-            
-            <ul className="list-disc pl-5 mb-4 space-y-2 text-gray-700">
-              <li>
-                <strong>Automatic Optimization:</strong> All images are resized to 300x300 pixels and compressed
-              </li>
-              <li>
-                <strong>Category Organization:</strong> Images are organized by drink category
-              </li>
-              <li>
-                <strong>Fallback Display:</strong> When images fail to load, a colored placeholder is shown
-              </li>
-              <li>
-                <strong>Metadata Storage:</strong> Drink names and categories are saved with each image
-              </li>
-            </ul>
-            
-            <p className="text-gray-700">
-              The local storage solution is much simpler than Cloudflare Images and more reliable for our needs.
-            </p>
+          {/* Recently Uploaded Images */}
+          {uploadedImages.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">Recently Uploaded Images</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {uploadedImages.map((image, index) => (
+                  <Card key={`uploaded-${index}`}>
+                    <CardContent className="pt-4">
+                      <div className="w-full aspect-square rounded-md overflow-hidden">
+                        <LocalImage 
+                          imageId={image.imageId}
+                          alt={`Uploaded image ${index + 1}`}
+                          category={image.category}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-sm font-medium">{image.category.replace(/_/g, ' ')}</p>
+                        <p className="text-xs text-gray-500 break-all mt-1">{image.imageId}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+        
+        {/* Test Tab */}
+        <TabsContent value="test">
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Images by Category</CardTitle>
+              <CardDescription>
+                Select a category to test images
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Select Category</label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category} value={category}>
+                          {category.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  {/* Test with a known image ID */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">LocalImage Component</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="w-full aspect-square rounded-md overflow-hidden">
+                        <LocalImage 
+                          imageId={null}
+                          category={selectedCategory}
+                          alt="Test Local Image"
+                          drinkName={selectedCategory.replace(/_/g, ' ')}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Random image from this category using the utility function */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Random Category Placeholder</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="w-full aspect-square rounded-md overflow-hidden">
+                        <LocalImage 
+                          imageId={null}
+                          category={selectedCategory}
+                          alt="Random Category Placeholder"
+                          drinkName={selectedCategory.replace(/_/g, ' ')}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
         
-        {/* Display Tab */}
-        <TabsContent value="display" className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-bold mb-4">Your Uploaded Image</h2>
-            
-            {uploadedImageId ? (
-              <div className="flex flex-col items-center">
-                <div className="mb-4">
-                  <LocalImage 
-                    imageId={uploadedImageId}
-                    alt={drinkName || 'Uploaded drink'} 
-                    className="w-[300px] h-[300px] rounded-md border"
-                    category={selectedCategory}
-                    drinkName={drinkName}
-                  />
+        {/* View All Images Tab */}
+        <TabsContent value="view-all">
+          <Card>
+            <CardHeader>
+              <CardTitle>All Uploaded Images</CardTitle>
+              <CardDescription>
+                Browse all images by category
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {Object.keys(testImages).length === 0 ? (
+                <p>No images uploaded yet.</p>
+              ) : (
+                <div className="space-y-8">
+                  {Object.entries(testImages).map(([category, imageIds]) => (
+                    <div key={category}>
+                      <h3 className="text-lg font-semibold mb-3 capitalize">{category.replace(/_/g, ' ')}</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {imageIds.map((imageId) => (
+                          <div key={imageId} className="flex flex-col">
+                            <div className="w-full aspect-square rounded-md overflow-hidden">
+                              <LocalImage 
+                                imageId={imageId}
+                                category={category}
+                                alt={`${category} image`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 break-all">{imageId}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                
-                <div className="text-sm text-gray-700 mt-2">
-                  <p><strong>Image ID:</strong> {uploadedImageId}</p>
-                  <p><strong>Category:</strong> {selectedCategory}</p>
-                  {drinkName && <p><strong>Drink Name:</strong> {drinkName}</p>}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>No image uploaded yet. Go to the Upload tab to add an image.</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4" 
-                  onClick={() => setActiveTab('upload')}
-                >
-                  Upload an Image
-                </Button>
-              </div>
-            )}
-          </Card>
-          
-          <Card className="p-6">
-            <h2 className="text-xl font-bold mb-4">Fallback Display Test</h2>
-            <p className="text-gray-700 mb-4">
-              The examples below show how missing images are handled with colored fallbacks:
-            </p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-              {commonCategories.slice(0, 8).map((category) => (
-                <div key={category.id} className="flex flex-col items-center">
-                  <LocalImage 
-                    imageId={null} 
-                    alt={category.name}
-                    className="w-[150px] h-[150px] rounded-md"
-                    category={category.id}
-                    drinkName={category.name}
-                    fallbackColor={getDrinkCategoryColor(category.id)}
-                  />
-                  <p className="text-sm text-gray-600 mt-2">{category.name}</p>
-                </div>
-              ))}
-            </div>
+              )}
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-      
-      <Separator className="my-8" />
-      
-      <div className="text-center text-sm text-gray-500">
-        <p>Images are stored at 300x300 pixels for optimal performance and efficiency.</p>
-        <p className="mt-1">
-          The colored fallbacks are shown when images are not available or fail to load.
-        </p>
-      </div>
     </div>
   );
 }

@@ -1,178 +1,142 @@
-/**
- * Routes for local image uploads
- * A simpler alternative to Cloudflare Images
- */
-
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import multer from 'multer';
-import fs from 'fs';
 import path from 'path';
-import { saveImage, getImageUrl, getRandomImagesForCategory } from '../services/local-images';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
-// Configure storage for multer
+// Set up storage for uploaded files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'server', 'uploads');
+    const category = req.body.category || 'general';
+    const dirPath = path.join(process.cwd(), 'public/images/drinks', category.toLowerCase());
     
     // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
     }
     
-    cb(null, uploadDir);
+    cb(null, dirPath);
   },
   filename: (req, file, cb) => {
-    // Create a unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const fileExtension = path.extname(file.originalname) || '.jpg';
+    // Generate a unique ID for this image
+    const imageId = uuidv4();
     
-    cb(null, uniqueSuffix + fileExtension);
+    // Get the file extension
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpeg';
+    
+    // Create filename: uuid + original extension
+    cb(null, `${imageId}${ext}`);
   }
 });
 
-// Create the multer instance
+// Set up the multer middleware
 const upload = multer({ 
-  storage,
+  storage, 
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024, // 5MB max file size
   },
   fileFilter: (req, file, cb) => {
-    // Accept specific image types
-    const allowedMimeTypes = [
-      'image/jpeg', 
-      'image/png',
-      'image/webp',
-    ];
-    
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    // Only accept images
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error(`File type '${file.mimetype}' is not supported. Supported formats: JPG, PNG, WebP`));
+      cb(new Error('Only image files are allowed!'));
     }
   }
 });
 
-/**
- * Upload an image
- * 
- * POST /api/local/upload
- * 
- * Accepts multipart form data with:
- * - file: The image file
- * - category: Optional category for the image
- * - drinkName: Optional drink name
- * - type: Optional type (drink, establishment, etc.)
- * 
- * Returns the image metadata with URL
- */
-router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
+// Helper to safely parse a category name
+function safeCategory(category: string): string {
+  return category.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+}
+
+// Router endpoint for image upload
+router.post('/api/local-images/upload', upload.single('file'), (req, res) => {
   try {
-    const file = req.file;
-    
-    if (!file) {
-      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No file uploaded' 
+      });
     }
     
-    // Extract metadata from request
-    const category = req.body.category || 'general';
-    const drinkName = req.body.drinkName;
+    // Get metadata from request
+    const category = safeCategory(req.body.category || 'general');
     
-    // Save the image and get metadata (includes URL)
-    const imageMetadata = await saveImage(file.path, {
-      category,
-      drinkName,
-      originalName: file.originalname,
-      mimeType: file.mimetype
-    });
+    // Extract the image ID from the filename (remove extension)
+    const imageId = path.basename(req.file.filename, path.extname(req.file.filename));
     
-    // Remove temporary file
-    fs.unlink(file.path, (err) => {
-      if (err) console.error('Error deleting temp file:', err);
-    });
+    // Create the URL to access this image
+    const fileExtension = path.extname(req.file.filename);
+    const url = `/direct-image/${category}/${imageId}${fileExtension}`;
     
-    // Return image metadata with success status
-    return res.status(200).json({
+    // Return success response with image details
+    res.json({
       success: true,
       result: {
-        id: imageMetadata.id,
-        url: imageMetadata.url,
-        metadata: {
-          category,
-          drinkName,
-        }
+        id: imageId,
+        url,
+        category,
+        path: req.file.path,
+        size: req.file.size,
       }
     });
-    
   } catch (error) {
     console.error('Error uploading image:', error);
-    return res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Internal server error' 
     });
   }
 });
 
-/**
- * Get image information
- * 
- * GET /api/local/images/:id
- * 
- * Returns information about the image
- */
-router.get('/images/:id', (req: Request, res: Response) => {
-  const imageId = req.params.id;
-  
-  // Get image URL (also verifies image exists)
-  const imageUrl = getImageUrl(imageId);
-  
-  if (!imageUrl) {
-    return res.status(404).json({
-      success: false,
-      error: 'Image not found'
+// Router endpoint to list all images by category
+router.get('/api/local-images/all', (req, res) => {
+  try {
+    const baseDir = path.join(process.cwd(), 'public/images/drinks');
+    
+    // Make sure the directory exists
+    if (!fs.existsSync(baseDir)) {
+      fs.mkdirSync(baseDir, { recursive: true });
+    }
+    
+    // Get all directories (categories)
+    const categories = fs.readdirSync(baseDir).filter(item => {
+      const itemPath = path.join(baseDir, item);
+      return fs.statSync(itemPath).isDirectory();
+    });
+    
+    // Build a map of category -> image IDs
+    const imageMap: Record<string, string[]> = {};
+    
+    categories.forEach(category => {
+      const categoryDir = path.join(baseDir, category);
+      const files = fs.readdirSync(categoryDir).filter(file => {
+        const filePath = path.join(categoryDir, file);
+        return fs.statSync(filePath).isFile() && 
+               ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(path.extname(file).toLowerCase());
+      });
+      
+      // Extract just the image IDs without extensions
+      imageMap[category] = files.map(file => {
+        const ext = path.extname(file);
+        return path.basename(file, ext);
+      });
+    });
+    
+    res.json({
+      success: true,
+      images: imageMap
+    });
+  } catch (error) {
+    console.error('Error listing images:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Internal server error' 
     });
   }
-  
-  return res.json({
-    success: true,
-    result: {
-      id: imageId,
-      url: imageUrl
-    }
-  });
-});
-
-/**
- * Get random image for a category
- * 
- * GET /api/local/random/:category
- * 
- * Returns a random image from the specified category
- */
-router.get('/random/:category', (req: Request, res: Response) => {
-  const category = req.params.category;
-  
-  // Get random image ID for the category
-  const imageIds = getRandomImagesForCategory(category, 1);
-  
-  if (imageIds.length === 0) {
-    return res.status(404).json({
-      success: false,
-      error: `No images found for category "${category}"`
-    });
-  }
-  
-  const imageId = imageIds[0];
-  const imageUrl = getImageUrl(imageId);
-  
-  return res.json({
-    success: true,
-    result: {
-      id: imageId,
-      url: imageUrl
-    }
-  });
 });
 
 export default router;
