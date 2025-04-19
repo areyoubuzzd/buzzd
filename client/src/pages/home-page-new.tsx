@@ -258,7 +258,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-36">
+    <div className="flex flex-col min-h-screen pb-36 bg-[#232946]">
       <Header />
       
       {/* Use the LocationHeader component for consistency across pages */}

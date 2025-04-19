@@ -395,7 +395,7 @@ export default function RestaurantsPage() {
   }, [filteredEstablishments, userPosition]);
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 bg-[#232946]">
       <div className="bg-primary text-white px-4 sticky top-0 z-10">
         <div className="flex justify-between items-center h-18"> {/* Fixed height of h-18 (4.5rem) */}
           <motion.h1
