@@ -12,36 +12,36 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#232946] border-t border-[#3a4174] shadow-lg z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#FFC300] border-t border-[#e8b100] shadow-lg z-50">
       <div className="flex justify-around items-center h-16">
         <Link href="/">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/") ? "text-[#2EC4B6]" : "text-[#F4F4F9]"}`}>
-            <IoFlash className="h-6 w-6" />
-            <span className="text-xs mt-1">Home</span>
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
+            <IoFlash className={`h-6 w-6 ${isActive("/") ? "transform scale-110" : ""}`} />
+            <span className={`text-xs mt-1 ${isActive("/") ? "font-bold" : ""}`}>Home</span>
           </div>
         </Link>
         <Link href="/restaurants">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/restaurants") ? "text-[#2EC4B6]" : "text-[#F4F4F9]"}`}>
-            <FaBuilding className="h-6 w-6" />
-            <span className="text-xs mt-1">Restaurants</span>
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/restaurants") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
+            <FaBuilding className={`h-6 w-6 ${isActive("/restaurants") ? "transform scale-110" : ""}`} />
+            <span className={`text-xs mt-1 ${isActive("/restaurants") ? "font-bold" : ""}`}>Restaurants</span>
           </div>
         </Link>
         <Link href="/beer">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/beer") ? "text-[#2EC4B6]" : "text-[#F4F4F9]"}`}>
-            <GiBeerStein className="h-6 w-6" />
-            <span className="text-xs mt-1">Beer</span>
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/beer") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
+            <GiBeerStein className={`h-6 w-6 ${isActive("/beer") ? "transform scale-110" : ""}`} />
+            <span className={`text-xs mt-1 ${isActive("/beer") ? "font-bold" : ""}`}>Beer</span>
           </div>
         </Link>
         <Link href="/wine-spirits">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/wine-spirits") ? "text-[#2EC4B6]" : "text-[#F4F4F9]"}`}>
-            <IoWineSharp className="h-6 w-6" />
-            <span className="text-xs mt-1">Wine / Spirits</span>
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/wine-spirits") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
+            <IoWineSharp className={`h-6 w-6 ${isActive("/wine-spirits") ? "transform scale-110" : ""}`} />
+            <span className={`text-xs mt-1 ${isActive("/wine-spirits") ? "font-bold" : ""}`}>Wine / Spirits</span>
           </div>
         </Link>
         <Link href="/profile">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/profile") ? "text-[#2EC4B6]" : "text-[#F4F4F9]"}`}>
-            <FiUser className="h-6 w-6" />
-            <span className="text-xs mt-1">Profile</span>
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/profile") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
+            <FiUser className={`h-6 w-6 ${isActive("/profile") ? "transform scale-110" : ""}`} />
+            <span className={`text-xs mt-1 ${isActive("/profile") ? "font-bold" : ""}`}>Profile</span>
           </div>
         </Link>
       </div>

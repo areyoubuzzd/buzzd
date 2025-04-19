@@ -264,16 +264,7 @@ export default function HomePage() {
       {/* Use the LocationHeader component for consistency across pages */}
       <LocationHeader onOpenFilters={handleOpenFilters} />
       
-      {/* Total Deals Count */}
-      <div className="bg-[#FFC300] px-4 border-b border-gray-200">
-        <div className="container mx-auto">
-          <div className="text-sm text-[#F4F4F9] h-12 flex items-center">
-            <span className="mr-1">Found</span>
-            <span className="font-semibold">{totalDealsFound}</span>
-            <span className="ml-1">drink deals near you</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Collections Section */}
       {collections.length > 0 ? (
