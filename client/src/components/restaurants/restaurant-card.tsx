@@ -376,7 +376,7 @@ export function RestaurantCard({ establishment }: RestaurantCardProps) {
       >
         <Card className="overflow-hidden cursor-pointer h-full flex flex-col rounded-xl scale-90 transform origin-top-left">
           <motion.div 
-            className="aspect-square bg-cover bg-center w-full"
+            className="aspect-[4/3] bg-cover bg-center w-full"
             style={{ backgroundImage: `url(${imageUrlToUse})` }}
             whileHover={{ 
               scale: 1.05,
@@ -489,7 +489,7 @@ export function RestaurantCardSkeleton() {
       }}
     >
       <Card className="overflow-hidden h-full flex flex-col rounded-xl scale-90 transform origin-top-left">
-        <div className="aspect-square bg-gray-200 animate-pulse w-full" />
+        <div className="aspect-[4/3] bg-gray-200 animate-pulse w-full" />
         <CardContent className="p-3 flex-grow">
           {/* Restaurant name */}
           <motion.div 
