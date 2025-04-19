@@ -24,7 +24,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#f8f7f5] shadow-md">
+    <header className="sticky top-0 z-50 bg-[#FFC300] shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-18"> {/* Fixed height to match restaurant page */}
           <div className="flex items-center">
@@ -42,10 +42,9 @@ export default function Header() {
             {/* For demo purposes, use a guest user */}
             <Button 
               variant="ghost" 
-              className="flex items-center"
+              className="flex items-center text-[#F4F4F9]"
               style={{ 
-                color: '#191632', 
-                border: '1px solid #19163230'
+                border: '1px solid rgba(244, 244, 249, 0.3)'
               }}
             >
               <span className="text-sm mr-1">Hi Guest</span>

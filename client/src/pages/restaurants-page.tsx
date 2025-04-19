@@ -396,7 +396,7 @@ export default function RestaurantsPage() {
 
   return (
     <div className="pb-20 bg-[#232946]">
-      <div className="bg-primary text-white px-4 sticky top-0 z-10">
+      <div className="bg-[#FFC300] text-[#F4F4F9] px-4 sticky top-0 z-10">
         <div className="flex justify-between items-center h-18"> {/* Fixed height of h-18 (4.5rem) */}
           <motion.h1
             className="text-2xl font-bold"
@@ -429,7 +429,7 @@ export default function RestaurantsPage() {
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             </motion.div>
             <Input
-              className="bg-white/10 border-0 focus-visible:ring-1 text-white pl-8 h-8 text-sm"
+              className="bg-white/10 border-0 focus-visible:ring-1 text-[#F4F4F9] pl-8 h-8 text-sm"
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
