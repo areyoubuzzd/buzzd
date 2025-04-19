@@ -383,7 +383,9 @@ export default function ImageUploadTest() {
                   {Array.from({ length: 5 }).map((_, idx) => {
                     // Check if we have real uploaded images for this category
                     const categoryImages = getCategoryImages(testCategory);
+                    console.log(`Images for category ${testCategory}:`, categoryImages);
                     const realImageId = categoryImages[idx];
+                    console.log(`Image ID for variant ${idx+1}:`, realImageId);
                     
                     return (
                       <div key={idx} className="flex flex-col items-center">
