@@ -7,6 +7,8 @@ import { LocationHeader } from "@/components/location/location-header";
 // Import location components with correct paths and export types
 import LocationBar from "@/components/layout/location-bar";
 import { LocationAutocomplete } from "@/components/location/location-autocomplete";
+// Import our improved deal sorting function
+import { sortDealsByActiveStatus } from "@/lib/collection-utils";
 // Removed import for DealsList which was using dummy data
 
 // Helper function to calculate string similarity between two strings
@@ -359,66 +361,21 @@ export default function HomePage() {
     
     // CRITICAL FIX: Enhanced sort deals function that GUARANTEES active deals come first
     const sortDeals = (deals: (Deal & { isActive: boolean; distance: number })[]) => {
-      // This is a CRITICAL fix - our sort function was possibly being overridden
-      // We need to force active deals to ALWAYS appear first, no exceptions
+      // First ensure all deals have up-to-date isActive flag
+      const dealsWithCurrentActiveStatus = deals.map(deal => ({
+        ...deal,
+        // Force recalculation of active status to ensure it's accurate
+        isActive: isDealActiveNow(deal)
+      }));
       
-      // Force pre-check all deals and track which ones are active right now
-      const activeStatusMap = new Map<number, boolean>();
+      // Print debug info
+      const activeDeals = dealsWithCurrentActiveStatus.filter(d => d.isActive);
+      const inactiveDeals = dealsWithCurrentActiveStatus.filter(d => !d.isActive);
+      console.log(`Sorting ${deals.length} deals: ${activeDeals.length} active, ${inactiveDeals.length} inactive`);
       
-      // Collect IDs of active and inactive establishments for debugging
-      const activeEstablishmentIds: number[] = [];
-      const inactiveEstablishmentIds: number[] = [];
-      
-      deals.forEach(deal => {
-        const realTimeActive = isDealActiveNow(deal);
-        activeStatusMap.set(deal.id, realTimeActive);
-        
-        // Track which establishments are active vs inactive for debugging
-        if (realTimeActive) {
-          if (!activeEstablishmentIds.includes(deal.establishmentId)) {
-            activeEstablishmentIds.push(deal.establishmentId);
-          }
-        } else {
-          if (!inactiveEstablishmentIds.includes(deal.establishmentId)) {
-            inactiveEstablishmentIds.push(deal.establishmentId);
-          }
-        }
-      });
-      
-      // Print debug info about active/inactive establishments
-      console.log(`ACTIVE ESTABLISHMENTS: ${activeEstablishmentIds.join(', ')}`);
-      console.log(`INACTIVE ESTABLISHMENTS: ${inactiveEstablishmentIds.join(', ')}`);
-      console.log(`Sorting ${deals.length} deals - ${activeStatusMap.size} checked for active status`);
-      
-      // Split the deals into active and inactive groups
-      const activeDeals = deals.filter(d => activeStatusMap.get(d.id) === true);
-      const inactiveDeals = deals.filter(d => activeStatusMap.get(d.id) !== true);
-      
-      console.log(`Split into ${activeDeals.length} active deals and ${inactiveDeals.length} inactive deals`);
-      
-      // Sort active deals by distance, then price
-      const sortedActiveDeals = [...activeDeals].sort((a, b) => {
-        // First by distance
-        if (a.distance !== b.distance) {
-          return a.distance - b.distance;
-        }
-        // Then by price
-        return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
-      });
-      
-      // Sort inactive deals by distance, then price
-      const sortedInactiveDeals = [...inactiveDeals].sort((a, b) => {
-        // First by distance
-        if (a.distance !== b.distance) {
-          return a.distance - b.distance;
-        }
-        // Then by price
-        return (a.happy_hour_price || 999) - (b.happy_hour_price || 999);
-      });
-      
-      // ALWAYS prioritize all active deals before ANY inactive deals
-      // This ensures active deals always appear first, no matter what
-      return [...sortedActiveDeals, ...sortedInactiveDeals];
+      // Use the common utility function to ensure consistent sorting across the app
+      // This guarantees active deals always appear first, then sorted by distance and price
+      return sortDealsByActiveStatus(dealsWithCurrentActiveStatus);
     };
     
     // The final array of collections we'll return
