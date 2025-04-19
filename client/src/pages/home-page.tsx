@@ -377,32 +377,14 @@ export default function HomePage() {
     }
     
     // =======================================================
-    // 1. Create "Active Happy Hours" collection (always first)
+    // 1. Create "Happy Hours Nearby" collection (always first)
     // =======================================================
     
     const activeHappyHoursDeals = (() => {
+      console.log('Generating Happy Hours Nearby using enhanced 6-step logic');
       const enrichedDeals = enrichDeals(allDeals);
       
-      // Debug Moon Rooftop Bar deals
-      const moonDeals = enrichedDeals.filter(deal => deal.establishmentId === 11);
-      if (moonDeals.length > 0) {
-        console.log(`FOUND ${moonDeals.length} MOON ROOFTOP BAR DEALS:`);
-        moonDeals.forEach((deal, index) => {
-          console.log(`MOON DEAL #${index + 1}:`);
-          console.log(`- Name: ${deal.drink_name}`);
-          console.log(`- Distance: ${deal.distance.toFixed(2)} km`);
-          console.log(`- Active: ${deal.isActive}`);
-          console.log(`- Valid days: ${deal.valid_days}`);
-          console.log(`- Happy hour: ${deal.hh_start_time} - ${deal.hh_end_time}`);
-        });
-      } else {
-        console.log(`NO MOON ROOFTOP BAR DEALS FOUND IN RESPONSE DATA`);
-      }
-      
-      // Implement tiered radius approach
-      // Try to find active deals, expanding the radius if needed
-      
-      // Debug raw deals from the API
+      // Debug logging
       if (enrichedDeals.length === 0) {
         console.log(`WARNING: No deals found at all in API response`);
       } else {
@@ -411,106 +393,185 @@ export default function HomePage() {
         // Log establishment IDs in the response
         const establishmentIds = Array.from(new Set(enrichedDeals.map(d => d.establishmentId)));
         console.log(`Establishment IDs in response: ${establishmentIds.join(', ')}`);
-        
-        // Check if Moon Rooftop Bar (ID 11) exists in the data
-        if (establishmentIds.includes(11)) {
-          console.log(`Moon Rooftop Bar (ID 11) IS in the API response data`);
-        } else {
-          console.log(`WARNING: Moon Rooftop Bar (ID 11) IS NOT in the API response data`);
-        }
       }
-        
-      // Debug all Moon Rooftop Bar deals
-      const allMoonDeals = enrichedDeals.filter(deal => deal.establishmentId === 11);
-      if (allMoonDeals.length > 0) {
-        console.log(`FOUND ${allMoonDeals.length} MOON ROOFTOP BAR DEALS TOTAL:`);
-        allMoonDeals.forEach((deal, index) => {
-          console.log(`MOON DEAL #${index + 1}:`);
-          console.log(`- Name: ${deal.drink_name}`);
-          console.log(`- Distance: ${deal.distance.toFixed(2)} km`);
-          console.log(`- Active: ${deal.isActive}`);
-          console.log(`- Valid days: ${deal.valid_days}`);
-          console.log(`- Happy hour: ${deal.hh_start_time} - ${deal.hh_end_time}`);
-        });
-      } else {
-        console.log(`NO MOON ROOFTOP BAR DEALS FOUND IN RESPONSE DATA`);
-      }
-
-      // Start with deals within 5km (current radius filter)
+      
+      // STEP 1: First search for restaurants within 5KM radius of user's location
       const dealsWithin5km = enrichedDeals.filter(deal => deal.distance <= 5);
-      const activeDealsWithin5km = dealsWithin5km.filter(deal => deal.isActive);
+      console.log(`Step 1: Found ${dealsWithin5km.length} deals within 5km radius`);
       
-      // Debug Moon within 5km
-      const moonDealsWithin5km = dealsWithin5km.filter(deal => deal.establishmentId === 11);
-      if (moonDealsWithin5km.length > 0) {
-        console.log(`MOON DEALS WITHIN 5KM: ${moonDealsWithin5km.length}`);
-      } else {
-        console.log(`NO MOON DEALS WITHIN 5KM RADIUS - THIS IS EXPECTED AS MOON IS ~9KM AWAY`);
-      }
-      
-      // If we have active deals within 5km, use those
-      // Otherwise expand to 10km
-      let finalDeals: typeof enrichedDeals;
-      
-      if (activeDealsWithin5km.length > 0) {
-        // We found active deals within 5km, use all deals within 5km
-        console.log(`Found ${activeDealsWithin5km.length} active deals within 5km radius`);
-        finalDeals = dealsWithin5km;
-      } else {
-        // No active deals in 5km, expand to 10km
-        const dealsWithin10km = enrichedDeals.filter(deal => deal.distance <= 10);
-        const activeDealsWithin10km = dealsWithin10km.filter(deal => deal.isActive);
-        
-        if (activeDealsWithin10km.length > 0) {
-          // We found active deals within 10km
-          console.log(`Found ${activeDealsWithin10km.length} active deals within 10km radius`);
-          
-          // Check if Moon Rooftop Bar deals are included in the 10km deals
-          const moonDealsWithin10km = dealsWithin10km.filter(deal => deal.establishmentId === 11);
-          if (moonDealsWithin10km.length > 0) {
-            console.log(`MOON DEALS WITHIN 10KM: ${moonDealsWithin10km.length}`);
-            
-            // Check if any of the Moon deals are active
-            const activeMoonDeals = moonDealsWithin10km.filter(deal => deal.isActive);
-            if (activeMoonDeals.length > 0) {
-              console.log(`ACTIVE MOON DEALS WITHIN 10KM: ${activeMoonDeals.length}`);
-            } else {
-              console.log(`MOON DEALS WITHIN 10KM RADIUS BUT NONE ARE ACTIVE`);
-            }
-          }
-          
-          finalDeals = dealsWithin10km;
-        } else {
-          // No active deals in 10km, expand to 15km
-          const dealsWithin15km = enrichedDeals.filter(deal => deal.distance <= 15);
-          const activeDealsWithin15km = dealsWithin15km.filter(deal => deal.isActive);
-          
-          if (activeDealsWithin15km.length > 0) {
-            // We found active deals within 15km
-            console.log(`Found ${activeDealsWithin15km.length} active deals within 15km radius`);
-            finalDeals = dealsWithin15km;
-          } else {
-            // No active deals found even in 15km, just use the original 5km radius
-            console.log('No active deals found within 15km radius, using default 5km radius');
-            finalDeals = dealsWithin5km;
-          }
+      // Group deals by establishment to track restaurants (not individual deals)
+      const establishmentsWithin5km = new Map<number, typeof enrichedDeals>();
+      dealsWithin5km.forEach(deal => {
+        if (!establishmentsWithin5km.has(deal.establishmentId)) {
+          establishmentsWithin5km.set(deal.establishmentId, []);
         }
+        establishmentsWithin5km.get(deal.establishmentId)?.push(deal);
+      });
+      console.log(`Step 1: Found ${establishmentsWithin5km.size} restaurants within 5km radius`);
+      
+      // STEP 2: Only include restaurants if today is a happy hour day
+      const restaurantsWithHappyHourToday = Array.from(establishmentsWithin5km.entries())
+        .filter(([_, deals]) => {
+          // A restaurant has a happy hour today if any of its deals are valid today
+          return deals.some(deal => {
+            const validDaysLower = deal.valid_days.toLowerCase();
+            const now = new Date();
+            const sgOptions = { timeZone: 'Asia/Singapore' };
+            const sgTime = new Date(now.toLocaleString('en-US', sgOptions));
+            const currentDay = sgTime.getDay();
+            const daysMap = {
+              0: 'sunday',
+              1: 'monday',
+              2: 'tuesday',
+              3: 'wednesday', 
+              4: 'thursday',
+              5: 'friday',
+              6: 'saturday'
+            };
+            const currentDayName = daysMap[currentDay as keyof typeof daysMap];
+            
+            // Check for day matches
+            let dayMatches = false;
+            
+            // Case 1: Direct matches for "all days" or "everyday"
+            if (validDaysLower === 'all days' || 
+                validDaysLower.includes('everyday') || 
+                validDaysLower.includes('all')) {
+              dayMatches = true;
+            } 
+            // Case 2: Exact day name is included
+            else if (validDaysLower.includes(currentDayName)) {
+              dayMatches = true;
+            }
+            // Case 3: Check for day ranges like "mon-fri", "mon-thu", etc.
+            else if (validDaysLower.includes('-')) {
+              const dayParts = validDaysLower.split('-');
+              if (dayParts.length === 2) {
+                // Get numeric day values
+                const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+                const startDayValue = days.findIndex(d => dayParts[0].trim().toLowerCase().startsWith(d));
+                const endDayValue = days.findIndex(d => dayParts[1].trim().toLowerCase().startsWith(d));
+                
+                if (startDayValue !== -1 && endDayValue !== -1) {
+                  // Check if current day is within range
+                  dayMatches = currentDay >= startDayValue && currentDay <= endDayValue;
+                }
+              }
+            }
+            
+            return dayMatches;
+          });
+        });
+      
+      console.log(`Step 2: Found ${restaurantsWithHappyHourToday.length} restaurants with happy hours today`);
+      
+      // STEP 3: Look for restaurants within happy hour time window
+      const restaurantsWithActiveHappyHour = restaurantsWithHappyHourToday
+        .filter(([_, deals]) => {
+          // A restaurant has an active happy hour if any of its deals are active now
+          return deals.some(deal => isDealActiveNow(deal));
+        });
+      
+      console.log(`Step 3: Found ${restaurantsWithActiveHappyHour.length} restaurants with active happy hours`);
+      
+      // Create a final list of deals from restaurants with active happy hours
+      let activeDealsFromActiveRestaurants: typeof enrichedDeals = [];
+      restaurantsWithActiveHappyHour.forEach(([_, deals]) => {
+        activeDealsFromActiveRestaurants = activeDealsFromActiveRestaurants.concat(deals);
+      });
+      
+      // STEP 4: If fewer than 2 active restaurants found, expand search to 10KM
+      if (restaurantsWithActiveHappyHour.length < 2) {
+        console.log(`Step 4: Not enough active restaurants (${restaurantsWithActiveHappyHour.length}), expanding to 10km`);
+        
+        // Expand to 10km
+        const dealsWithin10km = enrichedDeals.filter(deal => deal.distance > 5 && deal.distance <= 10);
+        console.log(`Step 4: Found ${dealsWithin10km.length} additional deals within 5-10km radius`);
+        
+        // Group by establishment
+        const establishmentsWithin10km = new Map<number, typeof enrichedDeals>();
+        dealsWithin10km.forEach(deal => {
+          if (!establishmentsWithin10km.has(deal.establishmentId)) {
+            establishmentsWithin10km.set(deal.establishmentId, []);
+          }
+          establishmentsWithin10km.get(deal.establishmentId)?.push(deal);
+        });
+        
+        // Filter for today's happy hours
+        const restaurants10kmWithHappyHourToday = Array.from(establishmentsWithin10km.entries())
+          .filter(([_, deals]) => {
+            return deals.some(deal => {
+              const validDaysLower = deal.valid_days.toLowerCase();
+              const now = new Date();
+              const sgOptions = { timeZone: 'Asia/Singapore' };
+              const sgTime = new Date(now.toLocaleString('en-US', sgOptions));
+              const currentDay = sgTime.getDay();
+              const daysMap = {
+                0: 'sunday',
+                1: 'monday',
+                2: 'tuesday',
+                3: 'wednesday', 
+                4: 'thursday',
+                5: 'friday',
+                6: 'saturday'
+              };
+              const currentDayName = daysMap[currentDay as keyof typeof daysMap];
+              
+              let dayMatches = false;
+              if (validDaysLower === 'all days' || validDaysLower.includes('everyday') || validDaysLower.includes('all')) {
+                dayMatches = true;
+              } else if (validDaysLower.includes(currentDayName)) {
+                dayMatches = true;
+              } else if (validDaysLower.includes('-')) {
+                const dayParts = validDaysLower.split('-');
+                if (dayParts.length === 2) {
+                  const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+                  const startDayValue = days.findIndex(d => dayParts[0].trim().toLowerCase().startsWith(d));
+                  const endDayValue = days.findIndex(d => dayParts[1].trim().toLowerCase().startsWith(d));
+                  if (startDayValue !== -1 && endDayValue !== -1) {
+                    dayMatches = currentDay >= startDayValue && currentDay <= endDayValue;
+                  }
+                }
+              }
+              return dayMatches;
+            });
+          });
+        
+        // Filter for active happy hours
+        const restaurants10kmWithActiveHappyHour = restaurants10kmWithHappyHourToday
+          .filter(([_, deals]) => {
+            return deals.some(deal => isDealActiveNow(deal));
+          });
+        
+        console.log(`Step 4: Found ${restaurants10kmWithActiveHappyHour.length} additional restaurants with active happy hours in 5-10km radius`);
+        
+        // Add these deals to our collection
+        restaurants10kmWithActiveHappyHour.forEach(([_, deals]) => {
+          activeDealsFromActiveRestaurants = activeDealsFromActiveRestaurants.concat(deals);
+        });
       }
       
-      // Sort by active status, distance, and price
-      const sortedDeals = sortDeals(finalDeals);
+      // STEP 5: Within collections, prioritize active deals first, then sort by distance
+      const sortedDeals = activeDealsFromActiveRestaurants.sort((a, b) => {
+        // First by active status
+        const aIsActive = isDealActiveNow(a);
+        const bIsActive = isDealActiveNow(b);
+        
+        if (aIsActive && !bIsActive) return -1;
+        if (!aIsActive && bIsActive) return 1;
+        
+        // Then by distance
+        return a.distance - b.distance;
+      });
       
-      // Include all deals from all restaurants
-      // No need to filter to just one deal per restaurant
-      const uniqueDeals: typeof sortedDeals = [];
+      console.log(`Step 5: Sorted ${sortedDeals.length} deals by active status and distance`);
       
-      // Add all deals to the collection
-      for (const deal of sortedDeals) {
-        uniqueDeals.push(deal);
-      }
+      // STEP 6: Avoid placing identical drink images adjacent to each other
+      // For this, we'd need to shuffle deals with the same category but keep the order otherwise
+      // Since we can't easily do that without the image selection logic, we'll just return the sorted deals for now
       
       // Limit to 25 deals max
-      return uniqueDeals.slice(0, 25);
+      return sortedDeals.slice(0, 25);
     })();
     
     // Keeping activeHappyHoursDeals for API-based collections but not adding it directly
