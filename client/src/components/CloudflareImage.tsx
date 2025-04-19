@@ -43,8 +43,16 @@ export function CloudflareImage({
   useEffect(() => {
     if (!imageId || imageError) return;
     
-    // Immediately show fallback after 1 attempt - we'll just use the fallbacks since
-    // there appears to be an ongoing issue with the Cloudflare image service
+    // Skip check and just try to load the image directly for certain IDs
+    // This helps with custom IDs and reduces API load
+    if (imageId.includes('/') || imageId.length < 36) {
+      console.log(`Directly attempting to display image ${imageId} (skipping check)`);
+      setIsImageAvailable(true);
+      setIsLoading(false);
+      return;
+    }
+    
+    // Immediately show fallback after 1 attempt
     if (retryCount > 0) {
       console.warn(`Using fallback for image ${imageId} to reduce API load`);
       setImageError(true);
@@ -58,6 +66,11 @@ export function CloudflareImage({
     let isMounted = true;
     setIsLoading(true);
     
+    // Skip the status check and directly attempt to load the image
+    setIsImageAvailable(true);
+    setIsLoading(false);
+    
+    /* Commenting out the status check to improve performance and avoid rate limiting
     const checkImage = async () => {
       try {
         // Use our centralized utility function to check image status
@@ -87,6 +100,7 @@ export function CloudflareImage({
     };
     
     checkImage();
+    */
     
     return () => {
       isMounted = false;

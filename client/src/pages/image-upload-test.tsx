@@ -380,13 +380,14 @@ export default function ImageUploadTest() {
                     <div key={idx} className="flex flex-col items-center">
                       <p className="text-sm font-medium mb-2">Variant {idx + 1}</p>
                       <div className="aspect-square w-full rounded-md overflow-hidden relative">
-                        <CloudflareImage
-                          imageId={formatCloudflareCustomId(testCategory, idx + 1)} 
-                          alt={`${testCategory} variant ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                          drinkName={testCategory.replace(/_/g, ' ')}
-                          fallbackColor={getDrinkCategoryColor(testCategory)}
-                        />
+                        <div 
+                          className="bg-gray-100 rounded-md w-full h-full"
+                          style={{ backgroundColor: getDrinkCategoryColor(testCategory) }}
+                        >
+                          <p className="text-sm text-center p-4 text-white">
+                            {testCategory.replace(/_/g, ' ')} (variant {idx + 1})
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
