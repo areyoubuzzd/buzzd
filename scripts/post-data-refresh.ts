@@ -11,7 +11,7 @@
 
 import { db } from '../server/db';
 import { deals, establishments, collections } from '../shared/schema';
-import { eq, sql, desc, asc, and, or, like, inArray } from 'drizzle-orm';
+import { eq, sql, desc, asc, and, or, like, inArray, not } from 'drizzle-orm';
 
 /**
  * Update all collections with proper priority values
@@ -80,6 +80,113 @@ async function updateCollectionPriorities() {
 }
 
 /**
+ * Check if a deal is active now based on valid_days, hh_start_time, and hh_end_time
+ */
+function isDealActiveNow(deal: any): boolean {
+  const now = new Date();
+  
+  // Get Singapore time
+  const sgOptions = { timeZone: 'Asia/Singapore' };
+  const sgTime = new Date(now.toLocaleString('en-US', sgOptions));
+  
+  // Get day of week in Singapore time (0 = Sunday, 1 = Monday, etc.)
+  const currentDay = sgTime.getDay();
+  const daysMap = {
+    0: 'sunday',
+    1: 'monday',
+    2: 'tuesday',
+    3: 'wednesday', 
+    4: 'thursday',
+    5: 'friday',
+    6: 'saturday'
+  };
+  const currentDayName = daysMap[currentDay as keyof typeof daysMap];
+  
+  // Check if today is in the valid days (case insensitive)
+  const validDaysLower = deal.valid_days.toLowerCase();
+  
+  // Case 1: Direct matches for "all days" or "everyday"
+  let dayMatches = false;
+  if (validDaysLower === 'all days' || 
+      validDaysLower.includes('everyday') || 
+      validDaysLower.includes('all')) {
+    dayMatches = true;
+  } 
+  // Case 2: Exact day name is included
+  else if (validDaysLower.includes(currentDayName)) {
+    dayMatches = true;
+  }
+  // Case 3: Check for day ranges like "mon-fri", "mon-thu", etc.
+  else if (validDaysLower.includes('-')) {
+    const dayParts = validDaysLower.split('-');
+    if (dayParts.length === 2) {
+      // Get numeric day values
+      const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      const startDayValue = days.findIndex(d => dayParts[0].trim().toLowerCase().startsWith(d));
+      const endDayValue = days.findIndex(d => dayParts[1].trim().toLowerCase().startsWith(d));
+      
+      if (startDayValue !== -1 && endDayValue !== -1) {
+        // Check if current day is within range
+        dayMatches = currentDay >= startDayValue && currentDay <= endDayValue;
+      }
+    }
+  }
+  
+  if (!dayMatches) {
+    return false;
+  }
+  
+  // Current time in minutes since midnight
+  const currentHours = sgTime.getHours();
+  const currentMinutes = sgTime.getMinutes();
+  const currentTimeMinutes = currentHours * 60 + currentMinutes;
+  
+  // Parse start time, handling both "14:30" and "1430" formats
+  let startTimeMinutes = 0;
+  try {
+    if (deal.hh_start_time.includes(':')) {
+      const [startHours, startMinutes] = deal.hh_start_time.split(':').map(n => parseInt(n, 10));
+      startTimeMinutes = startHours * 60 + startMinutes;
+    } else {
+      // Format like "1430" for 2:30pm
+      const hours = Math.floor(parseInt(deal.hh_start_time) / 100);
+      const minutes = parseInt(deal.hh_start_time) % 100;
+      startTimeMinutes = hours * 60 + minutes;
+    }
+  } catch (e) {
+    console.warn(`Error parsing start time "${deal.hh_start_time}" for deal ${deal.id}:`, e);
+    return false;
+  }
+  
+  // Parse end time, handling both "19:00" and "1900" formats
+  let endTimeMinutes = 0;
+  try {
+    if (deal.hh_end_time.includes(':')) {
+      const [endHours, endMinutes] = deal.hh_end_time.split(':').map(n => parseInt(n, 10));
+      endTimeMinutes = endHours * 60 + endMinutes;
+    } else {
+      // Format like "1900" for 7:00pm
+      const hours = Math.floor(parseInt(deal.hh_end_time) / 100);
+      const minutes = parseInt(deal.hh_end_time) % 100;
+      endTimeMinutes = hours * 60 + minutes;
+    }
+  } catch (e) {
+    console.warn(`Error parsing end time "${deal.hh_end_time}" for deal ${deal.id}:`, e);
+    return false;
+  }
+  
+  // Check if current time is within happy hour
+  // Handle normal case (start time before end time) and overnight case (start time after end time)
+  if (startTimeMinutes <= endTimeMinutes) {
+    // Normal case: e.g. 17:00 - 20:00
+    return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
+  } else {
+    // Overnight case: e.g. 22:00 - 02:00
+    return currentTimeMinutes >= startTimeMinutes || currentTimeMinutes <= endTimeMinutes;
+  }
+}
+
+/**
  * Ensure the "active_happy_hours" collection includes at least 25 deals
  * This modifies the deals table to add the "active_happy_hours" collection to more deals if needed
  */
@@ -103,11 +210,8 @@ async function ensureMinimumDealsInActiveHappyHours() {
     
     // Step 3: Find additional deals to add to the collection
     // Priority: Active deals first, then nearby, then by price
-    const now = new Date();
-    const currentDay = now.getDay();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
     
-    // Get additional deals that might be good candidates
+    // Get additional deals that might be good candidates (not already in active_happy_hours)
     const additionalDeals = await db
       .select({
         deal: deals,
@@ -116,12 +220,7 @@ async function ensureMinimumDealsInActiveHappyHours() {
       .from(deals)
       .innerJoin(establishments, eq(deals.establishmentId, establishments.id))
       .where(
-        and(
-          // Exclude deals already in the collection
-          sql`${deals.collections} NOT LIKE ${'%active_happy_hours%'}`,
-          // Only include deals that have happy hour days
-          sql`${deals.happyHourDays} IS NOT NULL`,
-        )
+        not(sql`${deals.collections} LIKE ${'%active_happy_hours%'}`)
       )
       .limit(100); // Get a good pool of candidates
     
@@ -130,24 +229,8 @@ async function ensureMinimumDealsInActiveHappyHours() {
       .map(item => ({
         ...item.deal,
         establishment: item.establishment,
-        // Check if today is a happy hour day
-        isDealActiveDay: item.deal.happyHourDays
-          ? item.deal.happyHourDays.split(',').map(day => parseInt(day.trim())).includes(currentDay)
-          : false,
-        // Parse start and end times
-        startTimeValue: (() => {
-          const startTimeParts = item.deal.startTime ? item.deal.startTime.split(':') : ['0', '0'];
-          return parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
-        })(),
-        endTimeValue: (() => {
-          const endTimeParts = item.deal.endTime ? item.deal.endTime.split(':') : ['0', '0'];
-          return parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
-        })()
-      }))
-      // Add isActive flag based on day and time
-      .map(deal => ({
-        ...deal,
-        isActive: deal.isDealActiveDay && (currentTime >= deal.startTimeValue && currentTime <= deal.endTimeValue)
+        // Check if deal is active now using our function
+        isActive: isDealActiveNow(item.deal)
       }))
       // Sort by active status first, then by happy hour price
       .sort((a, b) => {
@@ -184,17 +267,30 @@ async function ensureMinimumDealsInActiveHappyHours() {
 }
 
 /**
- * Update deal sorting info in the database
- * This adds metadata that helps with sorting by active status
+ * Update deal sorting info for metadata fields in the database
+ * This adds a special column to track which deals should appear first in collections
  */
 async function updateDealSortingInfo() {
   console.log('Updating deal sorting information...');
   
   try {
-    // Get current time info
-    const now = new Date();
-    const currentDay = now.getDay();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
+    // First, we'll modify the database table to add the sort_order column if needed
+    try {
+      // Check if sort_order column exists in the deals table
+      const result = await db.execute(
+        sql`SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'deals' AND column_name = 'sort_order'`
+      );
+      
+      // If column doesn't exist, add it
+      if (result.rows.length === 0) {
+        console.log('Adding sort_order column to deals table...');
+        await db.execute(sql`ALTER TABLE deals ADD COLUMN sort_order INTEGER`);
+      }
+    } catch (err) {
+      console.error('Error checking or adding sort_order column:', err);
+      // Continue with the rest of the function even if this fails
+    }
     
     // Get all deals with their establishments
     const allDeals = await db
@@ -207,54 +303,57 @@ async function updateDealSortingInfo() {
     
     console.log(`Processing ${allDeals.length} deals for sorting information...`);
     
-    // Process each deal to update its sorting metadata
-    for (const item of allDeals) {
-      const deal = item.deal;
-      
-      // Check if today is a happy hour day
-      const happyHourDays = deal.happyHourDays 
-        ? deal.happyHourDays.split(',').map(day => parseInt(day.trim())) 
-        : [];
-      
-      const isDealActiveDay = happyHourDays.includes(currentDay);
-      
-      // Parse start and end times
-      const startTimeParts = deal.startTime ? deal.startTime.split(':') : ['0', '0'];
-      const endTimeParts = deal.endTime ? deal.endTime.split(':') : ['0', '0'];
-      
-      const startTimeValue = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
-      const endTimeValue = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
-      
-      // Check if current time is within happy hour
-      const isActiveTime = currentTime >= startTimeValue && currentTime <= endTimeValue;
-      
-      // Deal is active if both day and time conditions are met
-      const isActive = isDealActiveDay && isActiveTime;
-      
-      // Add a temporary sortOrder field to ensure active deals come first
-      // We'll use a simple numbering scheme:
-      // 1-100: Active deals (with ascending happy_hour_price)
-      // 101-200: Inactive deals (with ascending happy_hour_price)
-      const sortOrder = isActive 
-        ? (deal.happy_hour_price || 50) 
-        : 100 + (deal.happy_hour_price || 50);
-      
-      // Update the deal with this information
-      await db
-        .update(deals)
-        .set({ 
-          // Store whether the deal is active right now
-          // Note: This will need to be recalculated regularly
-          active: isActive,
-          // Store the sort order value 
-          sortOrder
-        })
-        .where(eq(deals.id, deal.id));
+    // Update deals with their sort order values
+    for (let i = 0; i < allDeals.length; i++) {
+      try {
+        const deal = allDeals[i].deal;
+        
+        // Check if deal is active now
+        const isActive = isDealActiveNow(deal);
+        
+        // Assign a sort order value:
+        // 1-100: Active deals (with ascending happy_hour_price)
+        // 101-200: Inactive deals (with ascending happy_hour_price)
+        const sortOrder = isActive 
+          ? Math.min(Math.floor(deal.happy_hour_price || 50), 99) 
+          : 100 + Math.min(Math.floor(deal.happy_hour_price || 50), 99);
+        
+        // Update the deal's sort_order field
+        await db.execute(
+          sql`UPDATE deals SET sort_order = ${sortOrder} WHERE id = ${deal.id}`
+        );
+        
+        // Progress log for every 10 deals
+        if (i % 10 === 0) {
+          console.log(`Updated ${i} of ${allDeals.length} deals...`);
+        }
+      } catch (err) {
+        console.error(`Error updating deal ID ${allDeals[i].deal.id}:`, err);
+      }
     }
     
     console.log('Successfully updated deal sorting information');
   } catch (error) {
     console.error('Error updating deal sorting information:', error);
+  }
+}
+
+/**
+ * Check if a column exists in a table
+ */
+async function checkColumnExists(tableName: string, columnName: string): Promise<boolean> {
+  try {
+    const result = await db.execute(sql`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = ${tableName}
+      AND column_name = ${columnName}
+    `);
+    
+    return result.rows.length > 0;
+  } catch (error) {
+    console.error(`Error checking if column ${columnName} exists in table ${tableName}:`, error);
+    return false;
   }
 }
 

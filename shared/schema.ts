@@ -91,6 +91,9 @@ export const deals = pgTable("deals", {
   // Description of the deal
   description: text("description"), // Detailed description of the deal
   
+  // Sorting and metadata
+  sort_order: integer("sort_order"), // Numeric value for sorting (lower = higher priority)
+  
   // Media and metadata
   imageUrl: text("image_url"),
   imageId: text("image_id"), // Cloudflare Images ID
