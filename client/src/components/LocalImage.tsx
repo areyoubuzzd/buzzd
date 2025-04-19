@@ -83,7 +83,7 @@ export function LocalImage({
   if (width) dimensionParams.push(`width=${width}`);
   if (height) dimensionParams.push(`height=${height}`);
   
-  // Construct the local image URL
+  // Construct the local image URL with the correct path
   const imageUrl = `/images/drinks/${category}/${imageId}${dimensionParams.length > 0 ? `?${dimensionParams.join('&')}` : ''}`;
   
   // Image is ready to display

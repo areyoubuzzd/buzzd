@@ -1,1 +1,16 @@
-{"version": 1}
+{
+  "version": 1,
+  "d38648bf-c884-457b-858b-f55ee49c33c5": {
+    "id": "d38648bf-c884-457b-858b-f55ee49c33c5",
+    "originalName": "white_wine_500x500_1.png",
+    "category": "wine_white",
+    "drinkName": "white_wine_glass",
+    "width": 300,
+    "height": 300,
+    "mimeType": "image/png",
+    "size": 22610,
+    "createdAt": "2025-04-19T06:16:27.209Z",
+    "path": "/home/runner/workspace/public/images/drinks/wine_white/d38648bf-c884-457b-858b-f55ee49c33c5.png",
+    "url": "/images/drinks/wine_white/d38648bf-c884-457b-858b-f55ee49c33c5.png"
+  }
+}
