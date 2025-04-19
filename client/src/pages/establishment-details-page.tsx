@@ -406,9 +406,9 @@ export default function EstablishmentDetailsPage() {
         }}
       >
         <div className="absolute inset-0 bg-black/40 flex items-end">
-          <div className="p-4 text-white">
+          <div className="p-4 text-[#F4F4F9]">
             <Link href={referrer}>
-              <Button size="sm" variant="ghost" className="text-white hover:bg-white/20 mb-2">
+              <Button size="sm" variant="ghost" className="bg-[#FFC300] text-[#F4F4F9] hover:bg-[#FFC300]/80 mb-2">
                 <FaArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
@@ -419,21 +419,21 @@ export default function EstablishmentDetailsPage() {
       
       <div className="p-4">
         {/* Restaurant Name as Title */}
-        <h1 className="text-2xl font-bold mb-2">{establishment.name}</h1>
+        <h1 className="text-2xl font-bold mb-2 text-[#F4F4F9]">{establishment.name}</h1>
         
         {/* Happy Hours Section with active indicator */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <FaClock className="text-primary" />
-            <h3 className="text-lg font-semibold">Happy Hours</h3>
+            <FaClock className="text-[#FFC300]" />
+            <h3 className="text-lg font-semibold text-[#F4F4F9]">Happy Hours</h3>
             <div className="flex items-center ml-2">
               <div className={`w-2 h-2 rounded-full ${happyHour.isActive ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse mr-1`}></div>
-              <span className={`text-xs font-medium ${happyHour.isActive ? 'text-green-600' : 'text-yellow-600'}`}>
+              <span className={`text-xs font-medium ${happyHour.isActive ? 'text-green-400' : 'text-yellow-400'}`}>
                 {happyHour.isActive ? 'Active now' : 'Inactive'}
               </span>
             </div>
           </div>
-          <div className="pl-6 text-sm text-gray-600">
+          <div className="pl-6 text-sm text-[#F4F4F9]/80">
             <p><span className="font-medium">Days:</span> {happyHour.validDays}</p>
             <p><span className="font-medium">Hours:</span> {happyHour.timeRange}</p>
           </div>
@@ -461,7 +461,7 @@ export default function EstablishmentDetailsPage() {
           <p className="text-gray-600 mb-6">{establishment.description}</p>
         )}
         
-        <h2 className="text-xl font-bold mb-4">Active Deals</h2>
+        <h2 className="text-xl font-bold mb-4 text-[#FFC300]">Active Deals</h2>
         
         {activeDeals.length === 0 ? (
           <p className="text-gray-500">No active deals at this time.</p>
@@ -525,7 +525,7 @@ export default function EstablishmentDetailsPage() {
         )}
         
         <motion.h2 
-          className="text-xl font-bold mt-6 mb-4"
+          className="text-xl font-bold mt-6 mb-4 text-[#FFC300]"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -561,7 +561,7 @@ export default function EstablishmentDetailsPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.7 }}
                 >
-                  <FaMapMarkerAlt className="text-primary h-5 w-5 flex-shrink-0" />
+                  <FaMapMarkerAlt className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                   <div>
                     <p className="font-medium">Address</p>
                     <p className="text-sm text-gray-600">{establishment.address}</p>
@@ -576,7 +576,7 @@ export default function EstablishmentDetailsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.8 }}
                   >
-                    <FaPhone className="text-primary h-5 w-5 flex-shrink-0" />
+                    <FaPhone className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                     <div>
                       <p className="font-medium">Phone</p>
                       <a 
