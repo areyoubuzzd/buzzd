@@ -6,7 +6,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { isWithinHappyHour } from "@/lib/time-utils";
 import { useDrinkImage } from "@/hooks/use-drink-images";
-import { CloudflareImage } from "@/components/CloudflareImage";
+import { LocalImage } from "@/components/LocalImage";
 
 // Get a color for a drink category, used for creating reliable fallback images
 function getCategoryColor(category: string): string {
@@ -203,11 +203,10 @@ export default function SquareDealCard({ deal, userLocation }: SquareDealCardPro
         >
           <Card className="overflow-hidden h-full rounded-xl cursor-pointer">
             <div className="relative h-full">
-              {/* Deal image from Cloudflare */}
+              {/* Deal image from local storage */}
               {deal.imageId ? (
-                <CloudflareImage
+                <LocalImage
                   imageId={deal.imageId}
-                  variant="public"
                   alt={deal.drink_name || deal.alcohol_category || 'Happy Hour Deal'} 
                   category={deal.alcohol_category || 'beer'}
                   drinkName={deal.drink_name}
