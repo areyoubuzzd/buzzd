@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { checkConnection as checkCloudflareConnection } from "./services/cloudflare-images";
 import path from "path";
 import fs from "fs";
+import sharp from "sharp";
 
 const app = express();
 app.use(express.json());
@@ -31,9 +32,14 @@ app.get('/debug/images/:category/:id', (req, res) => {
   });
 });
 
-// Add direct file serving for debugging
-app.get('/direct-image/:category/:id', (req, res) => {
+// Add direct file serving with resize support
+app.get('/direct-image/:category/:id', async (req, res) => {
   const { category, id } = req.params;
+  const { width, height } = req.query;
+  
+  // Parse width and height if provided
+  const parsedWidth = width ? parseInt(width as string, 10) : null;
+  const parsedHeight = height ? parseInt(height as string, 10) : null;
   
   // Try to find the file with different extensions if it doesn't have one
   let filePath = path.join(process.cwd(), 'public/images/drinks', category, id);
@@ -57,16 +63,59 @@ app.get('/direct-image/:category/:id', (req, res) => {
   }
   
   if (fileExists) {
-    // Determine content type based on file extension
-    let contentType = 'image/jpeg'; // Default
-    
-    if (ext === '.png') contentType = 'image/png';
-    else if (ext === '.webp') contentType = 'image/webp';
-    
-    res.setHeader('Content-Type', contentType);
-    
-    // Stream the file directly to the response
-    fs.createReadStream(filePath).pipe(res);
+    try {
+      // Determine content type based on file extension
+      let contentType = 'image/jpeg'; // Default
+      let outputFormat: keyof sharp.FormatEnum = 'jpeg'; // Default format for sharp
+      
+      if (ext === '.png') {
+        contentType = 'image/png';
+        outputFormat = 'png';
+      } else if (ext === '.webp') {
+        contentType = 'image/webp';
+        outputFormat = 'webp';
+      }
+      
+      res.setHeader('Content-Type', contentType);
+      
+      // If we need to resize the image
+      if (parsedWidth || parsedHeight) {
+        const image = sharp(filePath);
+        
+        // Get image info
+        const metadata = await image.metadata();
+        
+        // Resize options
+        const resizeOptions: sharp.ResizeOptions = {};
+        if (parsedWidth) resizeOptions.width = parsedWidth;
+        if (parsedHeight) resizeOptions.height = parsedHeight;
+        if (!parsedHeight && !parsedWidth) {
+          // Default size if both are missing but resize is requested
+          resizeOptions.width = 300;
+        }
+        
+        // Only resize if needed
+        if (
+          (resizeOptions.width && (!metadata.width || metadata.width > resizeOptions.width)) || 
+          (resizeOptions.height && (!metadata.height || metadata.height > resizeOptions.height))
+        ) {
+          // Resize and output in the original format
+          image
+            .resize(resizeOptions)
+            .toFormat(outputFormat, { quality: 80 })
+            .pipe(res);
+        } else {
+          // No resize needed, just serve original
+          fs.createReadStream(filePath).pipe(res);
+        }
+      } else {
+        // No resize requested, serve original
+        fs.createReadStream(filePath).pipe(res);
+      }
+    } catch (error) {
+      console.error('Error processing image:', error);
+      res.status(500).send('Error processing image');
+    }
   } else {
     console.log(`Image not found: ${filePath}`);
     res.status(404).send('Image not found');
