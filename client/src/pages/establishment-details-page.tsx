@@ -487,19 +487,19 @@ export default function EstablishmentDetailsPage() {
                     layout: { type: "spring", stiffness: 300, damping: 30 },
                     delay: index * 0.05
                   }}
-                  className="rounded-xl overflow-hidden bg-card shadow-sm border border-border"
+                  className="rounded-xl overflow-hidden bg-[#2a3158] shadow-md border border-[#3a4174]"
                 >
                   <div className="p-5">
                     <div className="mb-2">
                       <div className="flex justify-between items-center">
-                        <h3 className="font-bold">{deal.drink_name}</h3>
+                        <h3 className="font-bold text-[#F4F4F9]">{deal.drink_name}</h3>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500 line-through">${deal.standard_price.toFixed(2)}</span>
-                          <span className="font-bold text-primary">${deal.happy_hour_price.toFixed(2)}</span>
+                          <span className="text-sm text-gray-400 line-through">${deal.standard_price.toFixed(2)}</span>
+                          <span className="font-bold text-[#FFC300]">${deal.happy_hour_price.toFixed(2)}</span>
                         </div>
                       </div>
                       <motion.p 
-                        className="text-xs text-green-600"
+                        className="text-xs text-green-400"
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 + 0.2 }}
@@ -509,7 +509,7 @@ export default function EstablishmentDetailsPage() {
                     </div>
                     {deal.description && (
                       <motion.div 
-                        className="text-sm text-gray-600 mt-2 border-t pt-2"
+                        className="text-sm text-[#F4F4F9]/80 mt-2 border-t border-[#3a4174] pt-2"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: index * 0.05 + 0.3 }}
@@ -534,7 +534,7 @@ export default function EstablishmentDetailsPage() {
         </motion.h2>
         <div className="grid gap-4 mb-6">
           <motion.div 
-            className="rounded-xl overflow-hidden bg-card shadow-sm border border-border"
+            className="rounded-xl overflow-hidden bg-[#2a3158] shadow-md border border-[#3a4174]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ 
@@ -544,7 +544,7 @@ export default function EstablishmentDetailsPage() {
               delay: 0.6 
             }}
             whileHover={{ 
-              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2)",
               y: -2,
               transition: { 
                 type: "spring",
@@ -563,9 +563,9 @@ export default function EstablishmentDetailsPage() {
                 >
                   <FaMapMarkerAlt className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Address</p>
-                    <p className="text-sm text-gray-600">{establishment.address}</p>
-                    <p className="text-sm text-gray-600">{establishment.city} {establishment.postalCode}</p>
+                    <p className="font-medium text-[#F4F4F9]">Address</p>
+                    <p className="text-sm text-[#F4F4F9]/70">{establishment.address}</p>
+                    <p className="text-sm text-[#F4F4F9]/70">{establishment.city} {establishment.postalCode}</p>
                   </div>
                 </motion.div>
                 
@@ -578,10 +578,10 @@ export default function EstablishmentDetailsPage() {
                   >
                     <FaPhone className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Phone</p>
+                      <p className="font-medium text-[#F4F4F9]">Phone</p>
                       <a 
                         href={`tel:${establishment.phone}`}
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
                       >
                         {establishment.phone}
                       </a>
@@ -596,7 +596,7 @@ export default function EstablishmentDetailsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.9 }}
                   >
-                    <FaGlobe className="text-primary h-5 w-5 flex-shrink-0" />
+                    <FaGlobe className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                     <div>
                       <p className="font-medium">Website</p>
                       <a 
@@ -618,7 +618,7 @@ export default function EstablishmentDetailsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 1.0 }}
                   >
-                    <FaMapMarkedAlt className="text-primary h-5 w-5 flex-shrink-0" />
+                    <FaMapMarkedAlt className="text-[#FFC300] h-5 w-5 flex-shrink-0" />
                     <div>
                       <p className="font-medium">Directions</p>
                       <a 
@@ -666,7 +666,7 @@ export default function EstablishmentDetailsPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 1.3, type: "spring" }}
                 >
-                  <FaMapMarkedAlt size={32} />
+                  <FaMapMarkedAlt size={32} className="text-[#FFC300]" />
                 </motion.div>
                 <motion.span 
                   className="text-sm font-medium"
