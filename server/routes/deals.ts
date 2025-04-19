@@ -283,7 +283,54 @@ router.get('/collections/:collectionName', async (req, res) => {
       establishment: item.establishment
     }));
     
-    res.json(dealsInCollection);
+    // Add active status to each deal based on current day and time
+    const now = new Date();
+    const currentDay = now.getDay();
+    // Convert hours and minutes to a decimal value for easy comparison
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const dealsWithActiveStatus = dealsInCollection.map(deal => {
+      // Parse happy hour days
+      const happyHourDays = deal.happyHourDays ? deal.happyHourDays.split(',').map(day => parseInt(day.trim())) : [];
+      
+      // Check if today is a happy hour day
+      const isDealActiveDay = happyHourDays.includes(currentDay);
+      
+      // Parse start and end times
+      const startTimeParts = deal.startTime ? deal.startTime.split(':') : ['0', '0'];
+      const endTimeParts = deal.endTime ? deal.endTime.split(':') : ['0', '0'];
+      
+      const startTimeValue = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+      const endTimeValue = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+      
+      // Check if current time is within happy hour
+      const isActiveTime = currentTime >= startTimeValue && currentTime <= endTimeValue;
+      
+      // Deal is active if both day and time conditions are met
+      const isActive = isDealActiveDay && isActiveTime;
+      
+      return {
+        ...deal,
+        isActive
+      };
+    });
+    
+    // Sort by active status first (active deals first), then by other criteria
+    const sortedDeals = dealsWithActiveStatus.sort((a, b) => {
+      // First sort by active status (active deals first)
+      if (a.isActive && !b.isActive) return -1;
+      if (!a.isActive && b.isActive) return 1;
+      
+      // Then sort by distance if available
+      if (a.distance !== undefined && b.distance !== undefined) {
+        return a.distance - b.distance;
+      }
+      
+      // Default to sorting by ID if no distance
+      return a.id - b.id;
+    });
+    
+    res.json(sortedDeals);
   } catch (error) {
     console.error(`Error fetching deals for collection ${req.params.collectionName}:`, error);
     res.status(500).json({ message: "Failed to fetch deals for collection" });
