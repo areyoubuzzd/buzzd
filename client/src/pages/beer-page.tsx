@@ -53,7 +53,7 @@ export default function BeerPage() {
   const [, navigate] = useWouterLocation();
   
   // Get location from context
-  const { location } = useLocation();
+  const { location, updateLocation } = useLocation();
 
   // Fetch all beer deals from the API
   const { data: dealsData, isLoading } = useQuery({
@@ -64,9 +64,12 @@ export default function BeerPage() {
   // Filter to only beer deals and add active status
   const beerDeals = React.useMemo(() => {
     if (!dealsData) return [];
+    
+    // Cast dealsData to Deal[] to fix TypeScript error
+    const deals_array = (dealsData as Deal[]);
 
     // Filter to only beer deals
-    let deals = dealsData.filter((deal: Deal) => 
+    let deals = deals_array.filter((deal: Deal) => 
       deal.alcohol_category.toLowerCase() === 'beer'
     );
 

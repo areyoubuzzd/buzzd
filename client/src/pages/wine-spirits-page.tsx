@@ -55,7 +55,7 @@ export default function WineSpiritsPage() {
   const [, navigate] = useWouterLocation();
   
   // Get location from context
-  const { location } = useLocation();
+  const { location, updateLocation } = useLocation();
 
   // Fetch all deals from the API
   const { data: dealsData, isLoading } = useQuery({
@@ -66,9 +66,12 @@ export default function WineSpiritsPage() {
   // Filter to only wine & spirits deals and add active status
   const wineAndSpiritDeals = React.useMemo(() => {
     if (!dealsData) return [];
+    
+    // Cast dealsData to Deal[] to fix TypeScript error
+    const deals_array = (dealsData as Deal[]);
 
     // Filter to wine and spirits deals
-    let deals = dealsData.filter((deal: Deal) => 
+    let deals = deals_array.filter((deal: Deal) => 
       deal.alcohol_category.toLowerCase() === 'wine' || 
       deal.alcohol_category.toLowerCase() === 'spirits'
     );
