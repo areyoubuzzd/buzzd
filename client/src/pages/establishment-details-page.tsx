@@ -728,7 +728,7 @@ export default function EstablishmentDetailsPage() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FaWhatsapp className="h-5 w-5" />
+              <FaWhatsapp className="h-[22px] w-[22px]" />
             </motion.button>
             
             <motion.button
@@ -737,7 +737,7 @@ export default function EstablishmentDetailsPage() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FaTelegram className="h-5 w-5" />
+              <FaTelegram className="h-[22px] w-[22px]" />
             </motion.button>
           </div>
         </motion.div>
