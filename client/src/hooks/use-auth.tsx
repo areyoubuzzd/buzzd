@@ -152,6 +152,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Google login successful",
         description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
       });
+      // Navigate to home page after successful login
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
@@ -174,6 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Apple login successful",
         description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
       });
+      // Navigate to home page after successful login
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({

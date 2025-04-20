@@ -185,7 +185,7 @@ export default function AuthPage() {
   // Redirect to home page if the user is already logged in
   if (user) {
     setTimeout(() => {
-      setLocation("/");
+      navigate("/");
     }, 100); // Small delay to ensure state is updated
     return <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">

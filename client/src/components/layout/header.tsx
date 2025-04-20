@@ -40,17 +40,50 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center">
-            {/* For demo purposes, use a guest user */}
-            <Button 
-              variant="ghost" 
-              className="flex items-center text-[#F4F4F9]"
-              style={{ 
-                border: '1px solid rgba(244, 244, 249, 0.3)'
-              }}
-            >
-              <span className="text-sm mr-1">Hi Guest</span>
-              <FiUser className="h-5 w-5" />
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center text-[#232946]"
+                  >
+                    <span className="text-sm mr-1">
+                      Hi {user.displayName || user.username || 'User'}
+                    </span>
+                    {user.photoUrl ? (
+                      <img 
+                        src={user.photoUrl} 
+                        alt={user.displayName || user.username || 'User'} 
+                        className="h-6 w-6 rounded-full"
+                      />
+                    ) : (
+                      <FiUser className="h-5 w-5" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <FiUser className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <FiLogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="flex items-center text-[#232946]"
+                onClick={() => navigate("/auth")}
+              >
+                <span className="text-sm mr-1">Hi Guest</span>
+                <FiUser className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
