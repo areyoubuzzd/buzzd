@@ -717,10 +717,10 @@ export default function EstablishmentDetailsPage() {
         }}
       >
         <motion.div 
-          className="bg-white rounded-full shadow-lg mx-auto flex items-center justify-between px-5 py-3"
+          className="bg-white rounded-full shadow-lg mx-auto flex items-center justify-between px-4 py-2"
           whileHover={{ scale: 1.02 }}
         >
-          <span className="text-gray-800 font-medium mr-2">Share this spot with your friends</span>
+          <span className="text-gray-800 text-sm mr-2">Share this spot with your friends</span>
           <div className="flex items-center space-x-3">
             <motion.button
               onClick={handleShareViaWhatsApp}
@@ -728,7 +728,7 @@ export default function EstablishmentDetailsPage() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FaWhatsapp className="h-6 w-6" />
+              <FaWhatsapp className="h-5 w-5" />
             </motion.button>
             
             <motion.button
@@ -737,7 +737,7 @@ export default function EstablishmentDetailsPage() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FaTelegram className="h-6 w-6" />
+              <FaTelegram className="h-5 w-5" />
             </motion.button>
           </div>
         </motion.div>
