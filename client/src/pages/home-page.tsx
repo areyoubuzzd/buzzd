@@ -1458,37 +1458,41 @@ export default function HomePage() {
                 }
               }}
             >
-              {/* Render ALL collections in their proper priority order */}
-              {collections
-                // No filtering - use the exact server-side priority values
-                .sort((a, b) => {
-                  // Sort by priority value directly
-                  return a.priority - b.priority;
-                })
-                .map((collection, index) => (
-                  <motion.div
-                    key={`collection-${collection.name}-${index}`}
-                    variants={{
-                      hidden: { opacity: 0, y: 20 },
-                      visible: { 
-                        opacity: 1, 
-                        y: 0,
-                        transition: {
-                          type: "spring", 
-                          duration: 0.6
+              {/* Show loading skeletons when data is being fetched */}
+              {isLoading ? (
+                <CollectionsLoadingSkeleton />
+              ) : (
+                /* Render collections in their proper priority order when data is available */
+                collections
+                  // No filtering - use the exact server-side priority values
+                  .sort((a, b) => {
+                    // Sort by priority value directly
+                    return a.priority - b.priority;
+                  })
+                  .map((collection, index) => (
+                    <motion.div
+                      key={`collection-${collection.name}-${index}`}
+                      variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        visible: { 
+                          opacity: 1, 
+                          y: 0,
+                          transition: {
+                            type: "spring", 
+                            duration: 0.6
+                          }
                         }
-                      }
-                    }}
-                  >
-                    <CollectionRow
-                      title={collection.name}
-                      description={collection.description}
-                      deals={collection.deals}
-                      userLocation={location}
-                    />
-                  </motion.div>
-                ))
-              }
+                      }}
+                    >
+                      <CollectionRow
+                        title={collection.name}
+                        description={collection.description}
+                        deals={collection.deals}
+                        userLocation={location}
+                      />
+                    </motion.div>
+                  ))
+              )}
             </motion.div>
           </div>
         </motion.div>
