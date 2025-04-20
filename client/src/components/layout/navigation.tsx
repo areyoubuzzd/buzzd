@@ -1,8 +1,8 @@
 import { useLocation, Link } from "wouter";
-import { FiUser } from "react-icons/fi";
 import { FaBuilding } from "react-icons/fa";
 import { GiBeerStein } from "react-icons/gi";
-import { IoWineSharp, IoFlash } from "react-icons/io5";
+import { IoFlash } from "react-icons/io5";
+import { FiBarChart2 } from "react-icons/fi";
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -29,19 +29,13 @@ export default function Navigation() {
         <Link href="/beer">
           <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/beer") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
             <GiBeerStein className={`h-6 w-6 ${isActive("/beer") ? "transform scale-110" : ""}`} />
-            <span className={`text-xs mt-1 ${isActive("/beer") ? "font-bold" : ""}`}>Beer</span>
+            <span className={`text-xs mt-1 ${isActive("/beer") ? "font-bold" : ""}`}>Nearby</span>
           </div>
         </Link>
-        <Link href="/wine-spirits">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/wine-spirits") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
-            <IoWineSharp className={`h-6 w-6 ${isActive("/wine-spirits") ? "transform scale-110" : ""}`} />
-            <span className={`text-xs mt-1 ${isActive("/wine-spirits") ? "font-bold" : ""}`}>Wine / Spirits</span>
-          </div>
-        </Link>
-        <Link href="/profile">
-          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/profile") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
-            <FiUser className={`h-6 w-6 ${isActive("/profile") ? "transform scale-110" : ""}`} />
-            <span className={`text-xs mt-1 ${isActive("/profile") ? "font-bold" : ""}`}>Profile</span>
+        <Link href="/savings">
+          <div className={`flex flex-col items-center justify-center cursor-pointer ${isActive("/savings") ? "text-[#232946] font-bold" : "text-[#232946]"}`}>
+            <FiBarChart2 className={`h-6 w-6 ${isActive("/savings") ? "transform scale-110" : ""}`} />
+            <span className={`text-xs mt-1 ${isActive("/savings") ? "font-bold" : ""}`}>Savings</span>
           </div>
         </Link>
       </div>

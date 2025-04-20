@@ -64,10 +64,24 @@ export default function Header() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem onClick={() => navigate("/savings")}>
                     <FiUser className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>My Savings</span>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/terms")}>
+                    <FiFile className="mr-2 h-4 w-4" />
+                    <span>Terms and Conditions</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/privacy")}>
+                    <FiShield className="mr-2 h-4 w-4" />
+                    <span>Privacy Policy</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/contact")}>
+                    <FiMail className="mr-2 h-4 w-4" />
+                    <span>Contact Us</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <FiLogOut className="mr-2 h-4 w-4" />
                     <span>Logout</span>

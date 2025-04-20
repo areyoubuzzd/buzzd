@@ -9,7 +9,7 @@ import ProfilePage from "@/pages/profile-page";
 import SavedDealsPage from "@/pages/saved-deals-page";
 import SearchPage from "@/pages/search-page";
 import BeerPage from "@/pages/beer-page";
-import WineSpiritsPage from "@/pages/wine-spirits-page";
+import SavingsPage from "@/pages/savings-page";
 import OffersPage from "@/pages/offers-page";
 import ModernDealsPage from "@/pages/modern-deals-page";
 import CloudinaryTestPage from "@/pages/cloudinary-test";
@@ -40,7 +40,7 @@ function Router() {
       <Route path="/deal/:id" component={DealDetailsPage} />
       <Route path="/search" component={SearchPage} />
       <Route path="/beer" component={BeerPage} />
-      <Route path="/wine-spirits" component={WineSpiritsPage} />
+      <Route path="/savings" component={SavingsPage} />
       <Route path="/restaurants" component={RestaurantsPage} />
       <Route path="/establishments/:id" component={EstablishmentDetailsPage} />
       <Route path="/offers" component={OffersPage} />
