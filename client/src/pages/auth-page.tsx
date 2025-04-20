@@ -134,25 +134,76 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     if (!firebaseReady) {
       console.error("Firebase is not properly configured");
+      toast({
+        title: "Configuration Error",
+        description: "Authentication service is not properly configured",
+        variant: "destructive",
+      });
       return;
     }
     
     try {
+      console.log("Starting Google sign-in process...");
       const result = await signInWithGoogle();
-      console.log("Google sign-in successful:", result.user.uid);
+      console.log("Google sign-in successful:", {
+        uid: result.user.uid,
+        email: result.user.email,
+        displayName: result.user.displayName
+      });
       
       if (result.user) {
         // Get the ID token
         const idToken = await result.user.getIdToken();
         
-        // Send to backend
+        // Send to backend with all necessary user information
         googleLoginMutation.mutate({ 
           authProvider: "google",
-          idToken 
+          idToken,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          photoUrl: result.user.photoURL,
+          authProviderId: result.user.uid
+        }, {
+          onSuccess: (data) => {
+            console.log("Backend authentication successful:", data);
+            toast({
+              title: "Success!",
+              description: `Welcome, ${data.displayName || data.email}!`,
+              variant: "default",
+            });
+            
+            // Add slight delay before redirect to ensure state is updated
+            setTimeout(() => {
+              navigate("/");
+            }, 500);
+          },
+          onError: (error) => {
+            console.error("Backend authentication failed:", error);
+            toast({
+              title: "Authentication Failed",
+              description: error.message || "Could not complete login process",
+              variant: "destructive",
+            });
+          }
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google sign-in error:", error);
+      
+      let errorMessage = "Failed to sign in with Google";
+      if (error.code === "auth/unauthorized-domain") {
+        errorMessage = "This domain is not authorized for authentication. Please check Firebase configuration.";
+      } else if (error.code === "auth/popup-closed-by-user") {
+        errorMessage = "Sign-in cancelled. Please try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Authentication Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
   
@@ -160,25 +211,75 @@ export default function AuthPage() {
   const handleAppleSignIn = async () => {
     if (!firebaseReady) {
       console.error("Firebase is not properly configured");
+      toast({
+        title: "Configuration Error",
+        description: "Authentication service is not properly configured",
+        variant: "destructive",
+      });
       return;
     }
     
     try {
+      console.log("Starting Apple sign-in process...");
       const result = await signInWithApple();
-      console.log("Apple sign-in successful:", result.user.uid);
+      console.log("Apple sign-in successful:", {
+        uid: result.user.uid,
+        email: result.user.email,
+        displayName: result.user.displayName
+      });
       
       if (result.user) {
         // Get the ID token
         const idToken = await result.user.getIdToken();
         
-        // Send to backend
+        // Send to backend with all necessary user information
         appleLoginMutation.mutate({ 
           authProvider: "apple",
-          idToken 
+          idToken,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          authProviderId: result.user.uid
+        }, {
+          onSuccess: (data) => {
+            console.log("Backend authentication successful:", data);
+            toast({
+              title: "Success!",
+              description: `Welcome, ${data.displayName || data.email}!`,
+              variant: "default",
+            });
+            
+            // Add slight delay before redirect to ensure state is updated
+            setTimeout(() => {
+              navigate("/");
+            }, 500);
+          },
+          onError: (error) => {
+            console.error("Backend authentication failed:", error);
+            toast({
+              title: "Authentication Failed",
+              description: error.message || "Could not complete login process",
+              variant: "destructive",
+            });
+          }
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Apple sign-in error:", error);
+      
+      let errorMessage = "Failed to sign in with Apple";
+      if (error.code === "auth/unauthorized-domain") {
+        errorMessage = "This domain is not authorized for authentication. Please check Firebase configuration.";
+      } else if (error.code === "auth/popup-closed-by-user") {
+        errorMessage = "Sign-in cancelled. Please try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Authentication Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 

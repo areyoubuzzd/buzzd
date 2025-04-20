@@ -154,9 +154,15 @@ export function setupAuth(app: Express) {
   // Google authentication
   app.post("/api/auth/google", async (req, res, next) => {
     try {
+      console.log("Received Google auth request with data:", { 
+        ...req.body, 
+        idToken: req.body.idToken ? "REDACTED" : undefined 
+      });
+      
       const { idToken, authProvider } = req.body;
       
       if (!idToken || authProvider !== 'google') {
+        console.log("Invalid Google auth request parameters");
         return res.status(400).json({ message: "Invalid request parameters" });
       }
       
@@ -168,8 +174,15 @@ export function setupAuth(app: Express) {
         email: req.body.email || 'google_user@example.com',
         name: req.body.displayName || 'Google User',
         picture: req.body.photoUrl || null,
-        sub: `google_${Date.now()}`, // In a real app, this would be the Google user ID
+        sub: req.body.authProviderId || `google_${Date.now()}`, // In a real app, this would be the Google user ID
       };
+      
+      console.log("Google auth token payload:", {
+        email: tokenPayload.email,
+        name: tokenPayload.name,
+        sub: tokenPayload.sub,
+        hasPicture: !!tokenPayload.picture
+      });
       
       // Check if user exists with this Google ID
       let user = await storage.getUserByProviderId('google', tokenPayload.sub);
