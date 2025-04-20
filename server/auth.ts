@@ -38,8 +38,16 @@ export function setupAuth(app: Express) {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: 'lax' // 'lax' is a good balance for most applications
     }
   };
+  
+  console.log("Setting up authentication with session settings:", {
+    store: !!storage.sessionStore,
+    cookieSecure: sessionSettings.cookie?.secure,
+    cookieSameSite: sessionSettings.cookie?.sameSite,
+    cookieMaxAge: sessionSettings.cookie?.maxAge
+  });
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
@@ -367,9 +375,25 @@ export function setupAuth(app: Express) {
 
   // Get current user
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log("GET /api/user - Session info:", {
+      sessionID: req.sessionID,
+      authenticated: req.isAuthenticated(),
+      user: req.user ? { id: req.user.id, email: req.user.email } : null
+    });
+    
+    if (!req.isAuthenticated()) {
+      console.log("User not authenticated, returning 401");
+      return res.sendStatus(401);
+    }
+    
     // Don't send the password hash to the client
     const { password, ...userWithoutPassword } = req.user;
+    console.log("Returning authenticated user:", {
+      id: userWithoutPassword.id,
+      email: userWithoutPassword.email,
+      authProvider: userWithoutPassword.authProvider
+    });
+    
     res.json(userWithoutPassword);
   });
 
