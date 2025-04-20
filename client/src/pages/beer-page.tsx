@@ -55,23 +55,21 @@ export default function BeerPage() {
   // Get location from context
   const { location, updateLocation } = useLocation();
 
-  // Fetch all beer deals from the API
+  // Fetch all deals from the API with 10km radius
   const { data: dealsData, isLoading } = useQuery({
-    queryKey: ['/api/deals/collections/all', { lat: location.lat, lng: location.lng }],
+    queryKey: ['/api/deals/collections/all', { lat: location.lat, lng: location.lng, radius: 10 }],
     enabled: !!location.lat,
   });
 
-  // Filter to only beer deals and add active status
-  const beerDeals = React.useMemo(() => {
+  // Show ALL deals within 10km (not just beer)
+  const allNearbyDeals = React.useMemo(() => {
     if (!dealsData) return [];
     
     // Cast dealsData to Deal[] to fix TypeScript error
     const deals_array = (dealsData as Deal[]);
 
-    // Filter to only beer deals
-    let deals = deals_array.filter((deal: Deal) => 
-      deal.alcohol_category.toLowerCase() === 'beer'
-    );
+    // No filter by alcohol_category - we want ALL deals
+    let deals = deals_array;
 
     // Add isActive flag based on current time
     deals = deals.map((deal: Deal) => ({
@@ -142,11 +140,11 @@ export default function BeerPage() {
       {/* Location Header */}
       <LocationHeader onOpenFilters={() => console.log("Open filters")} />
       
-      {/* Beer Page Heading */}
+      {/* Page Heading */}
       <div className="bg-[#232946] px-4 py-6 border-b border-[#353e6b]">
         <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-white">Beer Deals</h1>
-          <p className="text-gray-300 mt-1">Find the best beer deals near you</p>
+          <h1 className="text-2xl font-bold text-white">Nearby Deals</h1>
+          <p className="text-gray-300 mt-1">Find all deals within 10km of your location</p>
         </div>
       </div>
       
@@ -156,7 +154,7 @@ export default function BeerPage() {
           <div className="relative">
             <Input
               type="text"
-              placeholder="Search beer by name, type or bar..."
+              placeholder="Search deals by name, type or bar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-10 py-2 w-full rounded-lg border-[#353e6b]"
@@ -196,14 +194,14 @@ export default function BeerPage() {
       <div className="bg-[#232946] px-4 py-2 border-b border-[#353e6b]">
         <div className="container mx-auto">
           <p className="text-sm text-gray-300">
-            {beerDeals.length} beer {beerDeals.length === 1 ? 'deal' : 'deals'} found
+            {allNearbyDeals.length} {allNearbyDeals.length === 1 ? 'deal' : 'deals'} found within 10km
             {activeOnly ? ' (active now)' : ''}
             {searchQuery ? ` for "${searchQuery}"` : ''}
           </p>
         </div>
       </div>
       
-      {/* Beer Deals List */}
+      {/* Deals List */}
       <div className="flex-1 bg-[#232946]">
         <div className="container mx-auto px-4 py-6">
           {isLoading ? (
@@ -214,18 +212,18 @@ export default function BeerPage() {
                 <div className="h-3 w-24 bg-[#353e6b] rounded"></div>
               </div>
             </div>
-          ) : beerDeals.length === 0 ? (
+          ) : allNearbyDeals.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <div className="bg-[#353e6b] p-4 rounded-full mb-4">
                 <FiFilter className="h-8 w-8 text-amber-400" />
               </div>
-              <h3 className="text-lg font-medium text-white mb-1">No beer deals found</h3>
+              <h3 className="text-lg font-medium text-white mb-1">No deals found</h3>
               <p className="text-gray-300 max-w-md">
                 {activeOnly 
-                  ? "There are no active beer deals right now. Try turning off the 'active only' filter."
+                  ? "There are no active deals right now. Try turning off the 'active only' filter."
                   : searchQuery 
-                    ? `No beer deals match "${searchQuery}". Try a different search term.`
-                    : "We couldn't find any beer deals in this area. Try changing your location."}
+                    ? `No deals match "${searchQuery}". Try a different search term.`
+                    : "We couldn't find any deals in this area. Try changing your location."}
               </p>
               {(activeOnly || searchQuery) && (
                 <div className="mt-4 flex flex-wrap gap-2 justify-center">
@@ -258,7 +256,7 @@ export default function BeerPage() {
               transition={{ duration: 0.3 }}
             >
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {beerDeals.map((deal: Deal) => (
+                {allNearbyDeals.map((deal: Deal) => (
                   <SquareDealCard 
                     key={deal.id}
                     deal={deal}
