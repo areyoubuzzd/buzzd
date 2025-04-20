@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { normalizeResponse, obfuscateRequest } from "./fieldMapping";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -12,10 +13,19 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Obfuscate field names in requests for better anti-scraping
+  const processedData = data ? obfuscateRequest(data) : undefined;
+  
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: data ? { 
+      "Content-Type": "application/json",
+      // Add API key for authorization if it exists
+      ...(localStorage.getItem('apiKey') ? { 
+        "Authorization": `Bearer ${localStorage.getItem('apiKey')}` 
+      } : {})
+    } : {},
+    body: processedData ? JSON.stringify(processedData) : undefined,
     credentials: "include",
   });
 
@@ -88,7 +98,10 @@ export const getQueryFn: <T>(options: {
         
         const json = JSON.parse(text);
         console.log(`Successfully parsed JSON. Type: ${Array.isArray(json) ? 'array' : typeof json}, Length: ${Array.isArray(json) ? json.length : 'N/A'}`);
-        return json;
+        
+        // Normalize field names from obfuscated API response
+        const normalizedData = normalizeResponse<T>(json);
+        return normalizedData;
       } catch (parseError) {
         console.error('Error parsing JSON:', parseError);
         console.error('Raw response:', text);

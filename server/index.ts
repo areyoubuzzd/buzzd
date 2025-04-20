@@ -6,9 +6,23 @@ import path from "path";
 import fs from "fs";
 import sharp from "sharp";
 
+// Import anti-scraping middleware and utilities
+import { apiProtection, honeypotCheck } from "./middlewares/api-protection";
+import { requestLogger } from "./middlewares/request-logger";
+import { obfuscateResponseMiddleware, deobfuscateRequestMiddleware } from "./utils/data-obfuscator";
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Apply request logging to detect scrapers
+app.use(requestLogger);
+
+// Apply API protection to specific routes
+// This will be applied in the route registration section
+
+// For POST requests, check for honeypot fields
+app.post('*', honeypotCheck);
 
 // Explicitly serve images from the public/images directory
 const imagePath = path.join(process.cwd(), 'public/images');
@@ -166,45 +180,81 @@ app.use((req, res, next) => {
   }
 
   // Register API routes with explicit content-type
-  // First regular API routes
-  app.use('/api/deals', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, (await import('./routes/deals')).default);
+  // First regular API routes - protected and with data obfuscation
+  app.use('/api/deals', 
+    (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    }, 
+    apiProtection(), // Require authentication or valid API key
+    obfuscateResponseMiddleware, // Obfuscate field names in responses
+    deobfuscateRequestMiddleware, // Deobfuscate field names in requests
+    (await import('./routes/deals')).default
+  );
   
-  app.use('/api/establishments', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, (await import('./routes/establishments')).default);
+  app.use('/api/establishments', 
+    (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    }, 
+    apiProtection(), // Require authentication or valid API key
+    obfuscateResponseMiddleware, // Obfuscate field names in responses
+    deobfuscateRequestMiddleware, // Deobfuscate field names in requests
+    (await import('./routes/establishments')).default
+  );
   
-  // Register the locations API routes
-  app.use('/api/locations', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, (await import('./routes/locations')).default);
+  // Register the locations API routes - less sensitive, but still rate limited
+  app.use('/api/locations', 
+    (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    },
+    apiProtection(true), // Only apply rate limiting, no auth required
+    (await import('./routes/locations')).default
+  );
   
-  // Also register V2 API routes 
-  app.use('/api/v2/deals', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, (await import('./routes/deals')).default);
+  // Also register V2 API routes with same protections
+  app.use('/api/v2/deals', 
+    (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    },
+    apiProtection(), // Require authentication or valid API key
+    obfuscateResponseMiddleware, // Obfuscate field names in responses
+    deobfuscateRequestMiddleware, // Deobfuscate field names in requests
+    (await import('./routes/deals')).default
+  );
   
-  app.use('/api/v2/establishments', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, (await import('./routes/establishments')).default);
+  app.use('/api/v2/establishments', 
+    (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    },
+    apiProtection(), // Require authentication or valid API key
+    obfuscateResponseMiddleware, // Obfuscate field names in responses
+    deobfuscateRequestMiddleware, // Deobfuscate field names in requests
+    (await import('./routes/establishments')).default
+  );
   
   // Register image generation routes
-  app.use('/api/image-generation', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, (await import('./routes/imageGenerationRoutes')).default);
+  app.use('/api/image-generation', 
+    (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    },
+    apiProtection(),
+    (await import('./routes/imageGenerationRoutes')).default
+  );
   
-  // Register collections routes
-  app.use('/api/collections', (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  }, (await import('./routes/collections')).default);
+  // Register collections routes - public endpoints, but still rate-limited
+  app.use('/api/collections', 
+    (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    },
+    apiProtection(true), // Public endpoint, just use rate limiting
+    (await import('./routes/collections')).default
+  );
   
   // Register Cloudinary image routes
   app.use('/', (req, res, next) => {

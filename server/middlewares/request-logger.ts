@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 // In-memory store for tracking IP request patterns
 interface RequestTracker {
@@ -23,8 +24,12 @@ const suspiciousPatterns = [
   { name: 'sequential-scanning', sequential: true, threshold: 10, timeWindow: 300000 }, // Sequential ID access
 ];
 
+// Get directory name in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Log directory
-const logDir = path.join(__dirname, '../../logs');
+const logDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
@@ -61,7 +66,10 @@ const logSuspiciousActivity = (ip: string, pattern: string, details: string) => 
 };
 
 // Check for suspicious patterns
-const detectSuspiciousPatterns = (ip: string) => {
+const detectSuspiciousPatterns = (ip: string | undefined) => {
+  // Ensure IP is valid
+  if (!ip || ip === 'unknown') return;
+  
   const tracker = requestTracker[ip];
   if (!tracker || tracker.requests.length < 5) return;
   
@@ -89,7 +97,7 @@ const detectSuspiciousPatterns = (ip: string) => {
   
   // Check for data harvesting
   const harvestingPattern = suspiciousPatterns.find(p => p.name === 'data-harvesting');
-  if (harvestingPattern) {
+  if (harvestingPattern && harvestingPattern.urlPatterns) {
     const dataRequests = tracker.requests.filter(
       req => now - req.timestamp < harvestingPattern.timeWindow && 
              harvestingPattern.urlPatterns?.some(pattern => req.url.includes(pattern))
@@ -147,7 +155,7 @@ const detectSuspiciousPatterns = (ip: string) => {
 };
 
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-  const clientIp = req.ip;
+  const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
   const url = req.originalUrl;
   const userAgent = req.headers['user-agent'] || 'Unknown';
   const timestamp = Date.now();
@@ -164,7 +172,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   requestTracker[clientIp].requests.push({
     url,
     timestamp,
-    userAgent
+    userAgent: typeof userAgent === 'string' ? userAgent : Array.isArray(userAgent) ? userAgent[0] : 'Unknown'
   });
   
   // Check for suspicious patterns

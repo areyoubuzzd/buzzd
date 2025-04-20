@@ -19,7 +19,7 @@ const fieldMappings = {
   standard_price: 'sp',
   happy_hour_price: 'hp',
   savings: 'sv',
-  savings_percentage: 'sp',
+  savings_percentage: 'sp2', // Changed to sp2 to avoid collision
   valid_days: 'vd',
   hh_start_time: 'st',
   hh_end_time: 'et',
@@ -41,7 +41,7 @@ const fieldMappings = {
   // Collection fields
   slug: 'sl',
   priority: 'pr',
-  active: 'ac',
+  active: 'ac2', // Changed to ac2 to avoid collision with alcohol_category
   
   // Add more field mappings as needed
 };

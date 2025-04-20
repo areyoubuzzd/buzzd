@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 
 // Generate a HMAC signature to validate requests
 const generateSignature = (data: any, secret: string): string => {
@@ -24,10 +25,10 @@ setInterval(() => {
 export const apiProtection = (publicEndpoints: boolean = false) => {
   return (req: Request, res: Response, next: NextFunction) => {
     // Log request for monitoring
-    console.log(`[API Access] ${req.ip} → ${req.method} ${req.originalUrl}`);
+    console.log(`[API Access] ${req.ip || 'unknown'} → ${req.method} ${req.originalUrl}`);
     
     // Add the request to our rate limiting tracker
-    const clientIp = req.ip;
+    const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
     const now = Date.now();
     
     if (!requestCounts[clientIp]) {
@@ -56,7 +57,7 @@ export const apiProtection = (publicEndpoints: boolean = false) => {
     }
     
     // For protected endpoints, check authentication
-    if (req.isAuthenticated()) {
+    if (req.isAuthenticated && req.isAuthenticated()) {
       // User is logged in, allow access
       return next();
     }
@@ -74,10 +75,13 @@ export const apiProtection = (publicEndpoints: boolean = false) => {
       }
       
       // Or validate using timestamp and signature (for external apps)
-      const timestamp = req.headers['x-timestamp'] as string;
-      const signature = req.headers['x-signature'] as string;
+      const timestampHeader = req.headers['x-timestamp'];
+      const signatureHeader = req.headers['x-signature'];
       
-      if (timestamp && signature) {
+      if (timestampHeader && signatureHeader) {
+        const timestamp = Array.isArray(timestampHeader) ? timestampHeader[0] : timestampHeader;
+        const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
+        
         // Check if timestamp is recent (within 5 minutes)
         const timestampNum = parseInt(timestamp, 10);
         if (isNaN(timestampNum) || now - timestampNum > 300000) { // 5 minutes

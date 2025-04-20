@@ -8,19 +8,20 @@ import React from 'react';
  */
 export const Honeypot = () => {
   return (
-    <div className="honeypot-container" aria-hidden="true">
-      <style jsx>{`
-        .honeypot-container {
-          position: absolute;
-          left: -9999px;
-          top: -9999px;
-          z-index: -1;
-          opacity: 0;
-          height: 0;
-          width: 0;
-          overflow: hidden;
-        }
-      `}</style>
+    <div 
+      className="honeypot-container" 
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        left: "-9999px",
+        top: "-9999px",
+        zIndex: -1,
+        opacity: 0,
+        height: 0,
+        width: 0,
+        overflow: "hidden"
+      }}
+    >
       <label htmlFor="robot-check">
         Leave this field empty
       </label>
