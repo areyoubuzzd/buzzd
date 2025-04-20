@@ -1,13 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
-  signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider, 
   OAuthProvider,
-  signInWithPhoneNumber,
-  RecaptchaVerifier,
-  type ConfirmationResult,
-  type Auth
+  type Auth,
+  type UserCredential
 } from "firebase/auth";
 import { firebaseConfig } from "../firebase-config";
 
@@ -30,16 +29,13 @@ try {
 // Google authentication
 const googleProvider = new GoogleAuthProvider();
 
-export async function signInWithGoogle(): Promise<string> {
+export function signInWithGoogle(): void {
   if (!auth) {
     throw new Error("Firebase authentication is not initialized");
   }
   
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    // Get the ID token
-    const idToken = await result.user.getIdToken();
-    return idToken;
+    signInWithRedirect(auth, googleProvider);
   } catch (error: any) {
     console.error("Google sign-in error:", error);
     throw new Error(error?.message || "Failed to sign in with Google");
@@ -49,80 +45,32 @@ export async function signInWithGoogle(): Promise<string> {
 // Apple authentication
 const appleProvider = new OAuthProvider('apple.com');
 
-export async function signInWithApple(): Promise<string> {
+export function signInWithApple(): void {
   if (!auth) {
     throw new Error("Firebase authentication is not initialized");
   }
   
   try {
-    const result = await signInWithPopup(auth, appleProvider);
-    // Get the ID token
-    const idToken = await result.user.getIdToken();
-    return idToken;
+    signInWithRedirect(auth, appleProvider);
   } catch (error: any) {
     console.error("Apple sign-in error:", error);
     throw new Error(error?.message || "Failed to sign in with Apple");
   }
 }
 
-// Phone authentication
-let recaptchaVerifier: RecaptchaVerifier | null = null;
-let confirmationResult: ConfirmationResult | null = null;
-
-export function initRecaptcha(elementId: string): boolean {
+// Get redirect result
+export async function getAuthRedirectResult(): Promise<UserCredential | null> {
   if (!auth) {
     console.warn("Firebase authentication is not initialized");
-    return false;
+    return null;
   }
   
   try {
-    if (!recaptchaVerifier) {
-      recaptchaVerifier = new RecaptchaVerifier(auth, elementId, {
-        size: 'invisible',
-        callback: () => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-          console.log("reCAPTCHA verified");
-        }
-      });
-    }
-    return true;
+    const result = await getRedirectResult(auth);
+    return result;
   } catch (error: any) {
-    console.error("Failed to initialize reCAPTCHA:", error);
-    return false;
-  }
-}
-
-export async function sendPhoneVerificationCode(phoneNumber: string): Promise<boolean> {
-  if (!auth) {
-    throw new Error("Firebase authentication is not initialized");
-  }
-  
-  if (!recaptchaVerifier) {
-    throw new Error("reCAPTCHA not initialized");
-  }
-  
-  try {
-    confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
-    return true;
-  } catch (error: any) {
-    console.error("Phone verification error:", error);
-    throw new Error(error?.message || "Failed to send verification code");
-  }
-}
-
-export async function verifyPhoneCode(verificationCode: string): Promise<string> {
-  if (!confirmationResult) {
-    throw new Error("No verification was sent");
-  }
-  
-  try {
-    const result = await confirmationResult.confirm(verificationCode);
-    // Get the ID token
-    const idToken = await result.user.getIdToken();
-    return idToken;
-  } catch (error: any) {
-    console.error("Code verification error:", error);
-    throw new Error(error?.message || "Invalid verification code");
+    console.error("Error getting redirect result:", error);
+    throw error;
   }
 }
 
@@ -131,4 +79,28 @@ export function isFirebaseConfigured(): boolean {
   return !!(app && auth && firebaseConfig.apiKey && 
             firebaseConfig.projectId && 
             firebaseConfig.appId);
+}
+
+// Helper function for checking Firebase configuration details
+export function checkFirebaseConfig(): { 
+  hasApiKey: boolean; 
+  hasProjectId: boolean; 
+  hasAppId: boolean; 
+  isComplete: boolean; 
+} {
+  const hasApiKey = !!firebaseConfig.apiKey;
+  const hasProjectId = !!firebaseConfig.projectId;
+  const hasAppId = !!firebaseConfig.appId;
+  
+  console.log("Checking Firebase configuration...");
+  console.log("API Key available:", hasApiKey);
+  console.log("Project ID available:", hasProjectId);
+  console.log("App ID available:", hasAppId);
+  
+  return {
+    hasApiKey,
+    hasProjectId,
+    hasAppId,
+    isComplete: hasApiKey && hasProjectId && hasAppId
+  };
 }

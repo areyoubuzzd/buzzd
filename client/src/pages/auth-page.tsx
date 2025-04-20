@@ -52,8 +52,7 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/header";
 import { z } from "zod";
 import logoBlack from "@assets/logo_black.png";
-import { isFirebaseConfigured, signInWithGoogle, signInWithApple, initRecaptcha, sendPhoneVerificationCode, verifyPhoneCode } from "@/lib/firebase-auth";
-import { checkFirebaseConfig } from "../firebase-config";
+import { signInWithGoogle, signInWithApple, checkFirebaseConfig, getAuthRedirectResult } from "@/lib/firebase-auth";
 
 export default function AuthPage() {
   const { 
@@ -61,14 +60,10 @@ export default function AuthPage() {
     loginMutation, 
     registerMutation, 
     googleLoginMutation, 
-    appleLoginMutation,
-    requestPhoneCodeMutation,
-    verifyPhoneCodeMutation
+    appleLoginMutation
   } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
-  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
-  const [phoneVerificationStep, setPhoneVerificationStep] = useState<'request' | 'verify'>('request');
 
   // If user is already logged in, redirect to home page
   useEffect(() => {
@@ -183,7 +178,6 @@ export default function AuthPage() {
   
   // Firebase configuration check
   const [firebaseReady, setFirebaseReady] = useState(false);
-  const recaptchaContainerRef = useRef(null);
   
   useEffect(() => {
     // Check if Firebase is configured and log the result
@@ -191,13 +185,35 @@ export default function AuthPage() {
     console.log("Firebase configuration status:", configStatus);
     setFirebaseReady(configStatus.isComplete);
     
-    // Initialize recaptcha for phone auth if Firebase is ready
-    if (configStatus.isComplete && recaptchaContainerRef.current) {
+    // Check for redirect result on page load
+    const checkRedirectResult = async () => {
       try {
-        initRecaptcha('recaptcha-container');
-      } catch (err) {
-        console.error("Failed to initialize reCAPTCHA:", err);
+        const result = await getAuthRedirectResult();
+        if (result && result.user) {
+          console.log("User signed in after redirect:", result.user.uid);
+          // Get the ID token
+          const idToken = await result.user.getIdToken();
+          const provider = result.providerId || "unknown";
+          
+          if (provider.includes("google")) {
+            googleLoginMutation.mutate({ 
+              authProvider: "google",
+              idToken 
+            });
+          } else if (provider.includes("apple")) {
+            appleLoginMutation.mutate({ 
+              authProvider: "apple",
+              idToken 
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error handling redirect:", error);
       }
+    };
+    
+    if (configStatus.isComplete) {
+      checkRedirectResult();
     }
   }, []);
   
