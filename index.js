@@ -1,56 +1,70 @@
-// Main deployment entry point (ESM version)
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
-import fs from 'fs';
+'use strict';
 
-// Get dirname equivalent in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/**
+ * Entry point for Replit deployment
+ */
 
-// Create Express application
-const app = express();
-const PORT = process.env.PORT || 3000;
+// This file uses CommonJS (require) syntax for maximum compatibility
+const fs = require('fs');
+const path = require('path');
 
-// Log environment information
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('Starting Buzzd application (ESM version)...');
-console.log('Current directory:', __dirname);
-console.log('Files in current directory:', fs.readdirSync(__dirname));
+// Log startup diagnostics
+console.log('BUZZD DEPLOYMENT STARTING...');
+console.log('Current directory:', process.cwd());
+console.log('Available files:', fs.readdirSync('.').join(', '));
 
-// Serve static files from client directory
-app.use(express.static(path.join(__dirname, 'client')));
-app.use('/assets', express.static(path.join(__dirname, 'client/assets')));
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// Choose the appropriate server file to use
+const serverOptions = [
+  './final-server.cjs',   // Preferred option
+  './server.cjs',         // Backup option
+  './deploy.cjs',         // Another backup
+  './index.cjs'           // Last resort
+];
 
-// Start the server application
-let serverCommand = 'npx tsx server/index.ts';
-console.log('Starting server with command:', serverCommand);
+let serverFile = null;
 
-const serverProcess = exec(serverCommand);
-serverProcess.stdout.on('data', (data) => console.log(`[SERVER]: ${data}`));
-serverProcess.stderr.on('data', (data) => console.error(`[SERVER ERROR]: ${data}`));
-
-// Handle server exit
-serverProcess.on('exit', (code) => {
-  console.log(`Server process exited with code ${code}`);
-  if (code !== 0) {
-    console.log('Attempting to restart server...');
-    exec(serverCommand);
+// Find the first server file that exists
+for (const option of serverOptions) {
+  if (fs.existsSync(option)) {
+    serverFile = option;
+    console.log(`Found server file: ${option}`);
+    break;
   }
-});
+}
 
-// For client-side routing - all routes that don't start with /api go to index.html
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    return res.sendFile(path.join(__dirname, 'client/index.html'));
+if (!serverFile) {
+  console.error('No server file found! Creating a simple one...');
+  
+  // Create a simple Express server as a fallback
+  const express = require('express');
+  const app = express();
+  const PORT = process.env.PORT || 3000;
+  
+  // Serve static files if they exist
+  if (fs.existsSync('client')) {
+    app.use(express.static('client'));
   }
-  // Let the server process handle API requests
-});
-
-// Start the Express server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Static file server listening on port ${PORT}`);
-  console.log('Ready for deployment!');
-});
+  
+  // Serve a simple message
+  app.get('*', (req, res) => {
+    res.send(`
+      <h1>Buzzd App</h1>
+      <p>No server file found. Please check your deployment configuration.</p>
+      <p>Current directory: ${process.cwd()}</p>
+      <p>Files: ${fs.readdirSync('.').join(', ')}</p>
+    `);
+  });
+  
+  // Start the server
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Emergency fallback server running on port ${PORT}`);
+  });
+} else {
+  // Load and run the selected server file
+  console.log(`Loading server from ${serverFile}...`);
+  try {
+    require(serverFile);
+  } catch (error) {
+    console.error(`Error loading server from ${serverFile}:`, error);
+  }
+}

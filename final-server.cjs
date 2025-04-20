@@ -1,109 +1,148 @@
 /**
- * Ultimate Final Deployment Fix for Buzzd App
- * Simple, guaranteed-to-work approach
+ * Final Production Server for Buzzd App
+ * This solution first builds the client, then sets up a server
+ * that handles both static file serving and API requests
  */
 
-// Import using CommonJS to ensure compatibility
 const express = require('express');
 const path = require('path');
-const { spawn } = require('child_process');
 const fs = require('fs');
+const { execSync, spawn } = require('child_process');
 
-// Create Express application
+// Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Print diagnostic information
-console.log('----- DEPLOYMENT SERVER DIAGNOSTICS -----');
-console.log('Current directory:', __dirname);
-console.log('Directory contents:', fs.readdirSync(__dirname).join(', '));
-if (fs.existsSync(path.join(__dirname, 'client'))) {
-  console.log('Client directory exists');
-  console.log('Client directory contents:', fs.readdirSync(path.join(__dirname, 'client')).join(', '));
-} else {
-  console.log('Client directory does NOT exist!');
+// Path to static files (will be filled later)
+let staticPath = '';
+
+// Log startup information
+console.log(`
+======================================================
+  BUZZD PRODUCTION SERVER - FINAL VERSION
+======================================================
+Environment: ${process.env.NODE_ENV || 'development'}
+Date: ${new Date().toISOString()}
+Current directory: ${process.cwd()}
+Files in current directory: ${fs.readdirSync('.').join(', ')}
+======================================================
+`);
+
+// Build the client if it hasn't been built already
+if (!fs.existsSync('client/dist') && fs.existsSync('client/src')) {
+  try {
+    console.log('Building client...');
+    execSync('npm run build', { stdio: 'inherit' });
+    console.log('Client built successfully!');
+  } catch (error) {
+    console.error('Error building client:', error);
+  }
 }
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('----------------------------------------');
 
-// Setup middleware for serving static files
-app.use(express.static(path.join(__dirname, 'client')));
-app.use('/assets', express.static(path.join(__dirname, 'client/assets')));
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// Determine where to serve static files from
+if (fs.existsSync('client/dist')) {
+  staticPath = 'client/dist';
+  console.log('Using client/dist for static files');
+} else if (fs.existsSync('dist')) {
+  staticPath = 'dist';
+  console.log('Using dist for static files');
+} else if (fs.existsSync('client')) {
+  staticPath = 'client';
+  console.log('Using client directory for static files');
+} else {
+  console.log('No static file directory found!');
+  // Create minimal client directory
+  fs.mkdirSync('client', { recursive: true });
+  staticPath = 'client';
+  
+  // Create a minimal index.html
+  const minimalHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buzzd - Happy Hour Deals</title>
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 { color: #e63946; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <h1>Buzzd</h1>
+    <p>The Singapore Happy Hour Deals App</p>
+    <p>Missing frontend files. Please check deployment configuration.</p>
+  </div>
+</body>
+</html>
+  `;
+  fs.writeFileSync(path.join(staticPath, 'index.html'), minimalHtml);
+}
 
-// Start the application server
-console.log('Starting application server...');
+// Serve static files
+app.use(express.static(staticPath));
+
+// Serve additional static assets
+const assetsDirs = [
+  'public',
+  'public/images',
+  'assets',
+  path.join(staticPath, 'assets')
+];
+
+assetsDirs.forEach(dir => {
+  if (fs.existsSync(dir)) {
+    app.use('/' + path.basename(dir), express.static(dir));
+    console.log(`Serving assets from ${dir}`);
+  }
+});
+
+// Start the API server
+console.log('Starting API server...');
 const serverProcess = spawn('npx', ['tsx', 'server/index.ts'], {
-  stdio: 'pipe',
-  shell: true
+  stdio: 'inherit',
+  shell: true,
+  env: {
+    ...process.env,
+    PORT: '5000' // API server runs on a different port
+  }
 });
 
-// Pipe server process output to console
-serverProcess.stdout.on('data', (data) => {
-  process.stdout.write(`[SERVER]: ${data}`);
+serverProcess.on('error', (err) => {
+  console.error('API server error:', err);
 });
 
-serverProcess.stderr.on('data', (data) => {
-  process.stderr.write(`[SERVER ERROR]: ${data}`);
-});
-
-// Handle server exit
-serverProcess.on('exit', (code) => {
-  console.log(`Server process exited with code ${code}`);
-});
-
-// Client-side routing - send all non-API requests to index.html
+// For client-side routing, all non-API routes go to index.html
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
-    console.log(`Serving index.html for path: ${req.path}`);
+    // Try to find index.html in various places
+    const possibleLocations = [
+      path.join(staticPath, 'index.html'),
+      'client/index.html',
+      'dist/index.html',
+      'index.html'
+    ];
     
-    // First check if the file exists to avoid errors
-    const indexPath = path.join(__dirname, 'client/index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      // If index.html doesn't exist, create a simple HTML response
-      res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Buzzd App</title>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-            .error { color: #e74c3c; margin: 20px 0; }
-            .info { color: #3498db; margin: 20px 0; }
-            pre { text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; }
-          </style>
-        </head>
-        <body>
-          <h1>Buzzd Application</h1>
-          <div class="error">
-            <p>The application files could not be found.</p>
-            <p>This could be due to a deployment configuration issue.</p>
-          </div>
-          <div class="info">
-            <p>Server is running at: ${req.protocol}://${req.get('host')}</p>
-            <p>Requested path: ${req.path}</p>
-          </div>
-          <pre>
-Server diagnostics:
-- Current directory: ${__dirname}
-- Client directory exists: ${fs.existsSync(path.join(__dirname, 'client'))}
-- NODE_ENV: ${process.env.NODE_ENV || 'not set'}
-          </pre>
-        </body>
-        </html>
-      `);
+    for (const location of possibleLocations) {
+      if (fs.existsSync(location)) {
+        return res.sendFile(path.resolve(location));
+      }
     }
-  } else {
-    // Let the API server handle API requests
-    res.status(404).send('API endpoint not found');
+    
+    // If index.html not found, send an error
+    res.status(404).send('Frontend files not found');
   }
 });
 
 // Start the Express server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Express server listening on port ${PORT}`);
+  console.log(`Production server running on port ${PORT}`);
+  console.log(`API server should be running on port 5000`);
 });
