@@ -179,6 +179,13 @@ app.use((req, res, next) => {
     console.error('❌ Error checking Cloudflare Images connection:', error);
   }
 
+  // Handle the /savings route directly
+  app.get('/savings', (req, res, next) => {
+    // For GET requests to /savings, just serve the app
+    res.setHeader('Content-Type', 'text/html');
+    next();
+  });
+
   // Register API routes with explicit content-type
   // First regular API routes - protected and with data obfuscation
   app.use('/api/deals', 
