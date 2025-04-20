@@ -556,10 +556,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User Savings
-  app.get("/api/user/savings", requireAuth, async (req, res) => {
+  app.get("/api/user/savings", async (req, res) => {
     try {
-      const savings = await storage.getUserSavings(req.user.id);
-      res.json({ savings });
+      if (req.isAuthenticated()) {
+        // For authenticated users, return their specific savings
+        const savings = await storage.getUserSavings(req.user.id);
+        res.json({ savings });
+      } else {
+        // For non-authenticated users, return public savings data or an empty response
+        // This allows the frontend to work without authentication
+        res.json({ savings: 0, message: "Login to track your savings" });
+      }
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
