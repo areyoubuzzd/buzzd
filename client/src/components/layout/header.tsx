@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { FiUser, FiLogOut } from "react-icons/fi";
+import { FiUser, FiLogOut, FiFile, FiShield, FiMail } from "react-icons/fi";
 import {
   DropdownMenu,
   DropdownMenuContent,
