@@ -19,40 +19,28 @@ import locationSearchRoutes from "./routes/locationSearchRoutes";
 import localImagesRouter from "./routes/local-images";
 import { db, pool } from "./db";
 import { checkConnection as checkCloudflareConnection } from "./services/cloudflare-images";
-// Import anti-scraping middleware
-import { apiProtection, honeypotCheck } from "./middlewares/api-protection";
-import { requestLogger } from "./middlewares/request-logger";
-import { obfuscateResponseMiddleware, deobfuscateRequestMiddleware } from "./utils/data-obfuscator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Apply data obfuscation to all API responses
-  app.use('/api', obfuscateResponseMiddleware);
-  
-  // Apply data deobfuscation to all incoming API requests
-  app.use('/api', deobfuscateRequestMiddleware);
-  
   // Set up authentication routes
   setupAuth(app);
   
-  // === Protected Routes (need authentication or API key) ===
-  
-  // Register the deal image upload route (needs auth)
+  // Register the deal image upload route
   app.use(uploadDealImageRouter);
   
-  // Register Cloudflare Images routes (needs auth)
+  // Register Cloudflare Images routes
   app.use(cloudflareImagesRouter);
   
-  // Register Cloudflare Direct Upload routes (needs auth)
+  // Register Cloudflare Direct Upload routes
   app.use(cloudflareDirectUploadRouter);
   
-  // Register Local Images routes (needs auth)
-  app.use('/api/local-images', apiProtection(), localImagesRouter);
+  // Register Local Images routes
+  app.use('/api/local-images', localImagesRouter);
   
-  // Register menu analysis routes (needs auth)
-  app.use('/api/menu-analysis', apiProtection(), menuAnalysisRoutes);
+  // Register menu analysis routes
+  app.use('/api/menu-analysis', menuAnalysisRoutes);
   
-  // Register image generation routes (needs auth)
-  app.use(apiProtection(), imageGenerationRoutes);
+  // Register image generation routes
+  app.use(imageGenerationRoutes);
   
   // Debug middleware for location routes
   app.use('/api/locations', (req, res, next) => {
@@ -200,37 +188,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Get user profile
-  app.get("/api/user/profile", async (req, res) => {
+  app.get("/api/user/profile", requireAuth, async (req, res) => {
     try {
-      if (req.isAuthenticated()) {
-        // For authenticated users
-        const user = await storage.getUser(req.user.id);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-        
-        // Don't send the password hash to the client
-        const { password, ...userWithoutPassword } = user;
-        
-        // Get user savings
-        const savings = await storage.getUserSavings(user.id);
-        
-        res.json({
-          ...userWithoutPassword,
-          savings
-        });
-      } else {
-        // For non-authenticated users, return guest profile
-        res.json({
-          id: 0,
-          username: "guest",
-          isGuest: true,
-          role: "user",
-          subscriptionTier: "free",
-          savings: 0,
-          dealsViewed: 0
-        });
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
+      
+      // Don't send the password hash to the client
+      const { password, ...userWithoutPassword } = user;
+      
+      // Get user savings
+      const savings = await storage.getUserSavings(user.id);
+      
+      res.json({
+        ...userWithoutPassword,
+        savings
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
@@ -570,17 +544,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User Savings
-  app.get("/api/user/savings", async (req, res) => {
+  app.get("/api/user/savings", requireAuth, async (req, res) => {
     try {
-      if (req.isAuthenticated()) {
-        // For authenticated users, return their specific savings
-        const savings = await storage.getUserSavings(req.user.id);
-        res.json({ savings });
-      } else {
-        // For non-authenticated users, return public savings data or an empty response
-        // This allows the frontend to work without authentication
-        res.json({ savings: 0, message: "Login to track your savings" });
-      }
+      const savings = await storage.getUserSavings(req.user.id);
+      res.json({ savings });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });

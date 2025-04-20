@@ -3,14 +3,8 @@ import { storage } from '../storage';
 import { db } from '../db';
 import { deals, establishments } from '@shared/schema';
 import { eq, and, asc, sql, gte, lte } from 'drizzle-orm';
-import { apiProtection } from '../middlewares/api-protection';
-import { obfuscateResponseMiddleware, deobfuscateRequestMiddleware } from '../utils/data-obfuscator';
 
 const router = express.Router();
-
-// Apply data transformation (obfuscation/deobfuscation) middleware to all routes
-router.use(obfuscateResponseMiddleware);
-router.use(deobfuscateRequestMiddleware);
 
 /**
  * Get active deals for the nearest establishments
@@ -21,7 +15,7 @@ router.use(deobfuscateRequestMiddleware);
  * - lng: longitude of user location
  * - radius: radius in kilometers (default: 1km)
  */
-router.get('/nearby', apiProtection(true), async (req, res) => {
+router.get('/nearby', async (req, res) => {
   try {
     const latitude = parseFloat(req.query.lat as string);
     const longitude = parseFloat(req.query.lng as string);
@@ -49,7 +43,7 @@ router.get('/nearby', apiProtection(true), async (req, res) => {
  * This is the first step of the deal-to-restaurant workflow
  * When a user clicks on a deal card, they see full deal details
  */
-router.get('/:id', apiProtection(true), async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const dealId = parseInt(req.params.id);
     if (isNaN(dealId)) {
@@ -71,7 +65,7 @@ router.get('/:id', apiProtection(true), async (req, res) => {
 /**
  * Search deals
  */
-router.get('/search', apiProtection(true), async (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const query = req.query.q as string || '';
     const filters = {
@@ -97,7 +91,7 @@ router.get('/search', apiProtection(true), async (req, res) => {
  * - lng: longitude of user location (optional)
  * - radius: radius in kilometers (optional, default: 5km)
  */
-router.get('/collections/all', apiProtection(true), async (req, res) => {
+router.get('/collections/all', async (req, res) => {
   try {
     // Extra debug logging
     console.log('Collections/all API called, headers:', req.headers);
@@ -269,7 +263,7 @@ router.get('/collections/all', apiProtection(true), async (req, res) => {
  * Get deals by collection
  * This endpoint fetches deals that belong to a specific collection
  */
-router.get('/collections/:collectionName', apiProtection(true), async (req, res) => {
+router.get('/collections/:collectionName', async (req, res) => {
   try {
     const collectionName = req.params.collectionName;
     
@@ -441,8 +435,8 @@ router.get('/collections/:collectionName', apiProtection(true), async (req, res)
     console.log(`SPLIT DEALS: ${activeDeals.length} active deals, ${inactiveDeals.length} inactive deals`);
     
     // Now sort each array individually by secondary criteria
-    const sortDealsBySecondaryFactors = (deals: any[]): any[] => {
-      return deals.sort((a: any, b: any) => {
+    function sortDealsBySecondaryFactors(deals) {
+      return deals.sort((a, b) => {
         // First sort by sort_order if available
         if (a.sort_order !== undefined && b.sort_order !== undefined) {
           if (a.sort_order !== b.sort_order) {

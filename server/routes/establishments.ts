@@ -1,18 +1,12 @@
 import express from 'express';
 import { storage } from '../storage';
-import { apiProtection } from '../middlewares/api-protection';
-import { obfuscateResponseMiddleware, deobfuscateRequestMiddleware } from '../utils/data-obfuscator';
 
 const router = express.Router();
-
-// Apply data transformation (obfuscation/deobfuscation) middleware to all routes
-router.use(obfuscateResponseMiddleware);
-router.use(deobfuscateRequestMiddleware);
 
 /**
  * Get all establishments (restaurants, bars, etc.) with their active deals
  */
-router.get('/', apiProtection(true), async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const establishments = await storage.getAllEstablishments();
     
@@ -53,7 +47,7 @@ router.get('/', apiProtection(true), async (req, res) => {
  * Get nearby establishments with optional radius parameter
  * Include active deals for each establishment
  */
-router.get('/nearby', apiProtection(true), async (req, res) => {
+router.get('/nearby', async (req, res) => {
   try {
     const latitude = parseFloat(req.query.lat as string);
     const longitude = parseFloat(req.query.lng as string);
@@ -101,7 +95,7 @@ router.get('/nearby', apiProtection(true), async (req, res) => {
  * Get a specific establishment by ID along with its active deals
  * This is the key endpoint for the deal-to-restaurant workflow
  */
-router.get('/:id', apiProtection(true), async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const establishmentId = parseInt(req.params.id);
     if (isNaN(establishmentId)) {
