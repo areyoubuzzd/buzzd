@@ -179,11 +179,15 @@ app.use((req, res, next) => {
     console.error('❌ Error checking Cloudflare Images connection:', error);
   }
 
-  // Handle the /savings route directly
-  app.get('/savings', (req, res, next) => {
-    // For GET requests to /savings, just serve the app
-    res.setHeader('Content-Type', 'text/html');
-    next();
+  // Handle frontend routes directly
+  // These routes should be accessible without authentication
+  const frontendRoutes = ['/', '/savings', '/beer', '/cocktails', '/wine', '/spirits', '/auth'];
+  frontendRoutes.forEach(route => {
+    app.get(route, (req, res, next) => {
+      // For GET requests to frontend routes, just serve the app
+      res.setHeader('Content-Type', 'text/html');
+      next();
+    });
   });
 
   // Register API routes with explicit content-type
@@ -293,6 +297,18 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
+  });
+
+  // Add a wildcard route handler for all frontend routes before setting up Vite
+  // This ensures users can navigate directly to any route
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    // Allow access to all frontend routes
+    next();
   });
 
   // importantly only setup vite in development and after
