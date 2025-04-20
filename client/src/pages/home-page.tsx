@@ -1448,18 +1448,16 @@ export default function HomePage() {
                 }
               }}
             >
+              {/* Render ALL collections in their proper priority order */}
               {collections
-                .filter(collection => {
-                  // Get high priority collections (under 20)
-                  return collection.priority < 20;
-                })
+                // No filtering - use the exact server-side priority values
                 .sort((a, b) => {
                   // Sort by priority value directly
                   return a.priority - b.priority;
                 })
                 .map((collection, index) => (
                   <motion.div
-                    key={`priority-${collection.name}-${index}`}
+                    key={`collection-${collection.name}-${index}`}
                     variants={{
                       hidden: { opacity: 0, y: 20 },
                       visible: { 
@@ -1483,30 +1481,7 @@ export default function HomePage() {
               }
             </motion.div>
             
-            {/* Then, render all other collections */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.1,
-                    delayChildren: 0.4
-                  }
-                }
-              }}
-            >
-              {collections
-                .filter(collection => {
-                  // Get medium and low priority collections (20 and higher)
-                  return collection.priority >= 20;
-                })
-                .sort((a, b) => {
-                  // Sort by priority value directly
-                  return a.priority - b.priority;
-                })
+            {/* REMOVED SECOND COLLECTION SECTION - Now showing all collections in order of priority */}
                 .map((collection, index) => (
                   <motion.div
                     key={`other-${collection.name}-${index}`}

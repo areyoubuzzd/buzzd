@@ -15,28 +15,47 @@ router.get('/', async (_req, res) => {
     // This ensures Happy Hours Nearby is always first
     const allCollections = await db.select().from(collections);
     
-    // Define a special sort function that ensures correct ordering
+    // CLIENT SPECIFIED SORT ORDER - DO NOT MODIFY
+    // This exact prioritization scheme was specified by the client
     const manualSortOrder: Record<string, number> = {
-      'active_happy_hours': 1,    // Always first
-      'all_deals': 2,             // Always second
+      // TOP PRIORITY - Always first
+      'active_happy_hours': 1,
+      
+      // PRICE-BASED COLLECTIONS (10-13)
       'beers_under_12': 10,
-      'beers_under_15': 11,
+      'wines_under_12': 10,
+      'cocktails_under_12': 10,
       'craft_beers': 12,
       'beer_buckets_under_40': 13,
-      'wines_under_12': 20,
+      
+      // SPECIAL DEAL TYPES (15-19)
+      '1for1_deals': 15,
+      'one_for_one_deals': 15,
+      'freeflow_deals': 16,
+      'free_flow_deals': 16,
+      
+      // PREMIUM ALCOHOL (20-22)
+      'cocktails_under_15': 20,
       'wines_under_15': 21,
       'bottles_under_100': 22,
-      'cocktails_under_12': 30,
-      'cocktails_under_15': 31,
-      'signature_cocktails': 32,
+      
+      // BEER BUCKETS (22-25)
+      'beer_buckets': 22,
+      
+      // ADDITIONAL BEER COLLECTIONS (25-30)
+      'beers_under_15': 25,
+      
+      // SPIRITS (40-41)
       'whisky_deals': 40,
       'gin_deals': 41,
-      '1for1_deals': 50,
-      'freeflow_deals': 51,
-      'two_bottle_discounts': 52,
-      'cbd_deals': 60,
-      'orchard_deals': 61,
-      'holland_village_deals': 62
+      
+      // All Deals comes last
+      'all_deals': 60,
+      
+      // Any location-based collections
+      'cbd_deals': 61,
+      'orchard_deals': 62,
+      'holland_village_deals': 63
     };
     
     // Sort collections using our manual ordering
