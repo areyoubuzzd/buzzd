@@ -89,14 +89,38 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button 
-                variant="ghost" 
-                className="flex items-center text-[#232946]"
-                onClick={() => navigate("/auth")}
-              >
-                <span className="text-sm mr-1">Hi Guest</span>
-                <FiUser className="h-5 w-5" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center text-[#232946]"
+                  >
+                    <span className="text-sm mr-1">Hi Guest</span>
+                    <FiUser className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Guest Menu</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/auth")}>
+                    <FiUser className="mr-2 h-4 w-4" />
+                    <span>Sign In / Sign Up</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/terms")}>
+                    <FiFile className="mr-2 h-4 w-4" />
+                    <span>Terms and Conditions</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/privacy")}>
+                    <FiShield className="mr-2 h-4 w-4" />
+                    <span>Privacy Policy</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/contact")}>
+                    <FiMail className="mr-2 h-4 w-4" />
+                    <span>Contact Us</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
