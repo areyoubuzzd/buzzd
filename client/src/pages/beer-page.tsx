@@ -49,7 +49,7 @@ type Deal = {
 export default function BeerPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeOnly, setActiveOnly] = useState(true); // Default to active deals only
+  const [activeOnly, setActiveOnly] = useState(false); // Default to show all deals
   const [, navigate] = useWouterLocation();
   
   // Get user's device location from context
