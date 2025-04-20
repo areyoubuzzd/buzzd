@@ -1,9 +1,24 @@
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useAuth, userLoginSchema, userRegisterSchema } from "@/hooks/use-auth";
+import { 
+  useAuth, 
+  userLoginSchema, 
+  userRegisterSchema, 
+  phoneAuthSchema
+} from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { FiUser, FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
+import { 
+  FiUser, 
+  FiMail, 
+  FiLock, 
+  FiAlertCircle, 
+  FiPhone,
+  FiSmartphone,
+  FiArrowLeft
+} from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
+import { SiApple } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,13 +38,33 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/header";
 import { z } from "zod";
+import logoBlack from "@assets/logo_black.png";
 
 export default function AuthPage() {
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { 
+    user, 
+    loginMutation, 
+    registerMutation, 
+    googleLoginMutation, 
+    appleLoginMutation,
+    requestPhoneCodeMutation,
+    verifyPhoneCodeMutation
+  } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [phoneVerificationStep, setPhoneVerificationStep] = useState<'request' | 'verify'>('request');
 
   // If user is already logged in, redirect to home page
   useEffect(() => {
@@ -71,6 +106,57 @@ export default function AuthPage() {
       onSuccess: () => {
         navigate("/");
       },
+    });
+  };
+  
+  // Phone authentication forms
+  const phoneRequestForm = useForm<{ phoneNumber: string }>({
+    defaultValues: {
+      phoneNumber: ""
+    }
+  });
+  
+  const phoneVerifyForm = useForm<z.infer<typeof phoneAuthSchema>>({
+    resolver: zodResolver(phoneAuthSchema),
+    defaultValues: {
+      phoneNumber: "",
+      code: ""
+    }
+  });
+  
+  const handleRequestCode = (values: { phoneNumber: string }) => {
+    requestPhoneCodeMutation.mutate(values, {
+      onSuccess: () => {
+        // Save phone number for verification step
+        phoneVerifyForm.setValue("phoneNumber", values.phoneNumber);
+        setPhoneVerificationStep('verify');
+      }
+    });
+  };
+  
+  const handleVerifyCode = (values: z.infer<typeof phoneAuthSchema>) => {
+    verifyPhoneCodeMutation.mutate(values, {
+      onSuccess: () => {
+        setPhoneDialogOpen(false);
+        navigate("/");
+      }
+    });
+  };
+  
+  // Social login handlers
+  const handleGoogleLogin = () => {
+    googleLoginMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
+  };
+  
+  const handleAppleLogin = () => {
+    appleLoginMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/");
+      }
     });
   };
 
@@ -144,6 +230,55 @@ export default function AuthPage() {
                         </Button>
                       </form>
                     </Form>
+                    
+                    <div className="mt-6">
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-gray-300" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6 grid grid-cols-3 gap-3">
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          className="flex items-center justify-center gap-2" 
+                          onClick={handleGoogleLogin}
+                          disabled={googleLoginMutation.isPending}
+                        >
+                          <FcGoogle className="h-5 w-5" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Google</span>
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={handleAppleLogin}
+                          disabled={appleLoginMutation.isPending}
+                        >
+                          <SiApple className="h-5 w-5" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Apple</span>
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setPhoneVerificationStep('request');
+                            setPhoneDialogOpen(true);
+                          }}
+                          disabled={requestPhoneCodeMutation.isPending}
+                        >
+                          <FiPhone className="h-5 w-5" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Phone</span>
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                   <CardFooter className="flex flex-col space-y-4">
                     <div className="text-sm text-center text-gray-500">
@@ -244,6 +379,55 @@ export default function AuthPage() {
                         </Button>
                       </form>
                     </Form>
+                    
+                    <div className="mt-6">
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-gray-300" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white px-2 text-gray-500">Or sign up with</span>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6 grid grid-cols-3 gap-3">
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          className="flex items-center justify-center gap-2" 
+                          onClick={handleGoogleLogin}
+                          disabled={googleLoginMutation.isPending}
+                        >
+                          <FcGoogle className="h-5 w-5" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Google</span>
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={handleAppleLogin}
+                          disabled={appleLoginMutation.isPending}
+                        >
+                          <SiApple className="h-5 w-5" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Apple</span>
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          type="button" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setPhoneVerificationStep('request');
+                            setPhoneDialogOpen(true);
+                          }}
+                          disabled={requestPhoneCodeMutation.isPending}
+                        >
+                          <FiPhone className="h-5 w-5" />
+                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Phone</span>
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                   <CardFooter className="flex flex-col space-y-4">
                     <div className="text-sm text-center text-gray-500">

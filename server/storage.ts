@@ -34,9 +34,13 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByPhoneNumber(phoneNumber: string): Promise<User | undefined>;
+  getUserByProviderId(provider: 'google' | 'apple', providerId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(userId: number, data: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<User>;
   updateUserSubscription(userId: number, tier: 'free' | 'premium'): Promise<User>;
   updateUserSavings(userId: number, amount: number): Promise<User>;
+  updateLastLogin(userId: number): Promise<User>;
   incrementUserDealViews(userId: number): Promise<User>;
   
   // Establishments
@@ -116,9 +120,44 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
+  
+  async getUserByPhoneNumber(phoneNumber: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber));
+    return user;
+  }
+  
+  async getUserByProviderId(provider: 'google' | 'apple', providerId: string): Promise<User | undefined> {
+    const [user] = await db.select()
+      .from(users)
+      .where(and(
+        eq(users.authProvider, provider),
+        eq(users.authProviderId, providerId)
+      ));
+    return user;
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+  
+  async updateUser(userId: number, data: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+  
+  async updateLastLogin(userId: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        lastLoginAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
     return user;
   }
 
