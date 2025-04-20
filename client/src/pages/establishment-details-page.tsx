@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
-import { FaStar, FaMapMarkerAlt, FaArrowLeft, FaWalking, FaPhone, FaGlobe, FaMapMarkedAlt, FaClock } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaArrowLeft, FaWalking, FaPhone, FaGlobe, FaMapMarkedAlt, FaClock, FaWhatsapp, FaTelegram, FaShareAlt } from 'react-icons/fa';
 import { Link } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -264,6 +264,7 @@ export default function EstablishmentDetailsPage() {
   const id = params?.id;
   const [userPosition, setUserPosition] = useState(DEFAULT_POSITION);
   const [userDistance, setUserDistance] = useState<number | null>(null);
+  const [isShareExpanded, setIsShareExpanded] = useState(false);
   
   // Keep track of the referrer/previous page
   const [referrer, setReferrer] = useState<string>("/");
@@ -354,6 +355,27 @@ export default function EstablishmentDetailsPage() {
       setUserDistance(distance);
     }
   }, [data, userPosition]);
+  
+  // Share functionality
+  const handleShareViaWhatsApp = () => {
+    if (!data?.establishment) return;
+    
+    const { name, address, city, postalCode } = data.establishment;
+    const fullAddress = `${address}, ${city}, ${postalCode}`;
+    const message = `Check out ${name} in Buzzd app! They have great happy hour deals! Address: ${fullAddress}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+  
+  const handleShareViaTelegram = () => {
+    if (!data?.establishment) return;
+    
+    const { name, address, city, postalCode } = data.establishment;
+    const fullAddress = `${address}, ${city}, ${postalCode}`;
+    const message = `Check out ${name} in Buzzd app! They have great happy hour deals! Address: ${fullAddress}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(message)}`;
+    window.open(telegramUrl, '_blank');
+  };
 
   if (isLoading) {
     return (
@@ -681,6 +703,84 @@ export default function EstablishmentDetailsPage() {
           </motion.div>
         )}
       </div>
+      
+      {/* Share floating button */}
+      <motion.div
+        className="fixed bottom-20 right-4 z-50"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 20,
+          delay: 0.5
+        }}
+      >
+        <motion.div className="flex flex-col items-center">
+          {/* Share options that appear when expanded */}
+          <AnimatePresence>
+            {isShareExpanded && (
+              <>
+                <motion.button
+                  onClick={handleShareViaWhatsApp}
+                  className="bg-[#25D366] text-white rounded-full p-3 shadow-lg mb-2"
+                  initial={{ opacity: 0, scale: 0, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0, y: 20 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <FaWhatsapp className="h-6 w-6" />
+                </motion.button>
+                
+                <motion.button
+                  onClick={handleShareViaTelegram}
+                  className="bg-[#0088cc] text-white rounded-full p-3 shadow-lg mb-2"
+                  initial={{ opacity: 0, scale: 0, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0, y: 20 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <FaTelegram className="h-6 w-6" />
+                </motion.button>
+              </>
+            )}
+          </AnimatePresence>
+          
+          {/* Main share button */}
+          <motion.button
+            onClick={() => setIsShareExpanded(!isShareExpanded)}
+            className="bg-[#FFC300] text-white rounded-full p-3 shadow-lg flex items-center justify-center relative"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {isShareExpanded ? (
+              <motion.span
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 45 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FaShareAlt className="h-6 w-6" />
+              </motion.span>
+            ) : (
+              <>
+                <FaShareAlt className="h-6 w-6" />
+                <motion.div
+                  className="absolute -top-10 whitespace-nowrap bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-80"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1, duration: 0.3 }}
+                >
+                  Share this spot with your friends
+                </motion.div>
+              </>
+            )}
+          </motion.button>
+        </motion.div>
+      </motion.div>
       
       <Navigation />
     </div>
