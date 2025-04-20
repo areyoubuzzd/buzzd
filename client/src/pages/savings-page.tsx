@@ -38,7 +38,8 @@ export default function SavingsPage() {
       }
       return response.json();
     },
-    enabled: !!user,
+    // Always enable the query, since our API now returns guest data for non-authenticated users
+    enabled: true,
   });
 
   // Store the current page in sessionStorage for proper back navigation

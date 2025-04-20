@@ -200,23 +200,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Get user profile
-  app.get("/api/user/profile", requireAuth, async (req, res) => {
+  app.get("/api/user/profile", async (req, res) => {
     try {
-      const user = await storage.getUser(req.user.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      if (req.isAuthenticated()) {
+        // For authenticated users
+        const user = await storage.getUser(req.user.id);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Don't send the password hash to the client
+        const { password, ...userWithoutPassword } = user;
+        
+        // Get user savings
+        const savings = await storage.getUserSavings(user.id);
+        
+        res.json({
+          ...userWithoutPassword,
+          savings
+        });
+      } else {
+        // For non-authenticated users, return guest profile
+        res.json({
+          id: 0,
+          username: "guest",
+          isGuest: true,
+          role: "user",
+          subscriptionTier: "free",
+          savings: 0,
+          dealsViewed: 0
+        });
       }
-      
-      // Don't send the password hash to the client
-      const { password, ...userWithoutPassword } = user;
-      
-      // Get user savings
-      const savings = await storage.getUserSavings(user.id);
-      
-      res.json({
-        ...userWithoutPassword,
-        savings
-      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
