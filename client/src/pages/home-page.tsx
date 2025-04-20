@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Header from "@/components/layout/header";
 import Navigation from "@/components/layout/navigation";
+import AppHeader from "@/components/layout/app-header";
 import CollectionRow from "@/components/collections/collection-row";
 import { CollectionsLoadingSkeleton } from "@/components/collections/collection-row-skeleton";
 import { useLocation, LocationContext } from "@/contexts/location-context";
