@@ -431,8 +431,7 @@ export default function RestaurantsPage() {
       {/* Restaurant Page Heading */}
       <div className="bg-[#232946] px-4 py-6 border-b border-[#353e6b]">
         <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-white">Restaurants & Bars</h1>
-          <p className="text-gray-300 mt-1">Find the best happy hour spots near you</p>
+          <h1 className="text-2xl font-bold text-white">Happy hour restaurants around you</h1>
         </div>
       </div>
       
@@ -460,16 +459,6 @@ export default function RestaurantsPage() {
               </Button>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Results Count */}
-      <div className="bg-[#232946] px-4 py-2 border-b border-[#353e6b]">
-        <div className="container mx-auto">
-          <p className="text-sm text-gray-300">
-            {sortedEstablishments?.length || 0} {sortedEstablishments?.length === 1 ? 'restaurant' : 'restaurants'} found
-            {searchQuery ? ` for "${searchQuery}"` : ''}
-          </p>
         </div>
       </div>
       
