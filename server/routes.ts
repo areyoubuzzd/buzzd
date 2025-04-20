@@ -25,26 +25,34 @@ import { requestLogger } from "./middlewares/request-logger";
 import { obfuscateResponseMiddleware, deobfuscateRequestMiddleware } from "./utils/data-obfuscator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply data obfuscation to all API responses
+  app.use('/api', obfuscateResponseMiddleware);
+  
+  // Apply data deobfuscation to all incoming API requests
+  app.use('/api', deobfuscateRequestMiddleware);
+  
   // Set up authentication routes
   setupAuth(app);
   
-  // Register the deal image upload route
+  // === Protected Routes (need authentication or API key) ===
+  
+  // Register the deal image upload route (needs auth)
   app.use(uploadDealImageRouter);
   
-  // Register Cloudflare Images routes
+  // Register Cloudflare Images routes (needs auth)
   app.use(cloudflareImagesRouter);
   
-  // Register Cloudflare Direct Upload routes
+  // Register Cloudflare Direct Upload routes (needs auth)
   app.use(cloudflareDirectUploadRouter);
   
-  // Register Local Images routes
-  app.use('/api/local-images', localImagesRouter);
+  // Register Local Images routes (needs auth)
+  app.use('/api/local-images', apiProtection(), localImagesRouter);
   
-  // Register menu analysis routes
-  app.use('/api/menu-analysis', menuAnalysisRoutes);
+  // Register menu analysis routes (needs auth)
+  app.use('/api/menu-analysis', apiProtection(), menuAnalysisRoutes);
   
-  // Register image generation routes
-  app.use(imageGenerationRoutes);
+  // Register image generation routes (needs auth)
+  app.use(apiProtection(), imageGenerationRoutes);
   
   // Debug middleware for location routes
   app.use('/api/locations', (req, res, next) => {
