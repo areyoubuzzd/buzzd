@@ -5,12 +5,12 @@
  * 1. Creates a production build with the correct file references
  * 2. Creates stable copies of assets that won't have hash mismatches
  * 
- * Usage: node fix-deployment.js
+ * Usage: node fix-deployment.cjs
  */
 
-import fs from 'fs';
-import { execSync } from 'child_process';
-import path from 'path';
+const fs = require('fs');
+const { execSync } = require('child_process');
+const path = require('path');
 
 console.log("🔧 Running Deployment Fix Script 🔧");
 
@@ -114,23 +114,4 @@ fs.writeFileSync(path.join(assetsDir, 'app.css'), minimalCss);
 
 console.log("✅ Deployment preparation complete!");
 console.log("Now you can deploy the application through Replit's deployment interface.");
-console.log("After deployment, client/index.html will be restored to the development version automatically.")
-
-// Step 7: Restore the original development HTML
-const restoreScript = `
-// Wait for the deployment to finish (if any) and restore development HTML
-setTimeout(() => {
-  try {
-    if (fs.existsSync('client/index.html.dev')) {
-      fs.copyFileSync('client/index.html.dev', 'client/index.html');
-      fs.unlinkSync('client/index.html.dev');
-      console.log("✓ Restored development index.html");
-    }
-  } catch (e) {
-    console.error("Failed to restore development index.html:", e);
-  }
-}, 5000);  // 5 second delay
-`;
-
-// Write the restore script to be executed after deployment
-fs.writeFileSync('restore-dev.js', restoreScript);
+console.log("After deployment, restore the development environment with: node restore-dev.cjs");
