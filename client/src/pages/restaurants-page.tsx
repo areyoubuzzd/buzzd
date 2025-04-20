@@ -537,30 +537,7 @@ export default function RestaurantsPage() {
         )}
       </div>
       
-      {/* WhatsApp integration for restaurant listing/deal updates */}
-      <motion.div 
-        className="fixed bottom-20 right-4 z-50"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 260, 
-          damping: 20,
-          delay: 0.3 
-        }}
-      >
-        <motion.button
-          onClick={handleWhatsAppClick}
-          className="bg-[#25D366] hover:bg-[#1da851] text-white rounded-full p-3 shadow-lg"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          <FaWhatsapp className="h-6 w-6" />
-        </motion.button>
-      </motion.div>
+      {/* WhatsApp integration removed as requested */}
       
       <Navigation />
     </div>
