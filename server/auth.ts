@@ -187,12 +187,13 @@ export function setupAuth(app: Express) {
         } else {
           // Create new Google user
           user = await storage.createUser({
+            username: `google_${Date.now()}`, // Generate a unique username
             email: tokenPayload.email,
+            password: randomBytes(16).toString("hex"), // Random password for Google users
             displayName: tokenPayload.name,
             photoUrl: tokenPayload.picture,
             authProvider: 'google',
             authProviderId: tokenPayload.sub,
-            lastLoginAt: new Date(),
           });
         }
       } else {
@@ -255,11 +256,12 @@ export function setupAuth(app: Express) {
         } else {
           // Create new Apple user
           user = await storage.createUser({
+            username: `apple_${Date.now()}`, // Generate a unique username
             email: tokenPayload.email,
+            password: randomBytes(16).toString("hex"), // Random password for Apple users
             displayName: tokenPayload.name,
             authProvider: 'apple',
             authProviderId: tokenPayload.sub,
-            lastLoginAt: new Date(),
           });
         }
       } else {
@@ -331,10 +333,11 @@ export function setupAuth(app: Express) {
       if (!user) {
         // Create new phone user
         user = await storage.createUser({
+          username: `phone_${Date.now()}`, // Generate a unique username
+          password: randomBytes(16).toString("hex"), // Random password for phone users
           phoneNumber,
           displayName: null,
           authProvider: 'phone',
-          lastLoginAt: new Date(),
         });
       } else {
         // Update last login timestamp
