@@ -131,28 +131,52 @@ export default function AuthPage() {
   }, [googleLoginMutation, appleLoginMutation]);
 
   // Handle sign-in with Google
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     if (!firebaseReady) {
       console.error("Firebase is not properly configured");
       return;
     }
     
     try {
-      signInWithGoogle();
+      const result = await signInWithGoogle();
+      console.log("Google sign-in successful:", result.user.uid);
+      
+      if (result.user) {
+        // Get the ID token
+        const idToken = await result.user.getIdToken();
+        
+        // Send to backend
+        googleLoginMutation.mutate({ 
+          authProvider: "google",
+          idToken 
+        });
+      }
     } catch (error) {
       console.error("Google sign-in error:", error);
     }
   };
   
   // Handle sign-in with Apple
-  const handleAppleSignIn = () => {
+  const handleAppleSignIn = async () => {
     if (!firebaseReady) {
       console.error("Firebase is not properly configured");
       return;
     }
     
     try {
-      signInWithApple();
+      const result = await signInWithApple();
+      console.log("Apple sign-in successful:", result.user.uid);
+      
+      if (result.user) {
+        // Get the ID token
+        const idToken = await result.user.getIdToken();
+        
+        // Send to backend
+        appleLoginMutation.mutate({ 
+          authProvider: "apple",
+          idToken 
+        });
+      }
     } catch (error) {
       console.error("Apple sign-in error:", error);
     }

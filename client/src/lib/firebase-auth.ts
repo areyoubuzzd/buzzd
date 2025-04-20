@@ -26,16 +26,20 @@ try {
   console.error("Firebase initialization error:", error);
 }
 
+// Import the necessary function for popup-based login
+import { signInWithPopup } from "firebase/auth";
+
 // Google authentication
 const googleProvider = new GoogleAuthProvider();
 
-export function signInWithGoogle(): void {
+export function signInWithGoogle(): Promise<UserCredential> {
   if (!auth) {
     throw new Error("Firebase authentication is not initialized");
   }
   
   try {
-    signInWithRedirect(auth, googleProvider);
+    // Use popup instead of redirect for development
+    return signInWithPopup(auth, googleProvider);
   } catch (error: any) {
     console.error("Google sign-in error:", error);
     throw new Error(error?.message || "Failed to sign in with Google");
@@ -45,13 +49,14 @@ export function signInWithGoogle(): void {
 // Apple authentication
 const appleProvider = new OAuthProvider('apple.com');
 
-export function signInWithApple(): void {
+export function signInWithApple(): Promise<UserCredential> {
   if (!auth) {
     throw new Error("Firebase authentication is not initialized");
   }
   
   try {
-    signInWithRedirect(auth, appleProvider);
+    // Use popup instead of redirect for development
+    return signInWithPopup(auth, appleProvider);
   } catch (error: any) {
     console.error("Apple sign-in error:", error);
     throw new Error(error?.message || "Failed to sign in with Apple");
