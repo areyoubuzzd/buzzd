@@ -186,7 +186,7 @@ app.use((req, res, next) => {
       res.setHeader('Content-Type', 'application/json');
       next();
     }, 
-    apiProtection(), // Require authentication or valid API key
+    apiProtection(true), // Only apply rate limiting, no auth required for the webapp
     obfuscateResponseMiddleware, // Obfuscate field names in responses
     deobfuscateRequestMiddleware, // Deobfuscate field names in requests
     (await import('./routes/deals')).default
@@ -197,7 +197,7 @@ app.use((req, res, next) => {
       res.setHeader('Content-Type', 'application/json');
       next();
     }, 
-    apiProtection(), // Require authentication or valid API key
+    apiProtection(true), // Only apply rate limiting, no auth required for the webapp
     obfuscateResponseMiddleware, // Obfuscate field names in responses
     deobfuscateRequestMiddleware, // Deobfuscate field names in requests
     (await import('./routes/establishments')).default
