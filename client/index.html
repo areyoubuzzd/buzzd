@@ -48,11 +48,49 @@
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    
+    <!-- For development mode - will be ignored in production -->
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Auto-detect script for production -->
+    <script type="text/javascript">
+      (function() {
+        // Find all CSS link tags with pattern "/assets/index-*.css"
+        const links = document.querySelectorAll('link[href^="/assets/index-"]');
+        if (links.length > 0) {
+          try {
+            const href = links[0].getAttribute('href');
+            const match = href.match(/\/assets\/(index-[^.]+)\.css/);
+            if (match && match[1]) {
+              // Extract the hash part
+              const hash = match[1].split('-')[1];
+              
+              // Check if we have a corresponding JS file
+              const scriptSrc = `/assets/${match[1]}.js`;
+              
+              // Check if the script is already loaded
+              if (!document.querySelector(`script[src="${scriptSrc}"]`)) {
+                // Add the script tag
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.crossOrigin = 'true';
+                script.src = scriptSrc;
+                document.head.appendChild(script);
+                console.log("Buzzd deployment: Loaded production script", scriptSrc);
+              }
+            }
+          } catch (e) {
+            console.error("Error in deployment script:", e);
+          }
+        } else {
+          // Either in development mode or the CSS links aren't found yet
+          console.log("Buzzd deployment: No production CSS found, using development mode");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- This script injects a replit badge into the page, please feel free to remove this line -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-badge-v3.js"></script>
   </body>
 </html>
