@@ -1,26 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useAuth, userLoginSchema, userRegisterSchema } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { 
-  useAuth, 
-  userLoginSchema, 
-  userRegisterSchema, 
-  phoneAuthSchema,
-  googleAuthSchema,
-  appleAuthSchema
-} from "@/hooks/use-auth";
-import { useLocation } from "wouter";
-import { 
-  FiUser, 
-  FiMail, 
-  FiLock, 
-  FiAlertCircle, 
-  FiPhone,
-  FiSmartphone,
-  FiArrowLeft
-} from "react-icons/fi";
+import { z } from "zod";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
+import { FiUser, FiMail, FiLock } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -39,19 +25,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import Header from "@/components/layout/header";
-import { z } from "zod";
-import logoBlack from "@assets/logo_black.png";
+import logoBlack from "@assets/Logo_black.png";
 import { signInWithGoogle, signInWithApple, checkFirebaseConfig, getAuthRedirectResult } from "@/lib/firebase-auth";
 
 export default function AuthPage() {
@@ -108,75 +89,7 @@ export default function AuthPage() {
     });
   };
   
-  // Phone authentication forms
-  const phoneRequestForm = useForm<{ phoneNumber: string }>({
-    defaultValues: {
-      phoneNumber: ""
-    }
-  });
-  
-  const phoneVerifyForm = useForm<z.infer<typeof phoneAuthSchema>>({
-    resolver: zodResolver(phoneAuthSchema),
-    defaultValues: {
-      phoneNumber: "",
-      code: ""
-    }
-  });
-  
-  const handleRequestCode = async (values: { phoneNumber: string }) => {
-    if (!firebaseReady) {
-      alert("Firebase is not properly configured. Please check your environment variables.");
-      return;
-    }
-    
-    try {
-      // Try to send verification code via Firebase
-      await sendPhoneVerificationCode(values.phoneNumber);
-      
-      // Save phone number for verification step
-      phoneVerifyForm.setValue("phoneNumber", values.phoneNumber);
-      setPhoneVerificationStep('verify');
-      
-      // Optional: Also tell the backend we sent a code
-      requestPhoneCodeMutation.mutate(values, {
-        onSuccess: () => {
-          console.log("Backend notified about phone verification code sent");
-        }
-      });
-    } catch (error: any) {
-      console.error("Failed to send verification code:", error);
-      alert(error?.message || "Failed to send verification code. Please try again.");
-    }
-  };
-  
-  const handleVerifyCode = async (values: z.infer<typeof phoneAuthSchema>) => {
-    if (!firebaseReady) {
-      alert("Firebase is not properly configured. Please check your environment variables.");
-      return;
-    }
-    
-    try {
-      // Verify the code with Firebase
-      const idToken = await verifyPhoneCode(values.verificationCode);
-      
-      // Send the verified result to our backend
-      verifyPhoneCodeMutation.mutate({
-        ...values,
-        authProvider: "phone",
-        idToken
-      } as any, {
-        onSuccess: () => {
-          setPhoneDialogOpen(false);
-          navigate("/");
-        }
-      });
-    } catch (error: any) {
-      console.error("Failed to verify code:", error);
-      alert(error?.message || "Failed to verify code. Please check and try again.");
-    }
-  };
-  
-  // Firebase configuration check
+  // Firebase configuration and redirect handling
   const [firebaseReady, setFirebaseReady] = useState(false);
   
   useEffect(() => {
@@ -215,48 +128,33 @@ export default function AuthPage() {
     if (configStatus.isComplete) {
       checkRedirectResult();
     }
-  }, []);
-  
-  // Social login handlers
-  const handleGoogleLogin = async () => {
+  }, [googleLoginMutation, appleLoginMutation]);
+
+  // Handle sign-in with Google
+  const handleGoogleSignIn = () => {
     if (!firebaseReady) {
-      alert("Firebase is not properly configured. Please check your environment variables.");
+      console.error("Firebase is not properly configured");
       return;
     }
     
     try {
-      const idToken = await signInWithGoogle();
-      googleLoginMutation.mutate({ 
-        authProvider: "google",
-        idToken 
-      }, {
-        onSuccess: () => {
-          navigate("/");
-        }
-      });
+      signInWithGoogle();
     } catch (error) {
-      console.error("Google login error:", error);
+      console.error("Google sign-in error:", error);
     }
   };
   
-  const handleAppleLogin = async () => {
+  // Handle sign-in with Apple
+  const handleAppleSignIn = () => {
     if (!firebaseReady) {
-      alert("Firebase is not properly configured. Please check your environment variables.");
+      console.error("Firebase is not properly configured");
       return;
     }
     
     try {
-      const idToken = await signInWithApple();
-      appleLoginMutation.mutate({ 
-        authProvider: "apple",
-        idToken 
-      }, {
-        onSuccess: () => {
-          navigate("/");
-        }
-      });
+      signInWithApple();
     } catch (error) {
-      console.error("Apple login error:", error);
+      console.error("Apple sign-in error:", error);
     }
   };
 
@@ -341,12 +239,12 @@ export default function AuthPage() {
                         </div>
                       </div>
                       
-                      <div className="mt-6 grid grid-cols-3 gap-3">
+                      <div className="mt-6 grid grid-cols-2 gap-3">
                         <Button 
                           variant="outline" 
                           type="button" 
                           className="flex items-center justify-center gap-2" 
-                          onClick={handleGoogleLogin}
+                          onClick={handleGoogleSignIn}
                           disabled={googleLoginMutation.isPending}
                         >
                           <FcGoogle className="h-5 w-5" />
@@ -357,25 +255,11 @@ export default function AuthPage() {
                           variant="outline" 
                           type="button" 
                           className="flex items-center justify-center gap-2"
-                          onClick={handleAppleLogin}
+                          onClick={handleAppleSignIn}
                           disabled={appleLoginMutation.isPending}
                         >
                           <SiApple className="h-5 w-5" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Apple</span>
-                        </Button>
-                        
-                        <Button 
-                          variant="outline" 
-                          type="button" 
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            setPhoneVerificationStep('request');
-                            setPhoneDialogOpen(true);
-                          }}
-                          disabled={requestPhoneCodeMutation.isPending}
-                        >
-                          <FiPhone className="h-5 w-5" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Phone</span>
                         </Button>
                       </div>
                     </div>
@@ -400,7 +284,7 @@ export default function AuthPage() {
                   <CardHeader>
                     <CardTitle>Create an Account</CardTitle>
                     <CardDescription>
-                      Join HappyHourHunt to discover the best deals around you
+                      Join Buzzd to discover the best deals around you
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -472,7 +356,7 @@ export default function AuthPage() {
                         />
                         <Button 
                           type="submit" 
-                          className="w-full bg-primary hover:bg-primary/90" 
+                          className="w-full bg-primary hover:bg-primary/90"
                           disabled={registerMutation.isPending}
                         >
                           {registerMutation.isPending ? "Creating Account..." : "Create Account"}
@@ -486,16 +370,16 @@ export default function AuthPage() {
                           <span className="w-full border-t border-gray-300" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-white px-2 text-gray-500">Or sign up with</span>
+                          <span className="bg-white px-2 text-gray-500">Or continue with</span>
                         </div>
                       </div>
                       
-                      <div className="mt-6 grid grid-cols-3 gap-3">
+                      <div className="mt-6 grid grid-cols-2 gap-3">
                         <Button 
                           variant="outline" 
                           type="button" 
                           className="flex items-center justify-center gap-2" 
-                          onClick={handleGoogleLogin}
+                          onClick={handleGoogleSignIn}
                           disabled={googleLoginMutation.isPending}
                         >
                           <FcGoogle className="h-5 w-5" />
@@ -506,25 +390,11 @@ export default function AuthPage() {
                           variant="outline" 
                           type="button" 
                           className="flex items-center justify-center gap-2"
-                          onClick={handleAppleLogin}
+                          onClick={handleAppleSignIn}
                           disabled={appleLoginMutation.isPending}
                         >
                           <SiApple className="h-5 w-5" />
                           <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Apple</span>
-                        </Button>
-                        
-                        <Button 
-                          variant="outline" 
-                          type="button" 
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            setPhoneVerificationStep('request');
-                            setPhoneDialogOpen(true);
-                          }}
-                          disabled={requestPhoneCodeMutation.isPending}
-                        >
-                          <FiPhone className="h-5 w-5" />
-                          <span className="sr-only md:not-sr-only md:text-xs md:font-semibold">Phone</span>
                         </Button>
                       </div>
                     </div>
@@ -547,174 +417,54 @@ export default function AuthPage() {
           </div>
           
           {/* Hero Section */}
-          <div className="w-full md:w-1/2 mt-8 md:mt-0 md:pl-6 flex items-center">
-            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-lg w-full">
-              <div className="mb-6">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-16 w-16 text-primary"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+          <div className="hidden md:flex md:w-1/2 flex-col justify-center items-center text-center p-6 mt-8 md:mt-0">
+            <div className="mb-6">
+              <img 
+                src={logoBlack} 
+                alt="Buzzd Logo" 
+                className="h-16 mx-auto"
+              />
+            </div>
+            <h2 className="text-3xl font-bold mb-2">Discover the Best Happy Hour Deals</h2>
+            <div className="border-t border-b border-gray-200 w-24 mx-auto my-4" />
+            <p className="text-gray-600 mb-8 max-w-md">
+              Find and enjoy the best drink deals around Singapore. Never miss a happy hour again with Buzzd!
+            </p>
+            
+            <div className="space-y-4 text-left w-full max-w-sm">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-primary font-bold">1</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Locate Deals</h3>
+                  <p className="text-sm text-gray-600">Find nearby happy hour deals based on your location.</p>
+                </div>
               </div>
-              <h2 className="text-3xl font-bold mb-4 text-gray-800">Find Happy Hour Deals Near You</h2>
-              <div className="space-y-4 text-gray-600">
-                <div className="flex items-start">
-                  <div className="mt-1 mr-3 bg-primary/20 p-1 rounded-full">
-                    <FiAlertCircle className="h-4 w-4 text-primary" />
-                  </div>
-                  <p>Discover the best happy hour deals within walking distance</p>
+              
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-primary font-bold">2</span>
                 </div>
-                <div className="flex items-start">
-                  <div className="mt-1 mr-3 bg-primary/20 p-1 rounded-full">
-                    <FiAlertCircle className="h-4 w-4 text-primary" />
-                  </div>
-                  <p>Save money with exclusive deals on food and drinks</p>
+                <div>
+                  <h3 className="text-lg font-semibold">Explore Options</h3>
+                  <p className="text-sm text-gray-600">Browse deals by drink type, price range, or popularity.</p>
                 </div>
-                <div className="flex items-start">
-                  <div className="mt-1 mr-3 bg-primary/20 p-1 rounded-full">
-                    <FiAlertCircle className="h-4 w-4 text-primary" />
-                  </div>
-                  <p>Track your savings and get personalized recommendations</p>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-primary font-bold">3</span>
                 </div>
-                <div className="flex items-start">
-                  <div className="mt-1 mr-3 bg-primary/20 p-1 rounded-full">
-                    <FiAlertCircle className="h-4 w-4 text-primary" />
-                  </div>
-                  <p>Premium members get unlimited access to all deals</p>
+                <div>
+                  <h3 className="text-lg font-semibold">Enjoy Savings</h3>
+                  <p className="text-sm text-gray-600">Take advantage of the best happy hour deals in town!</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Phone Verification Dialog */}
-      <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {phoneVerificationStep === 'request' 
-                ? "Enter Your Phone Number" 
-                : "Verify Your Phone Number"}
-            </DialogTitle>
-            <DialogDescription>
-              {phoneVerificationStep === 'request'
-                ? "We'll send a verification code to your phone."
-                : "Enter the verification code sent to your phone."}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {phoneVerificationStep === 'request' ? (
-            <Form {...phoneRequestForm}>
-              <form onSubmit={phoneRequestForm.handleSubmit(handleRequestCode)} className="space-y-4">
-                <div className="flex flex-col space-y-4">
-                  <FormField
-                    control={phoneRequestForm.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <Input 
-                              placeholder="+65 8123 4567" 
-                              className="pl-10" 
-                              {...field} 
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                        <p className="text-xs text-gray-500">Include country code (e.g., +65 for Singapore)</p>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                {/* Firebase reCAPTCHA container */}
-                <div id="recaptcha-container" ref={recaptchaContainerRef} className="my-2"></div>
-                
-                {!firebaseReady && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-600 text-sm">
-                    <p className="flex items-center gap-2">
-                      <FiAlertCircle className="shrink-0" />
-                      <span>Firebase authentication is not fully configured. Some login options may not work properly.</span>
-                    </p>
-                  </div>
-                )}
-                
-                <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setPhoneDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit"
-                    disabled={requestPhoneCodeMutation.isPending || !firebaseReady}
-                  >
-                    {requestPhoneCodeMutation.isPending ? "Sending..." : "Send Code"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          ) : (
-            <Form {...phoneVerifyForm}>
-              <form onSubmit={phoneVerifyForm.handleSubmit(handleVerifyCode)} className="space-y-4">
-                <div className="flex flex-col space-y-4">
-                  <FormField
-                    control={phoneVerifyForm.control}
-                    name="verificationCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Verification Code</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <FiSmartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <Input 
-                              placeholder="Enter 6-digit code" 
-                              className="pl-10" 
-                              {...field} 
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setPhoneVerificationStep('request')}
-                    className="flex items-center gap-2"
-                  >
-                    <FiArrowLeft className="h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button 
-                    type="submit"
-                    disabled={verifyPhoneCodeMutation.isPending}
-                  >
-                    {verifyPhoneCodeMutation.isPending ? "Verifying..." : "Verify Code"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
