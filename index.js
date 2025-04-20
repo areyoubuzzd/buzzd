@@ -1,8 +1,13 @@
-// Main deployment entry point
-// Import with CommonJS syntax to ensure maximum compatibility
-const express = require('express');
-const path = require('path');
-const { exec } = require('child_process');
+// Main deployment entry point (ESM version)
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
+import fs from 'fs';
+
+// Get dirname equivalent in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Create Express application
 const app = express();
@@ -10,9 +15,9 @@ const PORT = process.env.PORT || 3000;
 
 // Log environment information
 console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('Starting Buzzd application...');
+console.log('Starting Buzzd application (ESM version)...');
 console.log('Current directory:', __dirname);
-console.log('Files in current directory:', require('fs').readdirSync(__dirname));
+console.log('Files in current directory:', fs.readdirSync(__dirname));
 
 // Serve static files from client directory
 app.use(express.static(path.join(__dirname, 'client')));
