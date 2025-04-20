@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/header";
 import Navigation from "@/components/layout/navigation";
 import CollectionRow from "@/components/collections/collection-row";
+import { CollectionsLoadingSkeleton } from "@/components/collections/collection-row-skeleton";
 import { useLocation, LocationContext } from "@/contexts/location-context";
 import { LocationHeader } from "@/components/location/location-header";
 // Import location components with correct paths and export types
@@ -128,18 +129,27 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search input field
 
   // Fetch all deals for collections with location parameters
-  const { data: dealsData } = useQuery<Deal[]>({
+  const { 
+    data: dealsData,
+    isLoading: isDealsLoading
+  } = useQuery<Deal[]>({
     queryKey: ['/api/deals/collections/all', { lat: location.lat, lng: location.lng }],
     staleTime: 60000, // 1 minute
     retry: 2
   });
   
   // Fetch collections metadata from the API
-  const { data: apiCollections } = useQuery<ApiCollection[]>({
+  const { 
+    data: apiCollections,
+    isLoading: isCollectionsLoading
+  } = useQuery<ApiCollection[]>({
     queryKey: ['/api/collections'],
     staleTime: 300000, // 5 minutes
     retry: 2
   });
+  
+  // Combined loading state
+  const isLoading = isDealsLoading || isCollectionsLoading;
   
   // Helper function to check if deal is active right now (based on day and time)
   const isDealActiveNow = (deal: Deal): boolean => {
