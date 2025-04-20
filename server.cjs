@@ -1,77 +1,139 @@
 /**
- * Ultra-simple deployment server for Buzzd App (CommonJS version)
+ * Production server for Buzzd app
+ * This script:
+ * 1. Starts a server to serve the React frontend
+ * 2. Serves the API for backend functionality
  */
 
 const express = require('express');
 const path = require('path');
-const { spawn } = require('child_process');
 const fs = require('fs');
+const { spawn } = require('child_process');
 
-// Create Express application
+// Create app and set port
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Log setup info
-console.log('Starting Buzzd deployment server (CommonJS)...');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('Current directory:', __dirname);
-console.log('Files in current directory:', fs.readdirSync(__dirname));
+// Log environment information
+console.log(`
+===========================================
+  BUZZD PRODUCTION SERVER
+===========================================
+NODE_ENV: ${process.env.NODE_ENV || 'not set'}
+Current directory: ${process.cwd()}
+Node version: ${process.version}
+Time: ${new Date().toISOString()}
+===========================================
+`);
 
-// Ensure the client directory exists
-if (!fs.existsSync(path.join(__dirname, 'client'))) {
-  console.error('ERROR: client directory not found!');
-  console.log('Contents of current directory:', fs.readdirSync(__dirname));
-} else {
-  console.log('Client directory exists. Contents:', fs.readdirSync(path.join(__dirname, 'client')));
+// Ensure there's a client directory
+if (!fs.existsSync('client')) {
+  console.log('⚠️ Client directory not found, creating it...');
+  fs.mkdirSync('client', { recursive: true });
 }
 
-// Serve static files from client directory
-app.use(express.static(path.join(__dirname, 'client')));
-app.use('/assets', express.static(path.join(__dirname, 'client/assets')));
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// If client/dist doesn't exist but client does, copy the build output
+if (!fs.existsSync('client/dist') && fs.existsSync('dist')) {
+  console.log('⚠️ client/dist not found but dist exists, copying files...');
+  fs.mkdirSync('client/dist', { recursive: true });
+  const files = fs.readdirSync('dist');
+  files.forEach(file => {
+    const sourcePath = path.join('dist', file);
+    const destPath = path.join('client/dist', file);
+    if (fs.lstatSync(sourcePath).isDirectory()) {
+      fs.mkdirSync(destPath, { recursive: true });
+      const subFiles = fs.readdirSync(sourcePath);
+      subFiles.forEach(subFile => {
+        fs.copyFileSync(
+          path.join(sourcePath, subFile), 
+          path.join(destPath, subFile)
+        );
+      });
+    } else {
+      fs.copyFileSync(sourcePath, destPath);
+    }
+  });
+  console.log('✅ Files copied successfully');
+}
 
-// Start the server application in a child process
-console.log('Starting the API server process...');
-let serverCommand = 'npx tsx server/index.ts';
-const serverProcess = spawn(serverCommand, [], { shell: true });
-
-serverProcess.stdout.on('data', (data) => {
-  console.log(`[API Server]: ${data}`);
+// Start the API server
+console.log('Starting API server...');
+const apiProcess = spawn('npx', ['tsx', 'server/index.ts'], {
+  stdio: 'inherit',
+  shell: true,
+  env: { ...process.env, PORT: '5000' }
 });
 
-serverProcess.stderr.on('data', (data) => {
-  console.error(`[API Server Error]: ${data}`);
+apiProcess.on('error', (err) => {
+  console.error('Failed to start API server:', err);
 });
 
-serverProcess.on('close', (code) => {
-  console.log(`API Server process exited with code ${code}`);
-  if (code !== 0) {
-    console.log('Attempting to restart API server...');
-    spawn(serverCommand, [], { shell: true });
-  }
-});
+// Serve static files
+if (fs.existsSync('client/dist')) {
+  console.log('Serving static files from client/dist');
+  app.use(express.static('client/dist'));
+} else if (fs.existsSync('client')) {
+  console.log('Serving static files from client');
+  app.use(express.static('client'));
+} else {
+  console.log('No client directory found, creating minimal frontend');
+  const minimalHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buzzd - Happy Hour Deals</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #e63946;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <h1>Buzzd</h1>
+    <p>The Singapore Happy Hour Deals App</p>
+    <p>Frontend resources are missing. Please check the deployment configuration.</p>
+  </div>
+</body>
+</html>
+  `;
+  fs.mkdirSync('client', { recursive: true });
+  fs.writeFileSync('client/index.html', minimalHtml);
+  app.use(express.static('client'));
+}
 
-// For client-side routing - all routes that don't start with /api go to index.html
+// Handle client-side routing
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
-    console.log('Serving client app for path:', req.path);
-    try {
-      const indexPath = path.join(__dirname, 'client/index.html');
+    // Try to find index.html in various locations
+    const possiblePaths = [
+      path.join(__dirname, 'client/dist/index.html'),
+      path.join(__dirname, 'client/index.html'),
+      path.join(__dirname, 'dist/index.html')
+    ];
+    
+    for (const indexPath of possiblePaths) {
       if (fs.existsSync(indexPath)) {
         return res.sendFile(indexPath);
-      } else {
-        return res.status(404).send('Client index.html not found');
       }
-    } catch (error) {
-      console.error('Error serving index.html:', error);
-      return res.status(500).send('Server error');
     }
+    
+    // If we couldn't find index.html, return an error
+    res.status(404).send('Could not find frontend resources');
   }
-  // Pass through for API requests
 });
 
-// Start the Express server
+// Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Static file server listening on port ${PORT}`);
-  console.log(`Application should be accessible at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Visit http://localhost:${PORT} to view the app`);
 });

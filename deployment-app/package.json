@@ -1,0 +1,13 @@
+{
+  "name": "buzzd-deployment",
+  "version": "1.0.0",
+  "description": "Deployment package for Buzzd app",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
