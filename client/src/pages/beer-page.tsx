@@ -49,7 +49,7 @@ type Deal = {
 export default function BeerPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeOnly, setActiveOnly] = useState(false);
+  const [activeOnly, setActiveOnly] = useState(true); // Default to active deals only
   const [, navigate] = useWouterLocation();
   
   // Get location from context
@@ -143,8 +143,7 @@ export default function BeerPage() {
       {/* Page Heading */}
       <div className="bg-[#232946] px-4 py-6 border-b border-[#353e6b]">
         <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-white">Nearby Deals</h1>
-          <p className="text-gray-300 mt-1">Find all deals within 10km of your location</p>
+          <h1 className="text-2xl font-bold text-white">Deals around you</h1>
         </div>
       </div>
       
@@ -185,19 +184,9 @@ export default function BeerPage() {
               id="active-toggle"
               checked={activeOnly}
               onCheckedChange={setActiveOnly}
+              className={activeOnly ? "bg-green-500 data-[state=checked]:bg-green-500" : ""}
             />
           </div>
-        </div>
-      </div>
-      
-      {/* Results Count */}
-      <div className="bg-[#232946] px-4 py-2 border-b border-[#353e6b]">
-        <div className="container mx-auto">
-          <p className="text-sm text-gray-300">
-            {allNearbyDeals.length} {allNearbyDeals.length === 1 ? 'deal' : 'deals'} found within 10km
-            {activeOnly ? ' (active now)' : ''}
-            {searchQuery ? ` for "${searchQuery}"` : ''}
-          </p>
         </div>
       </div>
       
