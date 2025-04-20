@@ -11,7 +11,7 @@ import { FiSearch, FiFilter, FiX } from 'react-icons/fi';
 import { LocationHeader } from '@/components/location/location-header';
 import { useLocation } from '@/contexts/location-context';
 import { Link } from 'wouter';
-import logoBlack from '@/assets/logo_black.png';
+import AppHeader from '@/components/layout/app-header';
 
 interface Deal {
   valid_days: string;
@@ -402,26 +402,8 @@ export default function RestaurantsPage() {
 
   return (
     <div className="pb-20 bg-[#232946]">
-      <header className="sticky top-0 z-50 bg-[#EAE6E1] shadow-md">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-[4.5rem]">
-            <div className="flex items-center">
-              <Link href="/">
-                <div className="flex items-center cursor-pointer" style={{ marginLeft: "-12px" }}>
-                  <img 
-                    src={logoBlack} 
-                    alt="Buzzd Logo" 
-                    className="h-[4rem]"
-                  />
-                </div>
-              </Link>
-            </div>
-
-            {/* Space reserved for future UI elements */}
-            <div></div>
-          </div>
-        </div>
-      </header>
+      {/* App Header with User Greeting */}
+      <AppHeader />
       
       {/* Location Header Component */}
       <div className="mt-0">
