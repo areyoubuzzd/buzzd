@@ -143,19 +143,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Google authentication
   const googleLoginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof googleAuthSchema>) => {
+      console.log("Sending Google login data to server:", { ...data, idToken: "REDACTED" });
       const res = await apiRequest("POST", "/api/auth/google", data);
-      return await res.json();
+      const userData = await res.json();
+      console.log("Server response for Google login:", userData);
+      return userData;
     },
     onSuccess: (user: User) => {
+      console.log("Google login successful, updating user data:", user);
+      // Force update the query cache with the latest user data
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Google login successful",
         description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
       });
-      // Navigate to home page after successful login
-      window.location.href = "/";
+      
+      // Give a moment for state to update before redirecting
+      setTimeout(() => {
+        console.log("Redirecting after Google login");
+        window.location.href = "/";
+      }, 500);
     },
     onError: (error: Error) => {
+      console.error("Google login failed:", error);
       toast({
         title: "Google login failed",
         description: error.message,
@@ -167,19 +177,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Apple authentication
   const appleLoginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof appleAuthSchema>) => {
+      console.log("Sending Apple login data to server:", { ...data, idToken: "REDACTED" });
       const res = await apiRequest("POST", "/api/auth/apple", data);
-      return await res.json();
+      const userData = await res.json();
+      console.log("Server response for Apple login:", userData);
+      return userData;
     },
     onSuccess: (user: User) => {
+      console.log("Apple login successful, updating user data:", user);
+      // Force update the query cache with the latest user data
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Apple login successful",
         description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
       });
-      // Navigate to home page after successful login
-      window.location.href = "/";
+      
+      // Give a moment for state to update before redirecting
+      setTimeout(() => {
+        console.log("Redirecting after Apple login");
+        window.location.href = "/";
+      }, 500);
     },
     onError: (error: Error) => {
+      console.error("Apple login failed:", error);
       toast({
         title: "Apple login failed",
         description: error.message,
