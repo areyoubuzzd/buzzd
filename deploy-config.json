@@ -1,29 +1,10 @@
 {
-  "deploymentSettings": {
-    "version": "1.0.0",
-    "buildSteps": [
-      {
-        "name": "Clean previous build files",
-        "command": "rm -rf dist"
-      },
-      {
-        "name": "Production build",
-        "command": "NODE_ENV=production npm run build"
-      },
-      {
-        "name": "Verify build output",
-        "command": "node scripts/prepare-deploy.js"
-      }
-    ],
-    "cacheDirs": [
-      "node_modules"
-    ],
-    "clearOnDeploy": [
-      "dist/public/assets"
-    ],
-    "deployScript": "NODE_ENV=production node dist/index.js",
-    "postDeployScripts": [
-      "echo 'Application successfully deployed at ' $(date)"
-    ]
+  "build": {
+    "command": "npm run build && cp dist/public/assets/index-*.js dist/public/assets/app.js && cp dist/public/assets/index-*.css dist/public/assets/app.css && sed -i 's|src=\"/assets/index-[^\"]*\\.js\"|src=\"/assets/app.js\"|g' dist/public/index.html && sed -i 's|href=\"/assets/index-[^\"]*\\.css\"|href=\"/assets/app.css\"|g' dist/public/index.html",
+    "output": "dist"
+  },
+  "run": {
+    "command": "node dist/index.js",
+    "output": "dist"
   }
 }

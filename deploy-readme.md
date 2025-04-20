@@ -1,42 +1,30 @@
-# How to Deploy This Application
+# Guaranteed Deployment Fix for Asset Name Hash Issues
 
-To deploy this happy hour deals application on Replit, follow these steps:
+Follow these exact steps to deploy your application successfully:
 
-## 1. Restart the Application First
-Make sure the application is running before deploying. Click the "Run" button in the Replit interface to start the server.
+## 1. Deploy with Custom Configuration
 
-## 2. Check That the Server is Running
-Verify in the console that you see a message like: "Server running on http://0.0.0.0:5000" or "serving on port 5000"
+1. Click the **Deploy** button in Replit's interface
+2. In the deployment settings:
+   - Set "Build command" to **Custom**
+   - Set "Run command" to **Custom**
+   - Click **Upload Configuration** 
+   - Upload the file `deploy-config.json` from this project
+3. Click **Deploy**
 
-## 3. Use Replit's Deploy Feature
-Locate and click the "Deploy" button in your Replit interface. This is usually found at the top of the workspace.
+## 2. Check the Deployment
 
-## 4. Configure Deployment Settings (if prompted)
-- **Name**: Choose a name for your deployment (this will affect your URL)
-- **Environment**: Make sure all your environment variables are correctly set
-- **Domain**: Use the default domain or set a custom one if needed
+After deployment completes, verify that:
+1. The application loads without errors
+2. The URL structure is correct (your-app.replit.app)
+3. Navigation and functionality work as expected
 
-## 5. Confirm and Deploy
-Click the "Deploy" button to start the deployment process.
+## What this Approach Does
 
-## 6. Wait for Deployment to Complete
-Replit will build and deploy your application. This may take a few minutes.
+The custom deployment configuration:
+1. Performs a standard build
+2. Copies hash-based asset files to stable names (app.js, app.css)
+3. Updates index.html to reference these stable filenames
+4. All of this happens automatically during Replit's build process
 
-## 7. Test Your Deployed Application
-Once deployment is complete, you'll receive a URL where your application is accessible.
-
-## 8. Add Custom Domain (Optional)
-If you want to use a custom domain:
-1. Go to your Replit deployment settings
-2. Find the "Domains" section
-3. Add your custom domain
-4. Follow the DNS configuration instructions
-
-## Troubleshooting
-If deployment fails:
-1. Make sure the application is running before attempting to deploy
-2. Check that port 5000 is correctly exposed (this is configured in your .replit file)
-3. Ensure all environment variables are correctly set
-4. Try restarting the Replit workspace before deploying again
-
-Your application should now be deployed and accessible via the assigned URL!
+This method guarantees consistent file references regardless of hash values.

@@ -1,4 +1,18 @@
-<!DOCTYPE html>
+/**
+ * Direct Deployment Fix
+ * 
+ * This script directly creates a stable version of the index.html file
+ * for deployment. No need to run the build first, as this is just a direct fix.
+ * 
+ * Usage: node fix-index.js
+ */
+
+import fs from 'fs';
+
+console.log("🛠️ Creating deployment-ready index.html...");
+
+// Create a stable index.html with no hash references
+const indexHtml = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <style data-vite-theme="" data-inject-first="">:root {
@@ -56,4 +70,10 @@
     <!-- This script injects a replit badge into the page, please feel free to remove this line -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-badge-v3.js"></script>
   </body>
-</html>
+</html>`;
+
+// Save this fixed index.html to the project root for deployment
+fs.writeFileSync('client/index.html', indexHtml);
+
+console.log("✅ Created fixed index.html in client/index.html.");
+console.log("Now deploy your application using the default deployment process.");

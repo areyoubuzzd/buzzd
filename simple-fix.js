@@ -13,93 +13,48 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
-console.log('🔧 SIMPLE DEPLOYMENT FIX 🔧');
-console.log('Fixing the deployment to avoid file hash issues...');
+console.log("🔧 SUPER SIMPLE DEPLOYMENT FIX 🔧");
 
-// Step 1: Clean the build
-console.log('\n1️⃣ Cleaning previous builds...');
+// Step 1: Clean previous builds
+console.log("Step 1: Cleaning old builds...");
 if (fs.existsSync('dist')) {
   execSync('rm -rf dist');
-  console.log('✅ Removed old dist directory');
 }
 
-// Step 2: Build the app
-console.log('\n2️⃣ Building the app...');
+// Step 2: Run a fresh build
+console.log("Step 2: Running new build...");
 try {
   execSync('NODE_ENV=production npm run build', { stdio: 'inherit' });
-  console.log('✅ Build completed successfully');
 } catch (error) {
-  console.error('❌ Build failed:', error.message);
+  console.error("Build failed:", error.message);
   process.exit(1);
 }
 
-// Step 3: Fix the file references
-console.log('\n3️⃣ Fixing file references...');
+// Step 3: Update the dist index.html file with stable references
+console.log("Step 3: Creating stable asset files...");
 
-const publicDir = path.join('dist', 'public');
-const assetsDir = path.join(publicDir, 'assets');
-const indexHtmlPath = path.join(publicDir, 'index.html');
+// Find the JS and CSS files
+const assets = fs.readdirSync('dist/public/assets');
+const jsFile = assets.find(file => file.startsWith('index-') && file.endsWith('.js'));
+const cssFile = assets.find(file => file.startsWith('index-') && file.endsWith('.css'));
 
-if (!fs.existsSync(indexHtmlPath)) {
-  console.error('❌ index.html not found. Build may have failed.');
+if (!jsFile || !cssFile) {
+  console.error("Could not find asset files in the build output");
   process.exit(1);
 }
 
-// Read the index.html file
-let indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
+// Create stable copies
+fs.copyFileSync(`dist/public/assets/${jsFile}`, 'dist/public/assets/app.js');
+fs.copyFileSync(`dist/public/assets/${cssFile}`, 'dist/public/assets/app.css');
 
-// Extract JS file reference
-const jsMatch = indexHtml.match(/src="\/assets\/([^"]+\.js)"/);
-if (!jsMatch) {
-  console.error('❌ Could not find JS file reference in index.html');
-  process.exit(1);
-}
+// Update index.html
+const indexPath = 'dist/public/index.html';
+let html = fs.readFileSync(indexPath, 'utf8');
+html = html.replace(`/assets/${jsFile}`, '/assets/app.js');
+html = html.replace(`/assets/${cssFile}`, '/assets/app.css');
+fs.writeFileSync(indexPath, html);
 
-const jsFile = jsMatch[1];
-console.log(`Found JS file: ${jsFile}`);
-
-// Extract CSS file reference
-const cssMatch = indexHtml.match(/href="\/assets\/([^"]+\.css)"/);
-if (!cssMatch) {
-  console.error('❌ Could not find CSS file reference in index.html');
-  process.exit(1);
-}
-
-const cssFile = cssMatch[1];
-console.log(`Found CSS file: ${cssFile}`);
-
-// Create fixed copies of the files
-try {
-  // JS file
-  const jsPath = path.join(assetsDir, jsFile);
-  const fixedJsPath = path.join(assetsDir, 'index-stable.js');
-  fs.copyFileSync(jsPath, fixedJsPath);
-  console.log(`✅ Created fixed JS file: assets/index-stable.js`);
-  
-  // CSS file
-  const cssPath = path.join(assetsDir, cssFile);
-  const fixedCssPath = path.join(assetsDir, 'index-stable.css');
-  fs.copyFileSync(cssPath, fixedCssPath);
-  console.log(`✅ Created fixed CSS file: assets/index-stable.css`);
-  
-  // Update index.html
-  indexHtml = indexHtml.replace(
-    `src="/assets/${jsFile}"`,
-    `src="/assets/index-stable.js"`
-  );
-  
-  indexHtml = indexHtml.replace(
-    `href="/assets/${cssFile}"`,
-    `href="/assets/index-stable.css"`
-  );
-  
-  fs.writeFileSync(indexHtmlPath, indexHtml);
-  console.log('✅ Updated index.html to use stable file names');
-  
-  console.log('\n✨ DEPLOYMENT FIX COMPLETED ✨');
-  console.log('Your app is now ready for deployment.');
-  console.log('Use the Replit deployment interface to deploy it.');
-} catch (error) {
-  console.error('❌ Error fixing file references:', error.message);
-  process.exit(1);
-}
+console.log("✅ Deployment fix successful!");
+console.log(`- JS file fixed: ${jsFile} → app.js`);
+console.log(`- CSS file fixed: ${cssFile} → app.css`);
+console.log("\nYou can now deploy your application normally using Replit.")

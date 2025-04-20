@@ -145,7 +145,7 @@ You can verify your setup is working by accessing these test endpoints:
 
 This application includes a special deployment process to avoid asset filename issues on Replit:
 
-1. Before deploying, run: `node pre-deploy.js`
+1. Before deploying, run the bash script: `./deploy.sh`
 2. Use Replit's deployment interface to deploy the app
 3. For detailed instructions, see `DEPLOYMENT_GUIDE.md`
 
@@ -155,7 +155,8 @@ Vite generates hashed filenames for assets (JS/CSS) which can cause issues with 
 
 ### Available Deployment Scripts
 
-- `pre-deploy.js` - Recommended all-in-one solution (clean, build, fix, verify)
+- `deploy.sh` - Recommended shell script solution (clean, build, fix, verify)
+- `pre-deploy.js` - JavaScript alternative (clean, build, fix, verify)
 - `bust-cache.js` - Fixes hash mismatches in an existing build
 - `deployment-check.js` - Verifies deployment readiness
 - `simple-fix.js` - Legacy script with basic functionality

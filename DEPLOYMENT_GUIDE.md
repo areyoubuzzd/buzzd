@@ -4,21 +4,30 @@ This guide provides step-by-step instructions for successfully deploying the Buz
 
 ## Deployment Steps
 
-### 1. Run the Pre-Deployment Script
+### 1. Run the Deployment Shell Script (Recommended)
 
-Before deploying, run the pre-deployment script to ensure asset file naming consistency:
+The simplest way to prepare for deployment is to run the deployment shell script:
 
 ```bash
-node pre-deploy.js
+./deploy.sh
 ```
 
 This comprehensive script:
 1. Cleans previous builds
 2. Runs a fresh production build 
-3. Applies the cache-busting fix
-4. Verifies all files are ready for deployment
+3. Creates stable asset files (index-stable.js, index-stable.css)
+4. Updates index.html to reference these stable files
+5. Verifies all changes are correctly applied
 
-The script creates stable file versions (index-stable.js, index-stable.css) that avoid hash mismatches between environments.
+### Alternative: Run the Pre-Deployment JavaScript Script
+
+If you prefer a JavaScript-based solution, you can use:
+
+```bash
+node pre-deploy.js
+```
+
+This script performs similar operations as deploy.sh but is implemented in JavaScript.
 
 ### 2. Deploy the Application
 
@@ -39,13 +48,14 @@ After deployment completes:
 
 If you encounter deployment errors related to file references:
 
-1. Run the pre-deployment script: `node pre-deploy.js`
-2. If that doesn't work, try each script individually:
+1. Run the shell deployment script: `./deploy.sh`
+2. If that doesn't work, try the JavaScript alternative: `node pre-deploy.js`
+3. As a last resort, run the individual steps manually:
    - Clean build: `rm -rf dist`
    - Build: `NODE_ENV=production npm run build`
    - Fix assets: `node bust-cache.js`
-3. Verify that the dist/public/index.html references stable file versions (index-stable.js, index-stable.css)
-4. Try the deployment process again
+4. Verify that the dist/public/index.html references stable file versions (index-stable.js, index-stable.css)
+5. Try the deployment process again
 
 ### Database Connection Issues
 
@@ -57,9 +67,18 @@ If the application deploys but data doesn't load:
 
 ## Deployment Script Details
 
-### pre-deploy.js (Recommended)
+### deploy.sh (Recommended)
 
-The `pre-deploy.js` script is an all-in-one solution that:
+The `deploy.sh` shell script is an all-in-one solution that:
+- Cleans previous builds
+- Runs a fresh production build 
+- Creates stable asset files
+- Updates index.html references
+- Verifies all changes were applied correctly
+
+### pre-deploy.js
+
+The `pre-deploy.js` JavaScript script is an alternative that:
 - Cleans previous builds
 - Runs a fresh production build 
 - Applies cache-busting fixes
