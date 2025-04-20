@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { RestaurantCard, RestaurantCardSkeleton } from '@/components/restaurants/restaurant-card';
 import Navigation from '@/components/layout/navigation';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiX } from 'react-icons/fi';
 import { LocationHeader } from '@/components/location/location-header';
 import { useLocation } from '@/contexts/location-context';
 import { Link } from 'wouter';
@@ -326,17 +327,19 @@ export default function RestaurantsPage() {
   };
   
   // Filter restaurants based on search query
-  const filteredEstablishments = establishments?.filter((establishment: Establishment) => {
-    if (!searchQuery) return true;
+  const filteredEstablishments = useMemo(() => {
+    if (!establishments) return [];
+    
+    if (!searchQuery) return establishments;
     
     const query = searchQuery.toLowerCase();
-    return (
+    return establishments.filter((establishment: Establishment) => (
       establishment.name.toLowerCase().includes(query) ||
       establishment.cuisine.toLowerCase().includes(query) ||
       establishment.address.toLowerCase().includes(query) ||
       establishment.city.toLowerCase().includes(query)
-    );
-  });
+    ));
+  }, [establishments, searchQuery]);
   
   // Sort restaurants: active first, then by distance
   const sortedEstablishments = useMemo(() => {
@@ -425,7 +428,52 @@ export default function RestaurantsPage() {
         <LocationHeader onOpenFilters={() => console.log("Open filters")} />
       </div>
       
-      <div className="px-4 py-4">
+      {/* Restaurant Page Heading */}
+      <div className="bg-[#232946] px-4 py-6 border-b border-[#353e6b]">
+        <div className="container mx-auto">
+          <h1 className="text-2xl font-bold text-white">Restaurants & Bars</h1>
+          <p className="text-gray-300 mt-1">Find the best happy hour spots near you</p>
+        </div>
+      </div>
+      
+      {/* Search Bar */}
+      <div className="bg-[#282f57] px-4 py-3 border-b border-[#353e6b] sticky top-[4.5rem] z-10">
+        <div className="container mx-auto">
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Search for restaurant or area"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10 py-2 w-full rounded-lg border-[#353e6b]"
+            />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            {searchQuery && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 rounded-full"
+              >
+                <FiX />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <div className="bg-[#232946] px-4 py-2 border-b border-[#353e6b]">
+        <div className="container mx-auto">
+          <p className="text-sm text-gray-300">
+            {sortedEstablishments?.length || 0} {sortedEstablishments?.length === 1 ? 'restaurant' : 'restaurants'} found
+            {searchQuery ? ` for "${searchQuery}"` : ''}
+          </p>
+        </div>
+      </div>
+      
+      <div className="px-4 py-4 bg-[#232946]">
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {[...Array(6)].map((_, i) => (
@@ -433,37 +481,38 @@ export default function RestaurantsPage() {
             ))}
           </div>
         ) : error ? (
-          <motion.div 
-            className="text-center p-8 text-red-500"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <motion.p 
-              initial={{ y: -10 }}
-              animate={{ y: 0 }}
-              transition={{ delay: 0.1, type: "spring" }}
-            >
-              Error loading restaurants.
-            </motion.p>
-            <motion.p 
-              className="text-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="bg-[#353e6b] p-4 rounded-full mb-4">
+              <FiSearch className="h-8 w-8 text-amber-400" />
+            </div>
+            <h3 className="text-lg font-medium text-white mb-1">Error loading restaurants</h3>
+            <p className="text-gray-300 max-w-md">
               {(error as Error).message}
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
         ) : filteredEstablishments?.length === 0 ? (
-          <motion.div 
-            className="text-center p-8 text-gray-500"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <p>No restaurants found matching "{searchQuery}"</p>
-          </motion.div>
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="bg-[#353e6b] p-4 rounded-full mb-4">
+              <FiSearch className="h-8 w-8 text-amber-400" />
+            </div>
+            <h3 className="text-lg font-medium text-white mb-1">No restaurants found</h3>
+            <p className="text-gray-300 max-w-md">
+              {searchQuery 
+                ? `No restaurants match "${searchQuery}". Try a different search term.`
+                : "We couldn't find any restaurants in this area. Try changing your location."}
+            </p>
+            {searchQuery && (
+              <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                <Badge 
+                  variant="outline" 
+                  className="flex items-center gap-1 cursor-pointer hover:bg-[#353e6b] border-amber-400 text-amber-400"
+                  onClick={() => setSearchQuery('')}
+                >
+                  "{searchQuery}" <FiX className="h-3 w-3" />
+                </Badge>
+              </div>
+            )}
+          </div>
         ) : (
           <motion.div 
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2"
