@@ -704,11 +704,11 @@ export default function EstablishmentDetailsPage() {
         )}
       </div>
       
-      {/* Share floating button */}
+      {/* Share floating bar */}
       <motion.div
-        className="fixed bottom-20 right-4 z-50"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
+        className="fixed bottom-20 left-0 right-0 z-50 px-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{
           type: "spring",
           stiffness: 260,
@@ -716,69 +716,30 @@ export default function EstablishmentDetailsPage() {
           delay: 0.5
         }}
       >
-        <motion.div className="flex flex-col items-center">
-          {/* Share options that appear when expanded */}
-          <AnimatePresence>
-            {isShareExpanded && (
-              <>
-                <motion.button
-                  onClick={handleShareViaWhatsApp}
-                  className="bg-[#25D366] text-white rounded-full p-3 shadow-lg mb-2"
-                  initial={{ opacity: 0, scale: 0, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0, y: 20 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <FaWhatsapp className="h-6 w-6" />
-                </motion.button>
-                
-                <motion.button
-                  onClick={handleShareViaTelegram}
-                  className="bg-[#0088cc] text-white rounded-full p-3 shadow-lg mb-2"
-                  initial={{ opacity: 0, scale: 0, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0, y: 20 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <FaTelegram className="h-6 w-6" />
-                </motion.button>
-              </>
-            )}
-          </AnimatePresence>
-          
-          {/* Main share button */}
-          <motion.button
-            onClick={() => setIsShareExpanded(!isShareExpanded)}
-            className="bg-[#FFC300] text-white rounded-full p-3 shadow-lg flex items-center justify-center relative"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {isShareExpanded ? (
-              <motion.span
-                initial={{ rotate: 0 }}
-                animate={{ rotate: 45 }}
-                transition={{ duration: 0.2 }}
-              >
-                <FaShareAlt className="h-6 w-6" />
-              </motion.span>
-            ) : (
-              <>
-                <FaShareAlt className="h-6 w-6" />
-                <motion.div
-                  className="absolute -top-10 whitespace-nowrap bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-80"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1, duration: 0.3 }}
-                >
-                  Share this spot with your friends
-                </motion.div>
-              </>
-            )}
-          </motion.button>
+        <motion.div 
+          className="bg-white rounded-full shadow-lg mx-auto flex items-center justify-between px-5 py-3"
+          whileHover={{ scale: 1.02 }}
+        >
+          <span className="text-gray-800 font-medium mr-2">Share this spot with your friends</span>
+          <div className="flex items-center space-x-3">
+            <motion.button
+              onClick={handleShareViaWhatsApp}
+              className="text-[#25D366] p-1 flex items-center justify-center"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaWhatsapp className="h-6 w-6" />
+            </motion.button>
+            
+            <motion.button
+              onClick={handleShareViaTelegram}
+              className="text-[#0088cc] p-1 flex items-center justify-center"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaTelegram className="h-6 w-6" />
+            </motion.button>
+          </div>
         </motion.div>
       </motion.div>
       
