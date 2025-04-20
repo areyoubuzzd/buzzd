@@ -1,0 +1,12 @@
+{
+  "name": "buzzd-app",
+  "version": "1.0.0",
+  "description": "Buzzd App - Singapore's Happy Hour Discovery App",
+  "scripts": {
+    "dev": "node -r tsx/register server/index.ts",
+    "build": "tsc",
+    "start": "node server/deployment.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
