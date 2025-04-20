@@ -128,23 +128,57 @@ export default function AuthPage() {
     }
   });
   
-  const handleRequestCode = (values: { phoneNumber: string }) => {
-    requestPhoneCodeMutation.mutate(values, {
-      onSuccess: () => {
-        // Save phone number for verification step
-        phoneVerifyForm.setValue("phoneNumber", values.phoneNumber);
-        setPhoneVerificationStep('verify');
-      }
-    });
+  const handleRequestCode = async (values: { phoneNumber: string }) => {
+    if (!firebaseReady) {
+      alert("Firebase is not properly configured. Please check your environment variables.");
+      return;
+    }
+    
+    try {
+      // Try to send verification code via Firebase
+      await sendPhoneVerificationCode(values.phoneNumber);
+      
+      // Save phone number for verification step
+      phoneVerifyForm.setValue("phoneNumber", values.phoneNumber);
+      setPhoneVerificationStep('verify');
+      
+      // Optional: Also tell the backend we sent a code
+      requestPhoneCodeMutation.mutate(values, {
+        onSuccess: () => {
+          console.log("Backend notified about phone verification code sent");
+        }
+      });
+    } catch (error: any) {
+      console.error("Failed to send verification code:", error);
+      alert(error?.message || "Failed to send verification code. Please try again.");
+    }
   };
   
-  const handleVerifyCode = (values: z.infer<typeof phoneAuthSchema>) => {
-    verifyPhoneCodeMutation.mutate(values, {
-      onSuccess: () => {
-        setPhoneDialogOpen(false);
-        navigate("/");
-      }
-    });
+  const handleVerifyCode = async (values: z.infer<typeof phoneAuthSchema>) => {
+    if (!firebaseReady) {
+      alert("Firebase is not properly configured. Please check your environment variables.");
+      return;
+    }
+    
+    try {
+      // Verify the code with Firebase
+      const idToken = await verifyPhoneCode(values.verificationCode);
+      
+      // Send the verified result to our backend
+      verifyPhoneCodeMutation.mutate({
+        ...values,
+        authProvider: "phone",
+        idToken
+      } as any, {
+        onSuccess: () => {
+          setPhoneDialogOpen(false);
+          navigate("/");
+        }
+      });
+    } catch (error: any) {
+      console.error("Failed to verify code:", error);
+      alert(error?.message || "Failed to verify code. Please check and try again.");
+    }
   };
   
   // Firebase configuration check
@@ -588,6 +622,18 @@ export default function AuthPage() {
                   />
                 </div>
                 
+                {/* Firebase reCAPTCHA container */}
+                <div id="recaptcha-container" ref={recaptchaContainerRef} className="my-2"></div>
+                
+                {!firebaseReady && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-600 text-sm">
+                    <p className="flex items-center gap-2">
+                      <FiAlertCircle className="shrink-0" />
+                      <span>Firebase authentication is not fully configured. Some login options may not work properly.</span>
+                    </p>
+                  </div>
+                )}
+                
                 <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
                   <Button
                     type="button"
@@ -598,7 +644,7 @@ export default function AuthPage() {
                   </Button>
                   <Button 
                     type="submit"
-                    disabled={requestPhoneCodeMutation.isPending}
+                    disabled={requestPhoneCodeMutation.isPending || !firebaseReady}
                   >
                     {requestPhoneCodeMutation.isPending ? "Sending..." : "Send Code"}
                   </Button>
