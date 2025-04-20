@@ -131,7 +131,7 @@ export default function SavingsPage() {
                               <div>
                                 <p className="text-sm text-gray-600">Deals Used</p>
                                 <p className="text-2xl font-bold text-blue-600">
-                                  {profileData?.dealsUsed || user.dealsUsed || 0}
+                                  {profileData?.dealsUsed || 0}
                                 </p>
                               </div>
                               <div className="p-2 bg-blue-100 rounded-full">

@@ -46,7 +46,7 @@ export default function AppHeader() {
                     className="flex items-center text-[#232946]"
                   >
                     <span className="text-sm mr-1">
-                      Hi {user.displayName || user.username || 'User'}
+                      Hi {user.displayName || user.username || user.email?.split('@')[0] || 'User'}
                     </span>
                     {user.photoUrl ? (
                       <img 
