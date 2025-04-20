@@ -29,17 +29,26 @@ export const servingStyleEnum = pgEnum('serving_style', [
   'glass', 'bottle', 'pint', 'flight', 'bucket'
 ]);
 
+// Auth provider enum
+export const authProviderEnum = pgEnum('auth_provider', ['local', 'google', 'apple', 'phone']);
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
+  username: text("username").unique(),
+  password: text("password"),
+  email: text("email").unique(),
+  phoneNumber: text("phone_number").unique(),
+  photoUrl: text("photo_url"),
+  displayName: text("display_name"),
+  authProvider: authProviderEnum("auth_provider").notNull().default('local'),
+  authProviderId: text("auth_provider_id"), // ID from Google/Apple/etc
   role: userRoleEnum("role").notNull().default('user'),
   subscriptionTier: subscriptionTierEnum("subscription_tier").notNull().default('free'),
   dealsViewed: integer("deals_viewed").notNull().default(0),
   totalSaved: doublePrecision("total_saved").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  lastLoginAt: timestamp("last_login_at"),
 });
 
 // Establishments (restaurants, bars, etc.)
@@ -181,15 +190,55 @@ export const userDealViewsRelations = relations(userDealViews, ({ one }) => ({
   }),
 }));
 
-// Schema for inserting users
-export const insertUserSchema = createInsertSchema(users).pick({
+// Schema for inserting users - local auth (username/password)
+export const insertLocalUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   email: true,
+  displayName: true,
 }).extend({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  authProvider: z.literal('local').default('local'),
 });
+
+// Schema for Google authentication
+export const insertGoogleUserSchema = createInsertSchema(users).pick({
+  email: true,
+  displayName: true,
+  photoUrl: true,
+}).extend({
+  email: z.string().email("Invalid email address"),
+  authProvider: z.literal('google').default('google'),
+  authProviderId: z.string(),
+});
+
+// Schema for Apple authentication
+export const insertAppleUserSchema = createInsertSchema(users).pick({
+  email: true,
+  displayName: true,
+}).extend({
+  email: z.string().email("Invalid email address"),
+  authProvider: z.literal('apple').default('apple'),
+  authProviderId: z.string(),
+});
+
+// Schema for Phone authentication
+export const insertPhoneUserSchema = createInsertSchema(users).pick({
+  phoneNumber: true,
+  displayName: true,
+}).extend({
+  phoneNumber: z.string().min(8, "Valid phone number required"),
+  authProvider: z.literal('phone').default('phone'),
+});
+
+// Combined schema for all auth types
+export const insertUserSchema = z.discriminatedUnion('authProvider', [
+  insertLocalUserSchema,
+  insertGoogleUserSchema,
+  insertAppleUserSchema,
+  insertPhoneUserSchema,
+]);
 
 // Schema for inserting establishments
 export const insertEstablishmentSchema = createInsertSchema(establishments).omit({

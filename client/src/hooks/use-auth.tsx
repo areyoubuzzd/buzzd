@@ -4,7 +4,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { insertUserSchema, User } from "@shared/schema";
+import { insertLocalUserSchema, User } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -15,20 +15,52 @@ const userLoginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const userRegisterSchema = insertUserSchema.extend({
+// For traditional username/password registration
+const userRegisterSchema = insertLocalUserSchema.extend({
   confirmPassword: z.string().min(1, "Please confirm your password"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
 
+// For Google authentication
+const googleAuthSchema = z.object({
+  idToken: z.string(),
+  authProvider: z.literal('google'),
+});
+
+// For Apple authentication
+const appleAuthSchema = z.object({
+  idToken: z.string(),
+  authProvider: z.literal('apple'),
+});
+
+// For phone authentication
+const phoneAuthSchema = z.object({
+  phoneNumber: z.string().min(8, "Valid phone number required"),
+  verificationCode: z.string().min(4, "Verification code required"),
+  authProvider: z.literal('phone'),
+});
+
 type AuthContextType = {
   user: Omit<User, 'password'> | null;
   isLoading: boolean;
   error: Error | null;
+  
+  // Traditional login/registration
   loginMutation: UseMutationResult<User, Error, z.infer<typeof userLoginSchema>>;
-  logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<User, Error, z.infer<typeof userRegisterSchema>>;
+  
+  // Social logins
+  googleLoginMutation: UseMutationResult<User, Error, z.infer<typeof googleAuthSchema>>;
+  appleLoginMutation: UseMutationResult<User, Error, z.infer<typeof appleAuthSchema>>;
+  
+  // Phone authentication
+  requestPhoneCodeMutation: UseMutationResult<{ success: boolean }, Error, { phoneNumber: string }>;
+  verifyPhoneCodeMutation: UseMutationResult<User, Error, z.infer<typeof phoneAuthSchema>>;
+  
+  // General methods
+  logoutMutation: UseMutationResult<void, Error, void>;
   upgradeSubscriptionMutation: UseMutationResult<User, Error, void>;
 };
 
@@ -108,6 +140,94 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Google authentication
+  const googleLoginMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof googleAuthSchema>) => {
+      const res = await apiRequest("POST", "/api/auth/google", data);
+      return await res.json();
+    },
+    onSuccess: (user: User) => {
+      queryClient.setQueryData(["/api/user"], user);
+      toast({
+        title: "Google login successful",
+        description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Google login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Apple authentication
+  const appleLoginMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof appleAuthSchema>) => {
+      const res = await apiRequest("POST", "/api/auth/apple", data);
+      return await res.json();
+    },
+    onSuccess: (user: User) => {
+      queryClient.setQueryData(["/api/user"], user);
+      toast({
+        title: "Apple login successful",
+        description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Apple login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Phone authentication - request verification code
+  const requestPhoneCodeMutation = useMutation({
+    mutationFn: async ({ phoneNumber }: { phoneNumber: string }) => {
+      const res = await apiRequest("POST", "/api/auth/phone/request-code", { phoneNumber });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Verification code sent",
+        description: "Please check your phone for the verification code",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to send verification code",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Phone authentication - verify code
+  const verifyPhoneCodeMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof phoneAuthSchema>) => {
+      const res = await apiRequest("POST", "/api/auth/phone/verify", data);
+      return await res.json();
+    },
+    onSuccess: (user: User) => {
+      queryClient.setQueryData(["/api/user"], user);
+      toast({
+        title: "Phone verification successful",
+        description: "You're now logged in!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Phone verification failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Subscription upgrade
   const upgradeSubscriptionMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/user/subscription", { tier: "premium" });
@@ -135,9 +255,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user ?? null,
         isLoading,
         error,
+        // Traditional login
         loginMutation,
-        logoutMutation,
         registerMutation,
+        // Social logins
+        googleLoginMutation,
+        appleLoginMutation,
+        // Phone authentication
+        requestPhoneCodeMutation,
+        verifyPhoneCodeMutation,
+        // General methods
+        logoutMutation,
         upgradeSubscriptionMutation,
       }}
     >
@@ -155,4 +283,10 @@ export function useAuth() {
 }
 
 // Validation schemas for external use
-export { userLoginSchema, userRegisterSchema };
+export { 
+  userLoginSchema, 
+  userRegisterSchema,
+  googleAuthSchema,
+  appleAuthSchema,
+  phoneAuthSchema
+};
