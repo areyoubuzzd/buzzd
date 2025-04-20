@@ -182,8 +182,17 @@ export default function AuthPage() {
     }
   };
 
+  // Redirect to home page if the user is already logged in
   if (user) {
-    return <div>Redirecting...</div>;
+    setTimeout(() => {
+      setLocation("/");
+    }, 100); // Small delay to ensure state is updated
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold mb-2">Login successful!</h2>
+        <p>Redirecting you to the home page...</p>
+      </div>
+    </div>;
   }
 
   return (
