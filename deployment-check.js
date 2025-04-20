@@ -9,258 +9,200 @@
  * - Full check with build verification: node deployment-check.js --verify-build
  */
 
-import http from 'http';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
-dotenv.config();
-
-// Colors for console output
+// Color codes for output formatting
 const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  red: '\x1b[31m',
   green: '\x1b[32m',
   yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  cyan: '\x1b[36m'
+  red: '\x1b[31m',
+  cyan: '\x1b[36m',
+  magenta: '\x1b[35m',
+  reset: '\x1b[0m'
 };
 
 function logColor(message, color) {
-  console.log(`${color}${message}${colors.reset}`);
+  console.log(color + message + colors.reset);
 }
 
-// Command line arguments
-const args = process.argv.slice(2);
-const shouldVerifyBuild = args.includes('--verify-build');
+// Check if --verify-build argument was passed
+const shouldVerifyBuild = process.argv.includes('--verify-build');
 
-logColor('🔍 Starting deployment readiness check...', colors.bright + colors.blue);
+// Header
+logColor('🔍 DEPLOYMENT READINESS CHECK 🔍', colors.magenta);
+logColor('This tool helps verify your app is ready for deployment', colors.cyan);
+logColor('--------------------------------------------------', colors.magenta);
 
-// Check if essential environment variables are set
-console.log('\n📋 Checking environment variables...');
+// Initialize check results
+let allChecksPass = true;
+const warnings = [];
+
+// Check 1: Verify .env file and environment variables
+logColor('\n1️⃣ Checking environment configuration...', colors.cyan);
+
 const requiredEnvVars = [
   'DATABASE_URL',
-  'CLOUDFLARE_ACCOUNT_ID', 
-  'CLOUDFLARE_IMAGES_API_TOKEN'
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_APP_ID'
 ];
 
-const missingVars = [];
+const missingEnvVars = [];
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
-    missingVars.push(envVar);
+    missingEnvVars.push(envVar);
   }
 }
 
-if (missingVars.length > 0) {
-  console.log('❌ Missing required environment variables:', missingVars.join(', '));
-  console.log('   Make sure to set these variables in your deployment environment.');
+if (missingEnvVars.length > 0) {
+  logColor(`❌ Missing required environment variables: ${missingEnvVars.join(', ')}`, colors.red);
+  allChecksPass = false;
 } else {
-  console.log('✅ All required environment variables are set.');
+  logColor('✅ All required environment variables are set', colors.green);
 }
 
-// Check if the server is running
-console.log('\n🌐 Checking if server is running...');
-const pingServer = () => {
-  return new Promise((resolve) => {
-    const req = http.get('http://localhost:5000/api/collections', (res) => {
-      if (res.statusCode === 200) {
-        console.log('✅ Server is running and API is accessible');
-        resolve(true);
-      } else {
-        console.log(`❌ Server returned status code ${res.statusCode}`);
-        resolve(false);
-      }
-    });
-    
-    req.on('error', (err) => {
-      console.log('❌ Server is not running or not accessible', err.message);
-      resolve(false);
-    });
-    
-    req.setTimeout(3000, () => {
-      req.destroy();
-      console.log('❌ Server request timed out');
-      resolve(false);
-    });
-  });
-};
+// Check 2: Verify database connection
+logColor('\n2️⃣ Checking database configuration...', colors.cyan);
 
-// Check package.json for proper build and start scripts
-console.log('\n📦 Checking build and start scripts...');
+if (!process.env.DATABASE_URL) {
+  logColor('❌ Missing DATABASE_URL environment variable', colors.red);
+  allChecksPass = false;
+} else {
+  try {
+    // We won't actually test the connection here as that requires the application code
+    // In a more comprehensive check, you would import db.js and test a simple query
+    logColor('✅ DATABASE_URL environment variable is set', colors.green);
+  } catch (error) {
+    logColor(`❌ Error connecting to database: ${error.message}`, colors.red);
+    allChecksPass = false;
+  }
+}
+
+// Check 3: Verify required files existence
+logColor('\n3️⃣ Checking required files...', colors.cyan);
+
+const requiredFiles = [
+  'simple-fix.js',
+  'client/index.html',
+  'server/index.ts',
+  'package.json'
+];
+
+const missingFiles = [];
+for (const file of requiredFiles) {
+  if (!fs.existsSync(file)) {
+    missingFiles.push(file);
+  }
+}
+
+if (missingFiles.length > 0) {
+  logColor(`❌ Missing required files: ${missingFiles.join(', ')}`, colors.red);
+  allChecksPass = false;
+} else {
+  logColor('✅ All required files are present', colors.green);
+}
+
+// Check 4: Verify package.json includes required scripts
+logColor('\n4️⃣ Checking package.json configuration...', colors.cyan);
+
 try {
-  const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   
-  if (packageJson.scripts && packageJson.scripts.build && packageJson.scripts.start) {
-    console.log('✅ Build and start scripts found in package.json');
-  } else {
-    console.log('❌ Missing build and/or start scripts in package.json');
+  const requiredScripts = ['build', 'dev'];
+  const missingScripts = [];
+  
+  for (const script of requiredScripts) {
+    if (!packageJson.scripts || !packageJson.scripts[script]) {
+      missingScripts.push(script);
+    }
   }
-} catch (err) {
-  console.log('❌ Error reading package.json:', err.message);
+  
+  if (missingScripts.length > 0) {
+    logColor(`❌ Missing required scripts in package.json: ${missingScripts.join(', ')}`, colors.red);
+    allChecksPass = false;
+  } else {
+    logColor('✅ All required scripts are configured in package.json', colors.green);
+  }
+  
+  // Verify dependency versions
+  if (!packageJson.dependencies || !packageJson.devDependencies) {
+    warnings.push('Could not verify dependency versions');
+  }
+  
+} catch (error) {
+  logColor(`❌ Error reading package.json: ${error.message}`, colors.red);
+  allChecksPass = false;
 }
 
-// Check .replit configuration
-console.log('\n⚙️ Checking .replit configuration...');
-try {
-  const replitConfig = fs.readFileSync('./.replit', 'utf8');
-  
-  if (replitConfig.includes('[deployment]')) {
-    console.log('✅ Deployment configuration found in .replit file');
-  } else {
-    console.log('❌ No deployment configuration found in .replit file');
-  }
-  
-  if (replitConfig.includes('externalPort = 80') && replitConfig.includes('localPort = 5000')) {
-    console.log('✅ Port configuration for deployment found in .replit file');
-  } else {
-    console.log('❌ Missing or incorrect port configuration in .replit file');
-  }
-} catch (err) {
-  console.log('❌ Error reading .replit file:', err.message);
-}
-
-// Check for dist directory structure
-const checkDistStructure = async () => {
-  logColor('\n📂 Checking dist directory structure...', colors.yellow);
-  
-  const distDir = './dist';
-  const publicDir = path.join(distDir, 'public');
-  const assetsDir = path.join(publicDir, 'assets');
-  
-  if (!fs.existsSync(distDir)) {
-    logColor('❌ dist directory not found', colors.red);
-    return false;
-  }
-  
-  if (!fs.existsSync(publicDir)) {
-    logColor('❌ dist/public directory not found', colors.red);
-    return false;
-  }
-  
-  if (!fs.existsSync(assetsDir)) {
-    logColor('❌ dist/public/assets directory not found', colors.red);
-    return false;
-  }
-  
-  const indexHtmlPath = path.join(publicDir, 'index.html');
-  if (!fs.existsSync(indexHtmlPath)) {
-    logColor('❌ index.html not found in dist/public', colors.red);
-    return false;
-  }
-  
-  const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
-  
-  // Extract JS and CSS file references
-  const jsMatch = indexHtml.match(/src="\/assets\/(index-[^"]+\.js)"/);
-  const cssMatch = indexHtml.match(/href="\/assets\/(index-[^"]+\.css)"/);
-  
-  if (!jsMatch) {
-    logColor('❌ JS file reference not found in index.html', colors.red);
-    return false;
-  }
-  
-  if (!cssMatch) {
-    logColor('❌ CSS file reference not found in index.html', colors.red);
-    return false;
-  }
-  
-  const jsFile = jsMatch[1];
-  const cssFile = cssMatch[1];
-  
-  const jsPath = path.join(assetsDir, jsFile);
-  const cssPath = path.join(assetsDir, cssFile);
-  
-  if (!fs.existsSync(jsPath)) {
-    logColor(`❌ Referenced JS file not found: ${jsFile}`, colors.red);
-    return false;
-  }
-  
-  if (!fs.existsSync(cssPath)) {
-    logColor(`❌ Referenced CSS file not found: ${cssFile}`, colors.red);
-    return false;
-  }
-  
-  const assetFiles = fs.readdirSync(assetsDir);
-  logColor(`✅ Found ${assetFiles.length} asset files in dist/public/assets`, colors.green);
-  logColor(`✅ Build output structure looks good`, colors.green);
-  
-  return true;
-};
-
-// Verify build process
-const verifyBuild = async () => {
-  if (!shouldVerifyBuild) {
-    logColor('\nSkipping build verification. Use --verify-build to check the build.', colors.yellow);
-    return;
-  }
-  
-  logColor('\n🔨 Verifying build process...', colors.yellow);
+// Check 5 (Optional): Verify build
+if (shouldVerifyBuild) {
+  logColor('\n5️⃣ Verifying build process (this may take a minute)...', colors.cyan);
   
   try {
-    logColor('Running clean build...', colors.cyan);
-    // Backup the dist directory if it exists
-    const distExists = fs.existsSync('./dist');
-    if (distExists) {
-      fs.renameSync('./dist', './dist_backup');
+    // Clean dist directory
+    if (fs.existsSync('dist')) {
+      execSync('rm -rf dist');
+      logColor('Removed old dist directory', colors.yellow);
     }
     
-    // Run the build
-    execSync('NODE_ENV=production npm run build', { stdio: 'inherit' });
+    // Run simple-fix.js instead of a regular build
+    logColor('Running deployment fix script...', colors.yellow);
+    execSync('node simple-fix.js', { stdio: 'inherit' });
     
-    // Check the output
-    const buildSuccess = await checkDistStructure();
-    
-    if (buildSuccess) {
-      logColor('✅ Build process completed successfully', colors.green);
+    // Verify dist directory was created
+    if (!fs.existsSync('dist/public')) {
+      logColor('❌ Build failed - dist/public directory not created', colors.red);
+      allChecksPass = false;
     } else {
-      logColor('❌ Build process failed verification', colors.red);
-    }
-    
-    // Restore the original dist directory
-    if (distExists) {
-      // Remove the newly created dist
-      execSync('rm -rf ./dist');
-      // Restore the backup
-      fs.renameSync('./dist_backup', './dist');
-      logColor('Original dist directory restored', colors.cyan);
+      logColor('✅ Build completed successfully', colors.green);
+      
+      // Verify stable file names
+      const indexHtmlPath = path.join('dist', 'public', 'index.html');
+      const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
+      
+      const hasStableJs = indexHtml.includes('index-stable.js');
+      const hasStableCss = indexHtml.includes('index-stable.css');
+      
+      if (!hasStableJs || !hasStableCss) {
+        logColor('❌ Build did not produce stable filenames for assets', colors.red);
+        logColor('Run `node simple-fix.js` before deploying', colors.yellow);
+        allChecksPass = false;
+      } else {
+        logColor('✅ Build produced stable filenames for assets', colors.green);
+      }
     }
   } catch (error) {
     logColor(`❌ Build verification failed: ${error.message}`, colors.red);
-    
-    // Restore the original dist directory on error
-    if (fs.existsSync('./dist_backup')) {
-      // Remove the failed build if it exists
-      if (fs.existsSync('./dist')) {
-        execSync('rm -rf ./dist');
-      }
-      // Restore the backup
-      fs.renameSync('./dist_backup', './dist');
-      logColor('Original dist directory restored after error', colors.cyan);
-    }
+    allChecksPass = false;
   }
-};
-
-// Run the checks
-await pingServer();
-
-// Check the current build output
-if (fs.existsSync('./dist')) {
-  await checkDistStructure();
-} else {
-  logColor('\n❌ No dist directory found. Run "npm run build" first.', colors.red);
 }
 
-// Verify build process if requested
-await verifyBuild();
-
-logColor('\n🚀 Deployment readiness check completed', colors.bright + colors.green);
-logColor('If all checks passed, you are ready to deploy!', colors.cyan);
-logColor('If any checks failed, please address the issues before deploying.', colors.yellow);
-
-// Suggest next steps
-logColor('\n📋 Recommended deployment steps:', colors.bright + colors.blue);
-logColor('1. Run "node scripts/prepare-deploy.js" to prepare for deployment', colors.cyan);
-logColor('2. Use the Replit deployment interface to deploy your application', colors.cyan);
-logColor('3. After deployment, verify that your application is working correctly', colors.cyan);
+// Final summary
+logColor('\n--------------------------------------------------', colors.magenta);
+if (allChecksPass) {
+  logColor('✅ ALL CHECKS PASSED - Your app is ready for deployment!', colors.green);
+  
+  if (warnings.length > 0) {
+    logColor('\nWarnings (these will not prevent deployment):', colors.yellow);
+    warnings.forEach(warning => logColor(`⚠️ ${warning}`, colors.yellow));
+  }
+  
+  logColor('\nNext steps:', colors.cyan);
+  logColor('1. Run `node simple-fix.js` to prepare for deployment', colors.yellow);
+  logColor('2. Deploy using the Replit interface', colors.yellow);
+  logColor('3. Verify your deployment at your replit.app domain', colors.yellow);
+} else {
+  logColor('❌ SOME CHECKS FAILED - Fix the issues above before deploying', colors.red);
+  
+  if (warnings.length > 0) {
+    logColor('\nWarnings:', colors.yellow);
+    warnings.forEach(warning => logColor(`⚠️ ${warning}`, colors.yellow));
+  }
+  
+  logColor('\nRecommended actions:', colors.cyan);
+  logColor('1. Fix the issues identified above', colors.yellow);
+  logColor('2. Run this check again: node deployment-check.js', colors.yellow);
+  logColor('3. Once all checks pass, deploy the application', colors.yellow);
+}

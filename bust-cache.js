@@ -10,83 +10,111 @@
 import fs from 'fs';
 import path from 'path';
 
-const DIST_DIR = './dist';
-const PUBLIC_DIR = path.join(DIST_DIR, 'public');
-const ASSETS_DIR = path.join(PUBLIC_DIR, 'assets');
-const INDEX_HTML_PATH = path.join(PUBLIC_DIR, 'index.html');
+// Bold colors for visibility
+const RED = '\x1b[1;31m';
+const GREEN = '\x1b[1;32m';
+const YELLOW = '\x1b[1;33m';
+const BLUE = '\x1b[1;34m';
+const RESET = '\x1b[0m';
 
-console.log('🔍 Starting cache-busting process...');
+// Log with color
+const log = (text, color = RESET) => console.log(`${color}${text}${RESET}`);
 
-// Check if dist directory exists
-if (!fs.existsSync(DIST_DIR)) {
-  console.error('❌ Error: dist directory not found. Run the build first.');
+log("🛠️  CACHE BUSTING UTILITY 🛠️", BLUE);
+log("This tool creates stable file references for Replit deployment", YELLOW);
+log("---------------------------------------------------------------", BLUE);
+
+// Key directories
+const distDir = path.join(process.cwd(), "dist");
+const publicDir = path.join(distDir, "public");
+const assetsDir = path.join(publicDir, "assets");
+
+// First verify the dist directory exists
+if (!fs.existsSync(publicDir)) {
+  log("❌ Public directory not found. Run 'npm run build' first.", RED);
   process.exit(1);
 }
 
-// Check if index.html exists
-if (!fs.existsSync(INDEX_HTML_PATH)) {
-  console.error('❌ Error: index.html not found. Run the build first.');
+if (!fs.existsSync(assetsDir)) {
+  log("❌ Assets directory not found. Something is wrong with the build.", RED);
   process.exit(1);
 }
 
-// Read index.html
-let indexHtml = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
+// Find index.html
+const indexHtmlPath = path.join(publicDir, "index.html");
+if (!fs.existsSync(indexHtmlPath)) {
+  log("❌ index.html not found. Something is wrong with the build.", RED);
+  process.exit(1);
+}
 
-// Extract JS and CSS file references
-const jsMatch = indexHtml.match(/src="\/assets\/(index-[^"]+\.js)"/);
-const cssMatch = indexHtml.match(/href="\/assets\/(index-[^"]+\.css)"/);
+// Read the HTML file
+let html = fs.readFileSync(indexHtmlPath, 'utf8');
+log("📄 Found index.html", GREEN);
 
+// Find the JS file reference
+const jsMatch = html.match(/src="\/assets\/(index-[^"]+\.js)"/);
 if (!jsMatch) {
-  console.error('❌ Error: JS file reference not found in index.html');
+  log("❌ Could not find JS file reference in index.html", RED);
   process.exit(1);
 }
 
+const originalJsFilename = jsMatch[1];
+const stableJsFilename = "index-stable.js";
+const originalJsPath = path.join(assetsDir, originalJsFilename);
+const stableJsPath = path.join(assetsDir, stableJsFilename);
+
+log(`📝 JS file identified: ${originalJsFilename}`, GREEN);
+
+// Find the CSS file reference
+const cssMatch = html.match(/href="\/assets\/(index-[^"]+\.css)"/);
 if (!cssMatch) {
-  console.error('❌ Error: CSS file reference not found in index.html');
+  log("❌ Could not find CSS file reference in index.html", RED);
   process.exit(1);
 }
 
-const jsFile = jsMatch[1];
-const cssFile = cssMatch[1];
+const originalCssFilename = cssMatch[1];
+const stableCssFilename = "index-stable.css";
+const originalCssPath = path.join(assetsDir, originalCssFilename);
+const stableCssPath = path.join(assetsDir, stableCssFilename);
 
-console.log(`🔍 Found JS file: ${jsFile}`);
-console.log(`🔍 Found CSS file: ${cssFile}`);
+log(`📝 CSS file identified: ${originalCssFilename}`, GREEN);
 
-// Create a non-hashed version of the JS file
-const jsPath = path.join(ASSETS_DIR, jsFile);
-const stableJsPath = path.join(ASSETS_DIR, 'index-stable.js');
-
-// Create a non-hashed version of the CSS file
-const cssPath = path.join(ASSETS_DIR, cssFile);
-const stableCssPath = path.join(ASSETS_DIR, 'index-stable.css');
-
+// Create stable copies of files
 try {
   // Copy JS file
-  fs.copyFileSync(jsPath, stableJsPath);
-  console.log(`✅ Created stable JS file: assets/index-stable.js`);
+  fs.copyFileSync(originalJsPath, stableJsPath);
+  log(`✅ Created stable JS file: ${stableJsFilename}`, GREEN);
   
   // Copy CSS file
-  fs.copyFileSync(cssPath, stableCssPath);
-  console.log(`✅ Created stable CSS file: assets/index-stable.css`);
+  fs.copyFileSync(originalCssPath, stableCssPath);
+  log(`✅ Created stable CSS file: ${stableCssFilename}`, GREEN);
   
-  // Update references in index.html
-  indexHtml = indexHtml.replace(
-    `src="/assets/${jsFile}"`,
-    `src="/assets/index-stable.js"`
-  );
+  // Update index.html to reference stable files
+  html = html.replace(`/assets/${originalJsFilename}`, `/assets/${stableJsFilename}`);
+  html = html.replace(`/assets/${originalCssFilename}`, `/assets/${stableCssFilename}`);
   
-  indexHtml = indexHtml.replace(
-    `href="/assets/${cssFile}"`,
-    `href="/assets/index-stable.css"`
-  );
+  fs.writeFileSync(indexHtmlPath, html);
+  log("✅ Updated index.html to use stable filenames", GREEN);
   
-  // Write updated index.html
-  fs.writeFileSync(INDEX_HTML_PATH, indexHtml);
-  console.log(`✅ Updated index.html with stable file references`);
+  log("\n✨ CACHE BUSTING COMPLETE ✨", GREEN);
+  log("Your application is now ready for deployment.", YELLOW);
   
-  console.log('\n🚀 Cache-busting process completed successfully!');
-  console.log('Your app is now ready for deployment with stable file references.');
 } catch (error) {
-  console.error(`❌ Error: ${error.message}`);
+  log(`❌ Error creating stable files: ${error.message}`, RED);
   process.exit(1);
+}
+
+// Check if files exist in the target directory
+const directoryHasFiles = fs.readdirSync(assetsDir).some(file => 
+  file === stableJsFilename || file === stableCssFilename
+);
+
+if (!directoryHasFiles) {
+  log("⚠️ Warning: Could not verify that stable files were created.", YELLOW);
+  log("Please check the assets directory manually.", YELLOW);
+} else {
+  // Print the updated HTML to verify
+  log("\n📄 Updated index.html now contains:", BLUE);
+  log(`script src="/assets/${stableJsFilename}"`, GREEN);
+  log(`link href="/assets/${stableCssFilename}"`, GREEN);
 }

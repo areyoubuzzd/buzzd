@@ -9,87 +9,103 @@
  * 2. Then use Replit's deployment interface
  */
 
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 
-console.log('🚀 Starting special pre-deployment preparation...');
+// Bold colors for visibility
+const RED = '\x1b[1;31m';
+const GREEN = '\x1b[1;32m';
+const YELLOW = '\x1b[1;33m';
+const BLUE = '\x1b[1;34m';
+const CYAN = '\x1b[1;36m';
+const RESET = '\x1b[0m';
 
-// Force clean the dist directory
-console.log('Cleaning dist directory...');
+// Log with color
+const log = (text, color = RESET) => console.log(`${color}${text}${RESET}`);
+
+log("🚀 PRE-DEPLOYMENT UTILITY 🚀", BLUE);
+log("This tool prepares your app for deployment on Replit", YELLOW);
+log("---------------------------------------------------------------", BLUE);
+
+// Step 1: Clean the build to start fresh
+log("\n1️⃣ Cleaning previous builds...", CYAN);
 try {
   if (fs.existsSync('./dist')) {
     execSync('rm -rf ./dist');
-    console.log('✅ Existing dist directory removed');
+    log("✅ Removed old dist directory", GREEN);
+  } else {
+    log("ℹ️ No previous dist directory found", YELLOW);
   }
 } catch (error) {
-  console.error('❌ Error cleaning dist directory:', error.message);
+  log(`❌ Error cleaning build: ${error.message}`, RED);
   process.exit(1);
 }
 
-// Build with production settings
-console.log('Building application for production...');
+// Step 2: Run the production build
+log("\n2️⃣ Running production build...", CYAN);
 try {
+  // Production build
   execSync('NODE_ENV=production npm run build', { stdio: 'inherit' });
-  console.log('✅ Build completed');
+  
+  if (!fs.existsSync('./dist/public')) {
+    log("❌ Build failed - dist directory not found", RED);
+    process.exit(1);
+  }
+  
+  log("✅ Production build completed successfully", GREEN);
 } catch (error) {
-  console.error('❌ Build failed:', error.message);
+  log(`❌ Build failed: ${error.message}`, RED);
   process.exit(1);
 }
 
-// Verify the output
-console.log('Verifying build output...');
+// Step 3: Run the cache-busting utility
+log("\n3️⃣ Applying cache-busting fix...", CYAN);
 try {
-  const indexHtmlPath = path.join('./dist/public', 'index.html');
-  const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
-  
-  // Extract JS and CSS file references
-  const jsMatch = indexHtml.match(/src="\/assets\/(index-[^"]+\.js)"/);
-  const cssMatch = indexHtml.match(/href="\/assets\/(index-[^"]+\.css)"/);
-  
-  if (!jsMatch) {
-    console.error('❌ JS file reference not found in index.html');
-    process.exit(1);
-  }
-  
-  if (!cssMatch) {
-    console.error('❌ CSS file reference not found in index.html');
-    process.exit(1);
-  }
-  
-  const jsFile = jsMatch[1];
-  const cssFile = cssMatch[1];
-  
-  console.log(`✅ JavaScript file reference: ${jsFile}`);
-  console.log(`✅ CSS file reference: ${cssFile}`);
-  
-  // Verify the files exist
-  const assetsDir = path.join('./dist/public', 'assets');
-  const jsPath = path.join(assetsDir, jsFile);
-  const cssPath = path.join(assetsDir, cssFile);
-  
-  if (!fs.existsSync(jsPath)) {
-    console.error(`❌ Referenced JS file not found: ${jsPath}`);
-    process.exit(1);
-  }
-  
-  if (!fs.existsSync(cssPath)) {
-    console.error(`❌ Referenced CSS file not found: ${cssPath}`);
-    process.exit(1);
-  }
-  
-  console.log(`✅ All referenced files exist`);
-  
-  // Print some asset stats for verification
-  const assetFiles = fs.readdirSync(assetsDir);
-  console.log(`✅ Found ${assetFiles.length} asset files`);
-  
-  // Print success message
-  console.log('\n✨ Pre-deployment preparation successful!');
-  console.log('Now use the Replit deployment interface to deploy your application.');
-  console.log('When asked for build command, use: npm run build');
-  console.log('When asked for run command, use: npm run start');
+  execSync('node bust-cache.js', { stdio: 'inherit' });
+  log("✅ Cache-busting applied successfully", GREEN);
 } catch (error) {
-  console.error('❌ Verification failed:', error.message);
+  log(`❌ Cache-busting failed: ${error.message}`, RED);
   process.exit(1);
 }
+
+// Step 4: Verify the files are ready for deployment
+log("\n4️⃣ Verifying deployment readiness...", CYAN);
+
+const publicDir = path.join("dist", "public");
+const assetsDir = path.join(publicDir, "assets");
+const indexHtmlPath = path.join(publicDir, "index.html");
+
+if (!fs.existsSync(indexHtmlPath)) {
+  log("❌ index.html not found!", RED);
+  process.exit(1);
+}
+
+const stableJsPath = path.join(assetsDir, "index-stable.js");
+const stableCssPath = path.join(assetsDir, "index-stable.css");
+
+if (!fs.existsSync(stableJsPath)) {
+  log("❌ Stable JS file not found!", RED);
+  process.exit(1);
+}
+
+if (!fs.existsSync(stableCssPath)) {
+  log("❌ Stable CSS file not found!", RED);
+  process.exit(1);
+}
+
+const html = fs.readFileSync(indexHtmlPath, 'utf8');
+if (!html.includes('index-stable.js') || !html.includes('index-stable.css')) {
+  log("❌ index.html does not reference stable files!", RED);
+  process.exit(1);
+}
+
+log("✅ All deployment files verified", GREEN);
+
+// Final message
+log("\n🌟 DEPLOYMENT PREPARATION COMPLETE 🌟", GREEN);
+log("Your application is now ready for deployment.", YELLOW);
+log("\nNext steps:", CYAN);
+log("1. Click the 'Deploy' button in Replit", YELLOW);
+log("2. Use the default deployment settings", YELLOW);
+log("3. Your application should deploy successfully with fixed asset references", YELLOW);

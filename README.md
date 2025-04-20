@@ -140,3 +140,22 @@ You can verify your setup is working by accessing these test endpoints:
 1. Start the server with workflow "Start application"
 2. Access the app at `http://localhost:5000`
 3. For the deals endpoint, try: `/api/sheets/deals/nearby?lat=1.3521&lng=103.8198&radius=5`
+
+## Deployment
+
+This application includes a special deployment process to avoid asset filename issues on Replit:
+
+1. Before deploying, run: `node pre-deploy.js`
+2. Use Replit's deployment interface to deploy the app
+3. For detailed instructions, see `DEPLOYMENT_GUIDE.md`
+
+### Why the special deployment process?
+
+Vite generates hashed filenames for assets (JS/CSS) which can cause issues with Replit's deployment process. Our deployment scripts create stable filenames that don't change between environments, ensuring consistent references.
+
+### Available Deployment Scripts
+
+- `pre-deploy.js` - Recommended all-in-one solution (clean, build, fix, verify)
+- `bust-cache.js` - Fixes hash mismatches in an existing build
+- `deployment-check.js` - Verifies deployment readiness
+- `simple-fix.js` - Legacy script with basic functionality

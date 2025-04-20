@@ -1,128 +1,86 @@
 # Buzzd Deployment Guide
 
-This document provides a step-by-step guide for deploying the Buzzd application to Replit.
-
-## Deployment Prerequisites
-
-Before deploying, ensure the following:
-
-1. All required environment variables are set in the Replit Secrets tab:
-   - `DATABASE_URL`
-   - `CLOUDFLARE_ACCOUNT_ID`
-   - `CLOUDFLARE_IMAGES_API_TOKEN`
-   - `VITE_FIREBASE_API_KEY`
-   - `VITE_FIREBASE_PROJECT_ID`
-   - `VITE_FIREBASE_APP_ID`
-   - Any other environment variables needed by the application
-
-2. You have the latest code changes committed or synced to the Replit environment.
+This guide provides step-by-step instructions for successfully deploying the Buzzd application on Replit.
 
 ## Deployment Steps
 
-### Step 1: Prepare the Deployment
+### 1. Run the Pre-Deployment Script
 
-Run the deployment preparation script to clean the build directory and create a fresh build:
-
-```bash
-node scripts/prepare-deploy.js
-```
-
-This script:
-- Cleans the dist directory
-- Builds the application with production settings
-- Verifies that the built files match references in the HTML
-
-### Step 2: Verify Deployment Readiness
-
-Run the deployment check script to ensure everything is set up correctly:
+Before deploying, run the pre-deployment script to ensure asset file naming consistency:
 
 ```bash
-node deployment-check.js
+node pre-deploy.js
 ```
 
-This will check:
-- Environment variables
-- Server accessibility
-- Configuration files
-- Build output
+This comprehensive script:
+1. Cleans previous builds
+2. Runs a fresh production build 
+3. Applies the cache-busting fix
+4. Verifies all files are ready for deployment
 
-If any issues are reported, fix them before proceeding.
+The script creates stable file versions (index-stable.js, index-stable.css) that avoid hash mismatches between environments.
 
-### Step 3: Deploy Using Replit's Deployment Feature
+### 2. Deploy the Application
 
-1. Click on the "Deploy" button in the Replit interface.
-2. Review the settings to make sure:
-   - The build command is set to `npm run build`
-   - The run command is set to `npm run start`
-   - The port is set to 5000 (or whatever is configured in `.replit`)
+1. After running the fix script, click the **Deploy** button in the Replit interface
+2. Use the default build and run commands provided by Replit
+3. Click **Deploy** to start the deployment process
 
-3. Click "Deploy" to start the deployment process.
+### 3. Verify Deployment
 
-### Step 4: Verify the Deployment
+After deployment completes:
+1. Check that the application loads correctly at your .replit.app domain
+2. Verify that all pages load without JavaScript errors
+3. Test core functionality (authentication, deal browsing, etc.)
 
-After the deployment completes:
+## Troubleshooting
 
-1. Visit the deployed application URL (provided by Replit)
-2. Test key features to ensure they're working correctly:
-   - Login functionality
-   - Nearby deals display
-   - Deal details display
-   - Navigation between sections
-   - Location-based features
+### File Hash Mismatch Issues
 
-## Troubleshooting Deployment Issues
+If you encounter deployment errors related to file references:
 
-### Asset Loading Issues
+1. Run the pre-deployment script: `node pre-deploy.js`
+2. If that doesn't work, try each script individually:
+   - Clean build: `rm -rf dist`
+   - Build: `NODE_ENV=production npm run build`
+   - Fix assets: `node bust-cache.js`
+3. Verify that the dist/public/index.html references stable file versions (index-stable.js, index-stable.css)
+4. Try the deployment process again
 
-If assets (JS, CSS, images) fail to load:
+### Database Connection Issues
 
-1. Run the prepare-deploy script again:
-   ```bash
-   node scripts/prepare-deploy.js
-   ```
+If the application deploys but data doesn't load:
 
-2. Manually delete the dist directory and rebuild:
-   ```bash
-   rm -rf dist
-   NODE_ENV=production npm run build
-   ```
+1. Verify that the DATABASE_URL environment secret is correctly set
+2. Check server logs for database connection errors
+3. Ensure all database migrations have been applied
 
-3. Deploy again through the Replit interface.
+## Deployment Script Details
 
-### API Connection Issues
+### pre-deploy.js (Recommended)
 
-If the application loads but API calls fail:
+The `pre-deploy.js` script is an all-in-one solution that:
+- Cleans previous builds
+- Runs a fresh production build 
+- Applies cache-busting fixes
+- Verifies deployment readiness
 
-1. Check environment variables in the deployed environment
-2. Verify that the server is starting correctly by checking logs
-3. Ensure the database is accessible from the deployed environment
+### bust-cache.js
 
-### Session or Authentication Issues
+The `bust-cache.js` script specifically addresses the hash mismatch issue:
+- Creates copies of JS and CSS files with stable names (index-stable.js, index-stable.css)
+- Updates index.html to reference these stable filenames
+- Verifies the changes were applied correctly
 
-If users can't log in or sessions aren't persisting:
+### simple-fix.js (Legacy)
 
-1. Verify Firebase configuration is correct
-2. Check that the required environment variables for authentication are set
-3. Try clearing browser data and cookies
+The original `simple-fix.js` script is a simpler version that:
+- Builds the application
+- Creates stable file versions
+- Updates references in index.html
 
-## Post-Deployment Checklist
+## Why This Approach Works
 
-After deploying, verify the following:
+This approach ensures consistent file references between builds and deployments, avoiding the common issue of hashed filenames changing between different environments. 
 
-- [ ] Application loads correctly on different devices and browsers
-- [ ] All images and assets load properly
-- [ ] API endpoints return expected responses
-- [ ] Authentication works as expected
-- [ ] Location-based features work correctly
-- [ ] Navigation between different sections functions properly
-
-## Regular Maintenance
-
-To ensure the deployed application continues to run smoothly:
-
-1. Regularly backup the database
-2. Monitor application performance and usage
-3. Apply updates in a staging environment before deploying to production
-4. Test after each deployment to ensure all features work as expected
-
-For any further assistance or issues, refer to the Replit documentation or contact the development team.
+Vite generates different hash values for asset filenames (like index-A0Qm7ilb.js) on each build. Replit's deployment environment may use a different build process that produces different hash values, causing reference mismatches. Our solution creates stable, unhashed filenames that remain consistent regardless of the build environment.
