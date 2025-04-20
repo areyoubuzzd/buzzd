@@ -1097,6 +1097,36 @@ export class MemStorage implements IStorage {
       (user) => user.email === email
     );
   }
+  
+  async getUserByPhoneNumber(phoneNumber: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.phoneNumber === phoneNumber
+    );
+  }
+  
+  async getUserByProviderId(provider: 'google' | 'apple', providerId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.authProvider === provider && user.authProviderId === providerId
+    );
+  }
+  
+  async updateUser(userId: number, data: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error('User not found');
+    
+    const updatedUser = { ...user, ...data };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateLastLogin(userId: number): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error('User not found');
+    
+    const updatedUser = { ...user, lastLoginAt: getSingaporeTime() };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;

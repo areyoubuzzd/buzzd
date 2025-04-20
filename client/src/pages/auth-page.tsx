@@ -494,6 +494,115 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
+      
+      {/* Phone Verification Dialog */}
+      <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {phoneVerificationStep === 'request' 
+                ? "Enter Your Phone Number" 
+                : "Verify Your Phone Number"}
+            </DialogTitle>
+            <DialogDescription>
+              {phoneVerificationStep === 'request'
+                ? "We'll send a verification code to your phone."
+                : "Enter the verification code sent to your phone."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {phoneVerificationStep === 'request' ? (
+            <Form {...phoneRequestForm}>
+              <form onSubmit={phoneRequestForm.handleSubmit(handleRequestCode)} className="space-y-4">
+                <div className="flex flex-col space-y-4">
+                  <FormField
+                    control={phoneRequestForm.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Input 
+                              placeholder="+65 8123 4567" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-xs text-gray-500">Include country code (e.g., +65 for Singapore)</p>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPhoneDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={requestPhoneCodeMutation.isPending}
+                  >
+                    {requestPhoneCodeMutation.isPending ? "Sending..." : "Send Code"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          ) : (
+            <Form {...phoneVerifyForm}>
+              <form onSubmit={phoneVerifyForm.handleSubmit(handleVerifyCode)} className="space-y-4">
+                <div className="flex flex-col space-y-4">
+                  <FormField
+                    control={phoneVerifyForm.control}
+                    name="verificationCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Verification Code</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <FiSmartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Input 
+                              placeholder="Enter 6-digit code" 
+                              className="pl-10" 
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPhoneVerificationStep('request')}
+                    className="flex items-center gap-2"
+                  >
+                    <FiArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={verifyPhoneCodeMutation.isPending}
+                  >
+                    {verifyPhoneCodeMutation.isPending ? "Verifying..." : "Verify Code"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
