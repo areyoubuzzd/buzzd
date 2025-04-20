@@ -7,6 +7,7 @@ import { z } from "zod";
 import { FcGoogle } from "react-icons/fc";
 import { SiApple } from "react-icons/si";
 import { FiUser, FiMail, FiLock } from "react-icons/fi";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,6 +37,7 @@ import logoBlack from "@assets/Logo_black.png";
 import { signInWithGoogle, signInWithApple, checkFirebaseConfig, getAuthRedirectResult } from "@/lib/firebase-auth";
 
 export default function AuthPage() {
+  const { toast } = useToast();
   const { 
     user, 
     loginMutation, 
@@ -75,17 +77,49 @@ export default function AuthPage() {
 
   const onLoginSubmit = (values: z.infer<typeof userLoginSchema>) => {
     loginMutation.mutate(values, {
-      onSuccess: () => {
-        navigate("/");
+      onSuccess: (data) => {
+        toast({
+          title: "Login successful!",
+          description: `Welcome, ${data.displayName || data.username || data.email}!`,
+        });
+        
+        // Add slight delay before redirect to ensure state is updated
+        setTimeout(() => {
+          navigate("/");
+        }, 300);
       },
+      onError: (error) => {
+        console.error("Login failed:", error);
+        toast({
+          title: "Login failed",
+          description: error.message || "Please check your credentials and try again",
+          variant: "destructive",
+        });
+      }
     });
   };
 
   const onRegisterSubmit = (values: z.infer<typeof userRegisterSchema>) => {
     registerMutation.mutate(values, {
-      onSuccess: () => {
-        navigate("/");
+      onSuccess: (data) => {
+        toast({
+          title: "Registration successful!",
+          description: `Welcome, ${data.displayName || data.username || data.email}!`,
+        });
+        
+        // Add slight delay before redirect to ensure state is updated
+        setTimeout(() => {
+          navigate("/");
+        }, 300);
       },
+      onError: (error) => {
+        console.error("Registration failed:", error);
+        toast({
+          title: "Registration failed",
+          description: error.message || "Please check your information and try again",
+          variant: "destructive",
+        });
+      }
     });
   };
   
@@ -111,12 +145,19 @@ export default function AuthPage() {
           if (provider.includes("google")) {
             googleLoginMutation.mutate({ 
               authProvider: "google",
-              idToken 
+              idToken,
+              email: result.user.email || undefined,
+              displayName: result.user.displayName || undefined,
+              photoUrl: result.user.photoURL || undefined,
+              authProviderId: result.user.uid
             });
           } else if (provider.includes("apple")) {
             appleLoginMutation.mutate({ 
               authProvider: "apple",
-              idToken 
+              idToken,
+              email: result.user.email || undefined,
+              displayName: result.user.displayName || undefined,
+              authProviderId: result.user.uid
             });
           }
         }
@@ -159,9 +200,9 @@ export default function AuthPage() {
         googleLoginMutation.mutate({ 
           authProvider: "google",
           idToken,
-          email: result.user.email,
-          displayName: result.user.displayName,
-          photoUrl: result.user.photoURL,
+          email: result.user.email || undefined,
+          displayName: result.user.displayName || undefined,
+          photoUrl: result.user.photoURL || undefined,
           authProviderId: result.user.uid
         }, {
           onSuccess: (data) => {
@@ -236,8 +277,8 @@ export default function AuthPage() {
         appleLoginMutation.mutate({ 
           authProvider: "apple",
           idToken,
-          email: result.user.email,
-          displayName: result.user.displayName,
+          email: result.user.email || undefined,
+          displayName: result.user.displayName || undefined,
           authProviderId: result.user.uid
         }, {
           onSuccess: (data) => {

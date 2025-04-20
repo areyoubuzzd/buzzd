@@ -27,12 +27,19 @@ const userRegisterSchema = insertLocalUserSchema.extend({
 const googleAuthSchema = z.object({
   idToken: z.string(),
   authProvider: z.literal('google'),
+  email: z.string().email().optional(),
+  displayName: z.string().optional().nullable(),
+  photoUrl: z.string().optional().nullable(),
+  authProviderId: z.string().optional(),
 });
 
 // For Apple authentication
 const appleAuthSchema = z.object({
   idToken: z.string(),
   authProvider: z.literal('apple'),
+  email: z.string().email().optional(),
+  displayName: z.string().optional().nullable(),
+  authProviderId: z.string().optional(),
 });
 
 // For phone authentication
