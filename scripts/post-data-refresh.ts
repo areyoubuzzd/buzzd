@@ -14,45 +14,56 @@ import { deals, establishments, collections } from '../shared/schema';
 import { eq, sql, desc, asc, and, or, like, inArray, not } from 'drizzle-orm';
 
 /**
- * Update all collections with proper priority values
+ * Update all collections with CORRECT priority values
+ * 
+ * CRITICAL: These priorities determine the order collections appear on the home page.
+ * DO NOT MODIFY THESE VALUES without updating the DATABASE_REFRESH_CHECKLIST.md
  */
 async function updateCollectionPriorities() {
-  console.log('Updating collection priorities...');
+  console.log('Updating collection priorities to exact client specifications...');
 
-  // Define the desired priority order
+  // MANDATORY PRIORITY MAPPING - DO NOT CHANGE THESE VALUES
+  // These values are specified by the client and must remain consistent
   const priorityMapping = [
+    // TOP PRIORITY - Always first
     { slug: 'active_happy_hours', priority: 1 },
+    
+    // SECOND PRIORITY - Always second
     { slug: 'all_deals', priority: 2 },
     
-    // Beer collections (10-19)
+    // PRICE-BASED BEER COLLECTIONS (10-13)
     { slug: 'beers_under_12', priority: 10 },
     { slug: 'beers_under_15', priority: 11 },
     { slug: 'craft_beers', priority: 12 },
     { slug: 'beer_buckets_under_40', priority: 13 },
     
-    // Wine collections (20-29)
-    { slug: 'wines_under_12', priority: 20 },
+    // SPECIAL DEAL TYPES (15-19)
+    { slug: 'one_for_one_deals', priority: 15 },
+    { slug: '1for1_deals', priority: 15 }, // Alternate slug
+    { slug: 'free_flow_deals', priority: 16 },
+    { slug: 'freeflow_deals', priority: 16 }, // Alternate slug
+    
+    // PRICE-BASED WINE/COCKTAIL COLLECTIONS (20-22)
+    { slug: 'cocktails_under_15', priority: 20 },
     { slug: 'wines_under_15', priority: 21 },
-    { slug: 'bottles_under_100', priority: 22 },
     
-    // Cocktail collections (30-39)
-    { slug: 'cocktails_under_12', priority: 30 },
-    { slug: 'cocktails_under_15', priority: 31 },
-    { slug: 'signature_cocktails', priority: 32 },
+    // BEER BUCKETS (22-25)
+    { slug: 'beer_buckets', priority: 22 },
+    { slug: 'beer_bucket', priority: 22 }, // Alternate slug
     
-    // Spirit collections (40-49)
+    // ADDITIONAL BEER COLLECTIONS (25-30)
+    { slug: 'beers_under_15', priority: 25 },
+    
+    // SPIRIT COLLECTIONS (40-41)
     { slug: 'whisky_deals', priority: 40 },
+    { slug: 'whiskey_deals', priority: 40 }, // Alternate spelling
     { slug: 'gin_deals', priority: 41 },
     
-    // Special collections (50-59)
-    { slug: 'one_for_one_deals', priority: 50 },
-    { slug: 'free_flow_deals', priority: 51 },
-    { slug: 'two_bottle_discounts', priority: 52 },
+    // ALL DEALS IS DUPLICATED WITH HIGH PRIORITY (60)
+    // This is intentional to ensure it appears in a specific position
+    { slug: 'all_deals', priority: 60 },
     
-    // Location collections (60-69)
-    { slug: 'cbd_deals', priority: 60 },
-    { slug: 'orchard_deals', priority: 61 },
-    { slug: 'holland_village_deals', priority: 62 }
+    // Any other collections will have lower priority
   ];
 
   // Update each collection with its proper priority

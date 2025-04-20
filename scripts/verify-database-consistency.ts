@@ -37,8 +37,9 @@ async function main() {
     console.log('✅ "active_happy_hours" collection exists');
     
     // Check that active_happy_hours has priority 1
-    if (activeCollection[0].priority !== 1) {
-      console.log('❌ ERROR: "active_happy_hours" collection has priority', activeCollection[0].priority, 'instead of 1');
+    const collectionPriority = activeCollection[0].priority;
+    if (collectionPriority === null || collectionPriority !== 1) {
+      console.log('❌ ERROR: "active_happy_hours" collection has priority', collectionPriority, 'instead of 1');
       console.log('   Update the priority in the database to 1');
       hasErrors = true;
     } else {
@@ -94,26 +95,30 @@ async function main() {
   
   // Check each collection against expected priorities
   for (const collection of allCollections) {
-    const slug = collection.slug;
-    const priority = collection.priority;
+    const slug = collection.slug ?? '';
+    const name = collection.name ?? 'Unknown Collection';
+    const collectionPriority = collection.priority;
     
     // Find matching expected priority
     let matched = false;
     for (const [expectedSlug, [min, max]] of Object.entries(expectedPriorities)) {
       if (slug.includes(expectedSlug)) {
         matched = true;
-        if (priority < min || priority > max) {
-          console.log(`❌ ERROR: Collection "${collection.name}" (${slug}) has priority ${priority}, should be between ${min}-${max}`);
+        if (collectionPriority === null) {
+          console.log(`❌ ERROR: Collection "${name}" (${slug}) has no priority set, should be between ${min}-${max}`);
+          hasErrors = true;
+        } else if (collectionPriority < min || collectionPriority > max) {
+          console.log(`❌ ERROR: Collection "${name}" (${slug}) has priority ${collectionPriority}, should be between ${min}-${max}`);
           hasErrors = true;
         } else {
-          console.log(`✅ Collection "${collection.name}" has correct priority (${priority})`);
+          console.log(`✅ Collection "${name}" has correct priority (${collectionPriority})`);
         }
         break;
       }
     }
     
     if (!matched) {
-      console.log(`ℹ️ Collection "${collection.name}" (${slug}) has priority ${priority} - no specific requirement`);
+      console.log(`ℹ️ Collection "${name}" (${slug}) has priority ${collectionPriority ?? 'null'} - no specific requirement`);
     }
   }
   
@@ -132,7 +137,7 @@ async function main() {
   if (establishmentsWithNoDeals.length > 0) {
     console.log(`⚠️ WARNING: Found ${establishmentsWithNoDeals.length} establishments with no deals:`);
     establishmentsWithNoDeals.forEach(est => {
-      console.log(`   - ${est.name} (ID: ${est.id})`);
+      console.log(`   - ${est.name ?? 'Unknown'} (ID: ${est.id})`);
     });
   } else {
     console.log('✅ All establishments have at least one deal');
