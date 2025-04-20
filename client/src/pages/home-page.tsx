@@ -1480,33 +1480,6 @@ export default function HomePage() {
                 ))
               }
             </motion.div>
-            
-            {/* REMOVED SECOND COLLECTION SECTION - Now showing all collections in order of priority */}
-                .map((collection, index) => (
-                  <motion.div
-                    key={`other-${collection.name}-${index}`}
-                    variants={{
-                      hidden: { opacity: 0, y: 20 },
-                      visible: { 
-                        opacity: 1, 
-                        y: 0,
-                        transition: {
-                          type: "spring", 
-                          duration: 0.5
-                        }
-                      }
-                    }}
-                  >
-                    <CollectionRow
-                      title={collection.name}
-                      description={collection.description}
-                      deals={collection.deals}
-                      userLocation={location}
-                    />
-                  </motion.div>
-                ))
-              }
-            </motion.div>
           </div>
         </motion.div>
       )}

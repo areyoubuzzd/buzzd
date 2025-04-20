@@ -58,15 +58,16 @@ router.get('/', async (_req, res) => {
       'holland_village_deals': 63
     };
     
-    // Sort collections using our manual ordering
+    // CRITICAL: Use database priorities first, then fall back to manual sort order
+    // This ensures that priorities set via post-data-refresh.ts are respected
     const sortedCollections = [...allCollections].sort((a, b) => {
       // Make sure "active_happy_hours" always comes first
       if (a.slug === 'active_happy_hours') return -999; // Always first
       if (b.slug === 'active_happy_hours') return 999;  // Always first
       
-      // Use the manual sort order if available (with type safety)
-      const aOrder = a.slug ? (manualSortOrder[a.slug] || a.priority || 999) : 999;
-      const bOrder = b.slug ? (manualSortOrder[b.slug] || b.priority || 999) : 999;
+      // IMPORTANT: Use the database priorities first, then fall back to our manual ordering
+      const aOrder = a.priority ?? (a.slug ? manualSortOrder[a.slug] ?? 999 : 999);
+      const bOrder = b.priority ?? (b.slug ? manualSortOrder[b.slug] ?? 999 : 999);
       return aOrder - bOrder;
     });
     
