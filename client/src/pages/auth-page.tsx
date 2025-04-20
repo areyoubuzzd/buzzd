@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { 
   useAuth, 
   userLoginSchema, 
   userRegisterSchema, 
-  phoneAuthSchema
+  phoneAuthSchema,
+  googleAuthSchema,
+  appleAuthSchema
 } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { 
@@ -50,6 +52,8 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/header";
 import { z } from "zod";
 import logoBlack from "@assets/logo_black.png";
+import { isFirebaseConfigured, signInWithGoogle, signInWithApple, initRecaptcha, sendPhoneVerificationCode, verifyPhoneCode } from "@/lib/firebase-auth";
+import { checkFirebaseConfig } from "../firebase-config";
 
 export default function AuthPage() {
   const { 
@@ -143,21 +147,67 @@ export default function AuthPage() {
     });
   };
   
-  // Social login handlers
-  const handleGoogleLogin = () => {
-    googleLoginMutation.mutate(undefined, {
-      onSuccess: () => {
-        navigate("/");
+  // Firebase configuration check
+  const [firebaseReady, setFirebaseReady] = useState(false);
+  const recaptchaContainerRef = useRef(null);
+  
+  useEffect(() => {
+    // Check if Firebase is configured and log the result
+    const configStatus = checkFirebaseConfig();
+    console.log("Firebase configuration status:", configStatus);
+    setFirebaseReady(configStatus.isComplete);
+    
+    // Initialize recaptcha for phone auth if Firebase is ready
+    if (configStatus.isComplete && recaptchaContainerRef.current) {
+      try {
+        initRecaptcha('recaptcha-container');
+      } catch (err) {
+        console.error("Failed to initialize reCAPTCHA:", err);
       }
-    });
+    }
+  }, []);
+  
+  // Social login handlers
+  const handleGoogleLogin = async () => {
+    if (!firebaseReady) {
+      alert("Firebase is not properly configured. Please check your environment variables.");
+      return;
+    }
+    
+    try {
+      const idToken = await signInWithGoogle();
+      googleLoginMutation.mutate({ 
+        authProvider: "google",
+        idToken 
+      }, {
+        onSuccess: () => {
+          navigate("/");
+        }
+      });
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
   };
   
-  const handleAppleLogin = () => {
-    appleLoginMutation.mutate(undefined, {
-      onSuccess: () => {
-        navigate("/");
-      }
-    });
+  const handleAppleLogin = async () => {
+    if (!firebaseReady) {
+      alert("Firebase is not properly configured. Please check your environment variables.");
+      return;
+    }
+    
+    try {
+      const idToken = await signInWithApple();
+      appleLoginMutation.mutate({ 
+        authProvider: "apple",
+        idToken 
+      }, {
+        onSuccess: () => {
+          navigate("/");
+        }
+      });
+    } catch (error) {
+      console.error("Apple login error:", error);
+    }
   };
 
   if (user) {
