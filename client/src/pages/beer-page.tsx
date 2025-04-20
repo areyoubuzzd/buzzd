@@ -7,7 +7,7 @@ import { Link } from 'wouter';
 
 import { Button } from '@/components/ui/button';
 import Navigation from '@/components/layout/navigation';
-import { LocationHeader } from '@/components/location/location-header';
+
 import { useLocation } from '@/contexts/location-context';
 import { Input } from '@/components/ui/input';
 import SquareDealCard from '@/components/deals/square-deal-card';
@@ -52,13 +52,13 @@ export default function BeerPage() {
   const [activeOnly, setActiveOnly] = useState(true); // Default to active deals only
   const [, navigate] = useWouterLocation();
   
-  // Get location from context
-  const { location, updateLocation } = useLocation();
+  // Get user's device location from context
+  const { userPosition } = useLocation();
 
-  // Fetch all deals from the API with 10km radius
+  // Fetch all deals from the API with 10km radius - using device location only
   const { data: dealsData, isLoading } = useQuery({
-    queryKey: ['/api/deals/collections/all', { lat: location.lat, lng: location.lng, radius: 10 }],
-    enabled: !!location.lat,
+    queryKey: ['/api/deals/collections/all', { lat: userPosition.lat, lng: userPosition.lng, radius: 10 }],
+    enabled: !!userPosition.lat,
   });
 
   // Show ALL deals within 10km (not just beer)
@@ -103,10 +103,23 @@ export default function BeerPage() {
     });
   }, [dealsData, searchQuery, activeOnly]);
 
-  // Store the current page in sessionStorage for proper back navigation
+  // Store the current page in sessionStorage and ensure we have the latest device location
   useEffect(() => {
     sessionStorage.setItem('lastVisitedPage', '/beer');
     console.log('Set lastVisitedPage to /beer in sessionStorage');
+    
+    // Try to get a fresh GPS reading when this page loads
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('BeerPage: Got fresh GPS position');
+          // No need to update here, the context's userPosition will be updated automatically
+        },
+        (error) => {
+          console.error('BeerPage: Error getting GPS position:', error);
+        }
+      );
+    }
   }, []);
 
   const handleSearchClear = () => {
@@ -136,9 +149,6 @@ export default function BeerPage() {
           </div>
         </div>
       </header>
-      
-      {/* Location Header */}
-      <LocationHeader onOpenFilters={() => console.log("Open filters")} />
       
       {/* Page Heading */}
       <div className="bg-[#232946] px-4 py-6 border-b border-[#353e6b]">
@@ -249,7 +259,7 @@ export default function BeerPage() {
                   <SquareDealCard 
                     key={deal.id}
                     deal={deal}
-                    userLocation={location}
+                    userLocation={userPosition}
                   />
                 ))}
               </div>
