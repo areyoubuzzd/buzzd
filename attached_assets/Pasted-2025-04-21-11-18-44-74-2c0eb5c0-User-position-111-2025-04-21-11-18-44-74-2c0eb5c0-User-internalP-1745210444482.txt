@@ -1,0 +1,156 @@
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+position: '111',
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+internalPosition: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+internalQuery: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+where: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+schema: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+table: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+column: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+dataType: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+constraint: undefined,
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+file: 'parse_relation.c',
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+line: '3722',
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+routine: 'errorMissingColumn'
+2025-04-21 11:18:44.74
+2c0eb5c0
+User
+}
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+Error fetching establishments: error: column "logo_url" does not exist
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+at /home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1345:74
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+at async /home/runner/workspace/final-server.cjs:196:22 {
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+length: 109,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+severity: 'ERROR',
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+code: '42703',
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+detail: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+hint: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+position: '118',
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+internalPosition: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+internalQuery: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+where: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+schema: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+table: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+column: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+dataType: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+constraint: undefined,
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+file: 'parse_relation.c',
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+line: '3722',
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+routine: 'errorMissingColumn'
+2025-04-21 11:18:45.94
+2c0eb5c0
+User
+}
+2025-04-21 11:19:49.59
+1850f975
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 11:28:04.55
+2c0eb5c0
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 11:40:29.05
+f099056d
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 11:44:26.88
+95c02c6a
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
