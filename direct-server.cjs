@@ -1,6 +1,6 @@
 /**
- * Minimum Deployment Server for Buzzd App
- * Removes all non-essential field mappings to ensure it works in production
+ * Super-Direct Deployment Server for Buzzd App
+ * A no-frills implementation that prioritizes API functionality and reliable routing
  */
 
 const express = require('express');
@@ -13,19 +13,9 @@ const ws = require('ws');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Debug middleware to log all requests
-app.use((req, res, next) => {
-  console.log(`Request: ${req.method} ${req.url}`);
-  next();
-});
-
-// Add middleware for parsing request bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 console.log(`
 =================================================
-  BUZZD MINIMAL DEPLOYMENT SERVER (STARTED: ${new Date().toISOString()})
+  BUZZD DIRECT SERVER (STARTED: ${new Date().toISOString()})
 =================================================
 Environment: ${process.env.NODE_ENV || 'development'}
 Node Version: ${process.version}
@@ -33,58 +23,24 @@ Current Directory: ${process.cwd()}
 =================================================
 `);
 
-// Check for built React app in various locations
-const possibleClientPaths = [
-  'dist/public',
-  'client/dist',
-  'dist',
-  'client',
-  'public'
-];
-
-let clientPath = '';
-for (const path of possibleClientPaths) {
-  if (fs.existsSync(path)) {
-    try {
-      const stats = fs.statSync(path);
-      if (stats.isDirectory()) {
-        const files = fs.readdirSync(path);
-        if (files.includes('index.html') || files.includes('assets')) {
-          clientPath = path;
-          console.log(`✅ Found client files at: ${path}`);
-          console.log(`Files in ${path}:`, files.join(', '));
-          break;
-        }
-      }
-    } catch (err) {
-      console.error(`Error checking path ${path}:`, err);
-    }
-  }
-}
-
-// If we found a client path, serve those static files
-if (clientPath) {
-  app.use(express.static(clientPath));
-  console.log(`Serving static files from ${clientPath}`);
-}
-
-// Serve additional assets from other directories
-const additionalAssetDirs = [
-  'dist/client',
-  'public',
-  'public/assets',
-  'public/images',
-  'assets'
-];
-
-additionalAssetDirs.forEach(dir => {
-  if (fs.existsSync(dir)) {
-    app.use('/' + path.basename(dir), express.static(dir));
-    console.log(`Serving additional assets from ${dir}`);
-  }
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`Request: ${req.method} ${req.url}`);
+  next();
 });
 
-// Connect to database for direct API handling
+// Middleware for parsing JSON and URL-encoded bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
+// Connect to the database
 let pool = null;
 if (process.env.DATABASE_URL) {
   try {
@@ -124,6 +80,7 @@ function isActiveNow(deal) {
     (validDaysLower.includes('weekends') && (currentDay === 'sat' || currentDay === 'sun'));
   
   if (!isValidToday) {
+    console.log(`Deal ${deal.id} not valid today (day: ${currentDay}, valid days: ${validDaysLower})`);
     return false;
   }
   
@@ -148,22 +105,30 @@ function isActiveNow(deal) {
   }
   
   // Check if current time is within happy hour
-  return currentTimeValue >= startTime && currentTimeValue <= endTime;
+  const isActive = currentTimeValue >= startTime && currentTimeValue <= endTime;
+  
+  if (isActive) {
+    console.log(`Deal ${deal.id || deal.drink_name} is ACTIVE: ${currentTimeValue} is between ${startTime} and ${endTime}`);
+  }
+  
+  return isActive;
 }
 
-// ============ LOCATIONS API ROUTES =================
+// ==========================================================
+// API ROUTES
+// ==========================================================
 
-// Get all locations (neighborhoods)
-app.get('/api/locations', async (req, res) => {
+// Dedicated API router to ensure correct path handling
+const apiRouter = express.Router();
+
+// API route: Get all locations (neighborhoods)
+apiRouter.get('/locations', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
     }
     
     console.log('API: Getting locations');
-    
-    // Set appropriate headers to ensure JSON response
-    res.setHeader('Content-Type', 'application/json');
     
     // Get all unique cities from establishments (in production)
     const { rows } = await pool.query(`
@@ -176,15 +141,11 @@ app.get('/api/locations', async (req, res) => {
     // Format to return just the location names
     const locations = rows.map(row => row.city);
     
-    // Log the response
     console.log('Locations found:', locations);
     
-    // Return as JSON array
     return res.json(locations);
   } catch (error) {
     console.error('Error fetching locations:', error);
-    // Set appropriate headers for error response
-    res.setHeader('Content-Type', 'application/json');
     return res.status(500).json({ 
       error: 'Failed to fetch locations', 
       message: 'There was an error retrieving locations. Please try again later.',
@@ -193,8 +154,8 @@ app.get('/api/locations', async (req, res) => {
   }
 });
 
-// Get establishments by location
-app.get('/api/establishments/location/:location', async (req, res) => {
+// API route: Get establishments by location
+apiRouter.get('/establishments/location/:location', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
@@ -270,10 +231,10 @@ app.get('/api/establishments/location/:location', async (req, res) => {
       };
     });
     
-    res.json(formattedRows);
+    return res.json(formattedRows);
   } catch (error) {
     console.error(`Error fetching establishments in location ${req.params.location}:`, error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to fetch establishments by location',
       message: 'There was an error retrieving the establishments. Please try again later.',
       details: error.message
@@ -281,10 +242,8 @@ app.get('/api/establishments/location/:location', async (req, res) => {
   }
 });
 
-// ============ ESTABLISHMENT API ROUTES =================
-
-// Get all establishments
-app.get('/api/establishments', async (req, res) => {
+// API route: Get all establishments
+apiRouter.get('/establishments', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
@@ -350,10 +309,10 @@ app.get('/api/establishments', async (req, res) => {
       };
     });
     
-    res.json(formattedRows);
+    return res.json(formattedRows);
   } catch (error) {
     console.error('Error fetching establishments:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: 'Failed to fetch establishments', 
       message: 'There was an error retrieving the data. Please try again later.',
       details: error.message
@@ -361,8 +320,8 @@ app.get('/api/establishments', async (req, res) => {
   }
 });
 
-// Get a specific establishment with its deals
-app.get('/api/establishments/:establishmentId', async (req, res) => {
+// API route: Get a specific establishment with its deals
+apiRouter.get('/establishments/:establishmentId', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
@@ -443,10 +402,10 @@ app.get('/api/establishments/:establishmentId', async (req, res) => {
     formattedEstablishment.hasActiveDeals = dealsWithActiveStatus.some(deal => deal.isActive);
     formattedEstablishment.deals = dealsWithActiveStatus;
     
-    res.json(formattedEstablishment);
+    return res.json(formattedEstablishment);
   } catch (error) {
     console.error(`Error fetching establishment ${req.params.establishmentId}:`, error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to fetch establishment',
       message: 'There was an error retrieving the establishment. Please try again later.',
       details: error.message
@@ -454,8 +413,8 @@ app.get('/api/establishments/:establishmentId', async (req, res) => {
   }
 });
 
-// Get deals for a specific establishment (needed for some UIs)
-app.get('/api/establishments/:establishmentId/deals', async (req, res) => {
+// API route: Get deals for a specific establishment
+apiRouter.get('/establishments/:establishmentId/deals', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
@@ -539,10 +498,10 @@ app.get('/api/establishments/:establishmentId/deals', async (req, res) => {
       establishment: formattedEstablishment
     }));
     
-    res.json(deals);
+    return res.json(deals);
   } catch (error) {
     console.error(`Error fetching deals for establishment ${req.params.establishmentId}:`, error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to fetch establishment deals',
       message: 'There was an error retrieving the deals. Please try again later.',
       details: error.message
@@ -550,10 +509,8 @@ app.get('/api/establishments/:establishmentId/deals', async (req, res) => {
   }
 });
 
-// ============ DEALS API ROUTES =================
-
-// Get deals for a collection 
-app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
+// API route: Get deals for a collection
+apiRouter.get('/deals/collections/:collectionSlug', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
@@ -676,10 +633,6 @@ app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
         const distance = getDistance(lat, lng, estLat, estLng);
         
         if (distance <= radius) {
-          // If it's close to the radius boundary, log it
-          if (distance > radius * 0.95) {
-            console.log(`Establishment ${establishment.name} is near radius boundary: ${distance.toFixed(2)} km (radius: ${radius} km)`);
-          }
           deal.distance = distance;
           establishment.distance = distance;
           return true;
@@ -689,10 +642,10 @@ app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
       });
     }
     
-    res.json(filteredDeals);
+    return res.json(filteredDeals);
   } catch (error) {
     console.error(`Error fetching deals for collection ${req.params.collectionSlug}:`, error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: 'Failed to fetch deals', 
       message: 'There was an error retrieving the deals. Please try again later.',
       details: error.message
@@ -700,8 +653,8 @@ app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
   }
 });
 
-// Get nearby deals
-app.get('/api/deals/nearby', async (req, res) => {
+// API route: Get nearby deals
+apiRouter.get('/deals/nearby', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
@@ -844,10 +797,10 @@ app.get('/api/deals/nearby', async (req, res) => {
       }
     });
     
-    res.json(nearbyDeals);
+    return res.json(nearbyDeals);
   } catch (error) {
     console.error('Error fetching nearby deals:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: 'Failed to fetch nearby deals', 
       message: 'There was an error retrieving the nearby deals. Please try again later.',
       details: error.message
@@ -855,9 +808,8 @@ app.get('/api/deals/nearby', async (req, res) => {
   }
 });
 
-// ============ COLLECTIONS API ROUTES =================
-
-app.get('/api/collections', async (req, res) => {
+// API route: Get collections
+apiRouter.get('/collections', async (req, res) => {
   try {
     if (!pool) {
       throw new Error('Database not connected');
@@ -865,10 +817,10 @@ app.get('/api/collections', async (req, res) => {
     
     console.log('API: Getting collections');
     const { rows } = await pool.query('SELECT * FROM collections WHERE active = TRUE ORDER BY priority ASC');
-    res.json(rows);
+    return res.json(rows);
   } catch (error) {
     console.error('Error fetching collections:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: 'Failed to fetch collections', 
       message: 'There was an error retrieving the collections. Please try again later.',
       details: error.message
@@ -876,47 +828,107 @@ app.get('/api/collections', async (req, res) => {
   }
 });
 
-// ============ AUTHENTICATION API ROUTES =================
-
-app.get('/api/user', (req, res) => {
-  // Since we don't have full authentication in this direct handler,
-  // just return a 401 to indicate the user is not logged in
-  res.status(401).end();
-});
-
-// Add a diagnostic API test endpoint
-app.get('/api-test', (req, res) => {
-  res.json({
+// API diagnostic endpoint
+apiRouter.get('/test', (req, res) => {
+  return res.json({
     status: 'API Test',
-    environment: process.env.NODE_ENV,
-    port: PORT,
-    dbConnected: !!pool,
-    clientPath,
+    env: process.env.NODE_ENV,
+    db: !!pool,
     timestamp: new Date().toISOString()
   });
 });
 
-// For client-side routing - all routes serve index.html
-app.get('*', (req, res) => {
-  // If we have a client path and it has an index.html, serve that
-  if (clientPath && fs.existsSync(path.join(clientPath, 'index.html'))) {
-    return res.sendFile(path.resolve(path.join(clientPath, 'index.html')));
-  }
-  
-  // Otherwise, serve a simple HTML
-  res.send(`
-    <html>
-      <head><title>Buzzd</title></head>
-      <body>
-        <h1>Buzzd App</h1>
-        <p>Server is running but no client files found.</p>
-        <p>API Test: <a href="/api-test">/api-test</a></p>
-      </body>
-    </html>
-  `);
+// API route: User (for authentication)
+apiRouter.get('/user', (req, res) => {
+  return res.status(401).end();
 });
 
-// Start the Express server
+// ==========================================================
+// REGISTER API ROUTER - must come before static file serving
+// ==========================================================
+app.use('/api', apiRouter);
+
+// ==========================================================
+// STATIC FILE SERVING
+// ==========================================================
+
+// Check for built React app in various locations
+const possibleClientPaths = [
+  'dist/public',
+  'client/dist',
+  'dist',
+  'client',
+  'public'
+];
+
+let clientPath = '';
+for (const dirPath of possibleClientPaths) {
+  if (fs.existsSync(dirPath)) {
+    try {
+      const stats = fs.statSync(dirPath);
+      if (stats.isDirectory()) {
+        const files = fs.readdirSync(dirPath);
+        if (files.includes('index.html') || files.includes('assets')) {
+          clientPath = dirPath;
+          console.log(`✅ Found client files at: ${dirPath}`);
+          console.log(`Files in ${dirPath}:`, files.join(', '));
+          break;
+        }
+      }
+    } catch (err) {
+      console.error(`Error checking path ${dirPath}:`, err);
+    }
+  }
+}
+
+// If we found a client path, serve those static files
+if (clientPath) {
+  app.use(express.static(clientPath));
+  console.log(`Serving static files from ${clientPath}`);
+}
+
+// Serve additional assets from other directories
+const additionalAssetDirs = [
+  'dist/client',
+  'public',
+  'public/assets',
+  'public/images',
+  'assets'
+];
+
+additionalAssetDirs.forEach(dir => {
+  if (fs.existsSync(dir)) {
+    app.use('/' + path.basename(dir), express.static(dir));
+    console.log(`Serving additional assets from ${dir}`);
+  }
+});
+
+// ==========================================================
+// CLIENT-SIDE ROUTING FALLBACK
+// ==========================================================
+
+// Serve index.html for all routes to support client-side routing
+app.get('*', (req, res) => {
+  if (clientPath && fs.existsSync(path.join(clientPath, 'index.html'))) {
+    return res.sendFile(path.resolve(path.join(clientPath, 'index.html')));
+  } else {
+    return res.send(`
+      <html>
+        <head><title>Buzzd</title></head>
+        <body>
+          <h1>Buzzd App</h1>
+          <p>Server is running but no client files found.</p>
+          <p>API Test: <a href="/api/test">/api/test</a></p>
+        </body>
+      </html>
+    `);
+  }
+});
+
+// ==========================================================
+// START SERVER
+// ==========================================================
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 =================================================
