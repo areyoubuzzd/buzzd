@@ -1,0 +1,161 @@
+Search
+Time
+Deployment
+Source
+Log
+2025-04-21 09:38:40.56
+578cada2
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 10:12:13.89
+b04cc7a1
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 10:22:27.49
+943e17dd
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 10:29:29.38
+943e17dd
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+Error fetching establishments: error: column "lat" does not exist
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+at /home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1345:74
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+at async /home/runner/workspace/ultra-simple-server.cjs:188:22 {
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+length: 103,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+severity: 'ERROR',
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+code: '42703',
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+detail: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+hint: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+position: '67',
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+internalPosition: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+internalQuery: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+where: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+schema: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+table: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+column: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+dataType: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+constraint: undefined,
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+file: 'parse_relation.c',
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+line: '3722',
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+routine: 'errorMissingColumn'
+2025-04-21 10:32:53.56
+d8e05ec1
+User
+}
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+Error fetching establishments: error: column "lat" does not exist
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+at /home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1345:74
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+at async /home/runner/workspace/ultra-simple-server.cjs:188:22 {
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+length: 103,
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+severity: 'ERROR',
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+code: '42703',
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+detail: undefined,
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+hint: undefined,
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+position: '67',
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+internalPosition: undefined,
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+internalQuery: undefined,
+2025-04-21 10:39:06.71
+d8e05ec1
+User
+where: undefined,
