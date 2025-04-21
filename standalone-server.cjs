@@ -1202,7 +1202,7 @@ const indexHtml = `<!DOCTYPE html>
       
       return \`
         <div class="collection-list">
-          ${state.collections.map(collection => `
+          ${state.collections.map(collection => \`
             <div class="collection-card" onclick="alert('Collection view not implemented in this simplified version')">
               <h4>\${collection.name}</h4>
               <p>\${collection.description || 'Explore this collection of happy hour deals'}</p>
@@ -1384,6 +1384,6 @@ app.get('*', (req, res) => {
 // ============ SERVER STARTUP =================
 
 const port = process.env.PORT || 8080;
-app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${port}`);
 });
