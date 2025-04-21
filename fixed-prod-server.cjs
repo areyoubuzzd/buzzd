@@ -367,13 +367,16 @@ app.get('/api/establishments/:establishmentId/deals', async (req, res) => {
         id,
         name,
         address,
+        city,
+        postal_code as "postalCode",
         latitude,
         longitude,
-        neighbourhood,
-        has_active_deals as "hasActiveDeals",
-        logo_url as "logoUrl",
+        cuisine,
+        rating,
+        price,
+        priority,
         image_url as "imageUrl",
-        cloudflare_image_id as "cloudflareImageId",
+        image_id as "imageId",
         external_id as "externalId"
       FROM establishments 
       WHERE id = $1`,
@@ -437,15 +440,19 @@ app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
         id: est.id,
         name: est.name,
         address: est.address,
+        city: est.city,
+        postalCode: est.postal_code,
         lat: est.latitude,
         lng: est.longitude,
         latitude: est.latitude,
         longitude: est.longitude,
-        neighbourhood: est.neighbourhood,
-        logoUrl: est.logo_url,
+        cuisine: est.cuisine,
+        rating: est.rating,
+        price: est.price,
+        priority: est.priority,
         imageUrl: est.image_url,
-        cloudflareImageId: est.cloudflare_image_id,
-        hasActiveDeals: est.has_active_deals
+        imageId: est.image_id,
+        externalId: est.external_id
       };
     });
     
@@ -566,13 +573,17 @@ app.get('/api/deals/nearby', async (req, res) => {
         id,
         name,
         address,
+        city,
+        postal_code as "postalCode",
         latitude,
         longitude,
-        neighbourhood,
-        has_active_deals as "hasActiveDeals",
-        logo_url as "logoUrl",
+        cuisine,
+        rating,
+        price,
+        priority,
         image_url as "imageUrl",
-        cloudflare_image_id as "cloudflareImageId"
+        image_id as "imageId",
+        external_id as "externalId"
       FROM establishments
     `);
     
