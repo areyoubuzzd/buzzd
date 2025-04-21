@@ -1,0 +1,156 @@
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+position: '107',
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+internalPosition: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+internalQuery: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+where: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+schema: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+table: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+column: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+dataType: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+constraint: undefined,
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+file: 'parse_relation.c',
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+line: '3722',
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+routine: 'errorMissingColumn'
+2025-04-21 09:16:03.95
+2c6a6e69
+User
+}
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+Error fetching deals for collection all: error: column e.lat does not exist
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+at /home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1345:74
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+at async Object.findMany (/home/runner/workspace/server.cjs:238:30)
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+at async /home/runner/workspace/server.cjs:390:17 {
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+length: 104,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+severity: 'ERROR',
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+code: '42703',
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+detail: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+hint: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+position: '921',
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+internalPosition: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+internalQuery: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+where: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+schema: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+table: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+column: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+dataType: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+constraint: undefined,
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+file: 'parse_relation.c',
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+line: '3722',
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+routine: 'errorMissingColumn'
+2025-04-21 09:16:09.96
+2c6a6e69
+User
+}
+2025-04-21 09:24:04.32
+2c6a6e69
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 09:38:40.56
+578cada2
+System
+command finished with error [sh -c node index.cjs]: signal: terminated
+2025-04-21 10:12:13.89
+b04cc7a1
+System
+command finished with error [sh -c node index.cjs]: signal: terminated

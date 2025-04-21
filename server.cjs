@@ -374,6 +374,77 @@ app.get('/api/establishments', async (req, res) => {
   }
 });
 
+app.get('/api/locations', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    console.log('API: Getting locations');
+    
+    // Get all unique neighborhoods from establishments
+    const { rows } = await db.pool.query(`
+      SELECT DISTINCT neighbourhood 
+      FROM establishments 
+      WHERE neighbourhood IS NOT NULL AND neighbourhood != ''
+      ORDER BY neighbourhood ASC
+    `);
+    
+    // Format to return just the location names
+    const locations = rows.map(row => row.neighbourhood);
+    
+    res.json(locations);
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch locations', 
+      message: 'There was an error retrieving locations. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/establishments/location/:location', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    const { location } = req.params;
+    console.log(`API: Getting establishments in location ${location}`);
+    
+    // Get establishments in the specified location
+    const { rows } = await db.pool.query(
+      `SELECT 
+        id,
+        name,
+        address,
+        lat,
+        lng,
+        neighbourhood,
+        has_active_deals as "hasActiveDeals",
+        logo_url as "logoUrl",
+        image_url as "imageUrl",
+        cloudflare_image_id as "cloudflareImageId",
+        external_id as "externalId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM establishments 
+      WHERE neighbourhood = $1`,
+      [location]
+    );
+    
+    res.json(rows);
+  } catch (error) {
+    console.error(`Error fetching establishments in location ${req.params.location}:`, error);
+    res.status(500).json({
+      error: 'Failed to fetch establishments by location',
+      message: 'There was an error retrieving the establishments. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
   try {
     if (!db) {
@@ -455,6 +526,370 @@ app.get('/api/collections', async (req, res) => {
     res.status(500).json({ 
       error: 'Failed to fetch collections', 
       message: 'There was an error retrieving the collections. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Make sure this is defined AFTER the location routes to avoid conflicts
+app.get('/api/establishments/:establishmentId', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    const { establishmentId } = req.params;
+    console.log(`API: Getting establishment ${establishmentId}`);
+    
+    // Get the establishment
+    const { rows: establishments } = await db.pool.query(
+      `SELECT 
+        id,
+        name,
+        address,
+        lat,
+        lng,
+        neighbourhood,
+        has_active_deals as "hasActiveDeals",
+        logo_url as "logoUrl",
+        image_url as "imageUrl",
+        cloudflare_image_id as "cloudflareImageId",
+        external_id as "externalId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM establishments 
+      WHERE id = $1`,
+      [establishmentId]
+    );
+    
+    if (establishments.length === 0) {
+      return res.status(404).json({ error: 'Establishment not found' });
+    }
+    
+    const establishment = establishments[0];
+    
+    // Get deals for this establishment
+    const { rows: dealRows } = await db.pool.query(
+      `SELECT 
+        id,
+        establishment_id as "establishmentId",
+        alcohol_category,
+        alcohol_subcategory,
+        alcohol_subcategory2,
+        drink_name,
+        standard_price,
+        happy_hour_price,
+        savings,
+        savings_percentage as "savingsPercentage",
+        valid_days,
+        hh_start_time,
+        hh_end_time,
+        collections,
+        description,
+        sort_order,
+        image_url as "imageUrl",
+        image_id as "imageId",
+        cloudflare_image_id as "cloudflareImageId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM deals 
+      WHERE establishment_id = $1`,
+      [establishmentId]
+    );
+    
+    // Format the establishment data
+    const formattedEstablishment = {
+      ...establishment,
+      deals: dealRows
+    };
+    
+    res.json(formattedEstablishment);
+  } catch (error) {
+    console.error(`Error fetching establishment ${req.params.establishmentId}:`, error);
+    res.status(500).json({
+      error: 'Failed to fetch establishment',
+      message: 'There was an error retrieving the establishment. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/establishments/:establishmentId/deals', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    const { establishmentId } = req.params;
+    console.log(`API: Getting deals for establishment ${establishmentId}`);
+    
+    // Get deals for this establishment
+    const { rows: dealRows } = await db.pool.query(
+      `SELECT 
+        id,
+        establishment_id as "establishmentId",
+        alcohol_category,
+        alcohol_subcategory,
+        alcohol_subcategory2,
+        drink_name,
+        standard_price,
+        happy_hour_price,
+        savings,
+        savings_percentage as "savingsPercentage",
+        valid_days,
+        hh_start_time,
+        hh_end_time,
+        collections,
+        description,
+        sort_order,
+        image_url as "imageUrl",
+        image_id as "imageId",
+        cloudflare_image_id as "cloudflareImageId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM deals 
+      WHERE establishment_id = $1`,
+      [establishmentId]
+    );
+    
+    // Get the establishment info
+    const { rows: establishments } = await db.pool.query(
+      `SELECT 
+        id,
+        name,
+        address,
+        lat,
+        lng,
+        neighbourhood,
+        has_active_deals as "hasActiveDeals",
+        logo_url as "logoUrl",
+        image_url as "imageUrl",
+        cloudflare_image_id as "cloudflareImageId",
+        external_id as "externalId"
+      FROM establishments 
+      WHERE id = $1`,
+      [establishmentId]
+    );
+    
+    if (establishments.length === 0) {
+      return res.status(404).json({ error: 'Establishment not found' });
+    }
+    
+    const establishment = establishments[0];
+    
+    // Format deals with establishment info
+    const deals = dealRows.map(deal => ({
+      ...deal,
+      establishment
+    }));
+    
+    res.json(deals);
+  } catch (error) {
+    console.error(`Error fetching deals for establishment ${req.params.establishmentId}:`, error);
+    res.status(500).json({
+      error: 'Failed to fetch establishment deals',
+      message: 'There was an error retrieving the deals. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/locations', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    console.log('API: Getting locations');
+    
+    // Get all unique neighborhoods from establishments
+    const { rows } = await db.pool.query(`
+      SELECT DISTINCT neighbourhood 
+      FROM establishments 
+      WHERE neighbourhood IS NOT NULL AND neighbourhood != ''
+      ORDER BY neighbourhood ASC
+    `);
+    
+    // Format to return just the location names
+    const locations = rows.map(row => row.neighbourhood);
+    
+    res.json(locations);
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch locations', 
+      message: 'There was an error retrieving locations. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/establishments/location/:location', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    const { location } = req.params;
+    console.log(`API: Getting establishments in location ${location}`);
+    
+    // Get establishments in the specified location
+    const { rows } = await db.pool.query(
+      `SELECT 
+        id,
+        name,
+        address,
+        lat,
+        lng,
+        neighbourhood,
+        has_active_deals as "hasActiveDeals",
+        logo_url as "logoUrl",
+        image_url as "imageUrl",
+        cloudflare_image_id as "cloudflareImageId",
+        external_id as "externalId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM establishments 
+      WHERE neighbourhood = $1`,
+      [location]
+    );
+    
+    res.json(rows);
+  } catch (error) {
+    console.error(`Error fetching establishments in location ${req.params.location}:`, error);
+    res.status(500).json({
+      error: 'Failed to fetch establishments by location',
+      message: 'There was an error retrieving the establishments. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/deals/nearby', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    // Get user location from query params, or use defaults (central Singapore)
+    const lat = parseFloat(req.query.lat) || 1.3521;
+    const lng = parseFloat(req.query.lng) || 103.8198;
+    const radius = parseFloat(req.query.radius) || 10; // radius in km
+    
+    console.log(`API: Getting nearby deals at coordinates ${lat}, ${lng} within ${radius}km`);
+    
+    // Get all establishments and calculate distance
+    const { rows: establishments } = await db.pool.query(`
+      SELECT 
+        id,
+        name,
+        address,
+        lat,
+        lng,
+        neighbourhood,
+        has_active_deals as "hasActiveDeals",
+        logo_url as "logoUrl",
+        image_url as "imageUrl",
+        cloudflare_image_id as "cloudflareImageId"
+      FROM establishments
+    `);
+    
+    // Function to calculate distance between two coordinates
+    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius of the earth in km
+      const dLat = deg2rad(lat2 - lat1);
+      const dLon = deg2rad(lon2 - lon1);
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2); 
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const d = R * c; // Distance in km
+      return d;
+    }
+    
+    function deg2rad(deg) {
+      return deg * (Math.PI/180);
+    }
+    
+    // Calculate distance for each establishment and filter by radius
+    const nearbyEstablishments = establishments
+      .map(est => {
+        if (!est.lat || !est.lng) return null;
+        
+        const distance = getDistanceFromLatLonInKm(
+          lat, lng, 
+          parseFloat(est.lat), parseFloat(est.lng)
+        );
+        
+        return { ...est, distance };
+      })
+      .filter(est => est && est.distance <= radius)
+      .sort((a, b) => a.distance - b.distance);
+    
+    // Get all establishments IDs
+    const establishmentIds = nearbyEstablishments.map(est => est.id);
+    
+    if (establishmentIds.length === 0) {
+      return res.json([]);
+    }
+    
+    // Get deals for these establishments
+    const { rows: dealRows } = await db.pool.query(`
+      SELECT 
+        id,
+        establishment_id as "establishmentId",
+        alcohol_category,
+        alcohol_subcategory,
+        alcohol_subcategory2,
+        drink_name,
+        standard_price,
+        happy_hour_price,
+        savings,
+        savings_percentage as "savingsPercentage",
+        valid_days,
+        hh_start_time,
+        hh_end_time,
+        collections,
+        description,
+        sort_order,
+        image_url as "imageUrl",
+        image_id as "imageId",
+        cloudflare_image_id as "cloudflareImageId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM deals 
+      WHERE establishment_id = ANY($1)`,
+      [establishmentIds]
+    );
+    
+    // Create a map of establishment IDs to establishments with distance
+    const establishmentMap = {};
+    nearbyEstablishments.forEach(est => {
+      establishmentMap[est.id] = est;
+    });
+    
+    // Format deals with establishment info
+    const nearbyDeals = dealRows.map(deal => {
+      const establishment = establishmentMap[deal.establishmentId] || {
+        id: deal.establishmentId,
+        name: 'Unknown Restaurant',
+        distance: 999
+      };
+      
+      return {
+        ...deal,
+        distance: establishment.distance,
+        establishment
+      };
+    });
+    
+    res.json(nearbyDeals);
+  } catch (error) {
+    console.error('Error fetching nearby deals:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch nearby deals', 
+      message: 'There was an error retrieving the nearby deals. Please try again later.',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
