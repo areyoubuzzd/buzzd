@@ -305,13 +305,21 @@ app.get('/api/establishments/:establishmentId', async (req, res) => {
       [establishmentId]
     );
     
-    // Format the establishment data
-    const formattedEstablishment = {
-      ...establishment,
-      deals: dealRows
+    // Format the establishment data as expected by the client-side interface
+    const formattedResponse = {
+      establishment: establishment,
+      activeDeals: dealRows
     };
     
-    res.json(formattedEstablishment);
+    console.log('Restaurant details endpoint returned:', JSON.stringify({
+      id: establishment.id,
+      name: establishment.name,
+      responseFormat: 'Checking response format',
+      hasEstablishment: !!establishment,
+      dealsCount: dealRows.length
+    }));
+    
+    res.json(formattedResponse);
   } catch (error) {
     console.error(`Error fetching establishment ${req.params.establishmentId}:`, error);
     res.status(500).json({
