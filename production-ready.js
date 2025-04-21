@@ -111,21 +111,31 @@ fs.writeFileSync('index.html', fallbackHtml);
 console.log('✅ Created fallback index.html');
 
 // Check for built React app in various locations
-let clientPath = '';
 const possibleClientPaths = [
+  'dist/public',
   'client/dist',
   'dist',
-  'client'
+  'client',
+  'public'
 ];
 
+let clientPath = '';
 for (const path of possibleClientPaths) {
   if (fs.existsSync(path)) {
-    clientPath = path;
-    console.log(`✅ Found client files at: ${path}`);
-    
-    // Log what files are in this directory
-    console.log(`Files in ${path}:`, fs.readdirSync(path).join(', '));
-    break;
+    try {
+      const stats = fs.statSync(path);
+      if (stats.isDirectory()) {
+        const files = fs.readdirSync(path);
+        if (files.includes('index.html') || files.includes('assets')) {
+          clientPath = path;
+          console.log(`✅ Found client files at: ${path}`);
+          console.log(`Files in ${path}:`, files.join(', '));
+          break;
+        }
+      }
+    } catch (err) {
+      console.error(`Error checking path ${path}:`, err);
+    }
   }
 }
 
@@ -140,7 +150,9 @@ if (clientPath) {
 
 // Serve additional assets from other directories
 const additionalAssetDirs = [
+  'dist/client',
   'public',
+  'public/assets',
   'public/images',
   'assets'
 ];
@@ -153,16 +165,20 @@ additionalAssetDirs.forEach(dir => {
 });
 
 // Start the API server on a different port
-console.log(`Starting API server on port ${API_PORT}...`);
-const apiProcess = spawn('npx', ['tsx', 'server/index.ts'], {
-  stdio: 'inherit',
-  shell: true,
-  env: { ...process.env, PORT: API_PORT.toString() }
-});
+try {
+  console.log(`Starting API server on port ${API_PORT}...`);
+  const apiProcess = spawn('npx', ['tsx', 'server/index.ts'], {
+    stdio: 'inherit',
+    shell: true,
+    env: { ...process.env, PORT: API_PORT.toString() }
+  });
 
-apiProcess.on('error', (err) => {
-  console.error('Failed to start API server:', err);
-});
+  apiProcess.on('error', (err) => {
+    console.error('Failed to start API server:', err);
+  });
+} catch (error) {
+  console.error('Error starting API server:', error);
+}
 
 // Handle API routes - proxy them to the API server
 app.all('/api/*', (req, res) => {
