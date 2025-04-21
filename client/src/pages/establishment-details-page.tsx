@@ -261,13 +261,22 @@ const cardVariants = {
 
 export default function EstablishmentDetailsPage() {
   const [, params] = useRoute('/establishments/:id');
-  const id = params?.id;
+  // Parse the ID to ensure it's a valid number
+  const idParam = params?.id;
+  const id = idParam && !isNaN(parseInt(idParam)) ? parseInt(idParam) : null;
+  
   const [userPosition, setUserPosition] = useState(DEFAULT_POSITION);
   const [userDistance, setUserDistance] = useState<number | null>(null);
   const [isShareExpanded, setIsShareExpanded] = useState(false);
   
   // Keep track of the referrer/previous page
   const [referrer, setReferrer] = useState<string>("/");
+  
+  // Log the ID parameter for debugging
+  useEffect(() => {
+    console.log("Establishment ID param:", idParam);
+    console.log("Parsed establishment ID:", id);
+  }, [idParam, id]);
   
   // Fetch user location
   useEffect(() => {
@@ -293,7 +302,7 @@ export default function EstablishmentDetailsPage() {
     error 
   } = useQuery<EstablishmentDetailsResponse>({
     queryKey: [`/api/establishments/${id}`],
-    enabled: !!id,
+    enabled: id !== null, // Only enable the query if we have a valid numeric ID
   });
   
   // For debugging
@@ -388,9 +397,14 @@ export default function EstablishmentDetailsPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <p className="text-red-500 mb-4">Error loading restaurant details</p>
-        <Button asChild variant="outline">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        <p className="text-red-500 text-lg font-semibold mb-2">Error loading restaurant details</p>
+        <p className="text-gray-300 mb-4">
+          {id === null 
+            ? "Invalid restaurant ID. Please try again with a valid restaurant." 
+            : "We couldn't load the details for this restaurant. Please try again later."}
+        </p>
+        <Button asChild variant="outline" className="bg-[#FFC300] text-[#F4F4F9] hover:bg-[#FFC300]/80 mb-2">
           <Link href="/restaurants">
             <FaArrowLeft className="mr-2 h-4 w-4" />
             Back to Restaurants
@@ -402,9 +416,12 @@ export default function EstablishmentDetailsPage() {
 
   if (!data) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <p className="mb-4">Restaurant not found</p>
-        <Button asChild variant="outline">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        <p className="text-yellow-500 text-lg font-semibold mb-2">Restaurant not found</p>
+        <p className="text-gray-300 mb-4">
+          The restaurant you're looking for doesn't exist or might have been removed.
+        </p>
+        <Button asChild variant="outline" className="bg-[#FFC300] text-[#F4F4F9] hover:bg-[#FFC300]/80 mb-2">
           <Link href="/restaurants">
             <FaArrowLeft className="mr-2 h-4 w-4" />
             Back to Restaurants
