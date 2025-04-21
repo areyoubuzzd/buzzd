@@ -2,4 +2,4 @@
  * Buzzd Replit Deployment Entrypoint
  * This file is automatically detected by Replit's deployment system
  */
-require('./simple-server.cjs');
+require('./ultra-simple-server.cjs');
