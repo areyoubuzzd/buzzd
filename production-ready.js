@@ -23,6 +23,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_PORT = process.env.API_PORT || 5000;
 
+// Add middleware for parsing request bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 console.log(`
 =================================================
   BUZZD PRODUCTION SERVER (STARTED: ${new Date().toISOString()})
@@ -187,8 +191,43 @@ try {
 }
 
 // Handle API routes - proxy them to the API server
-app.all('/api/*', (req, res) => {
-  res.redirect(`http://localhost:${API_PORT}${req.url}`);
+app.all('/api/*', async (req, res) => {
+  try {
+    // Create a proxy URL to the internal API
+    const apiUrl = `http://localhost:${API_PORT}${req.url}`;
+    console.log(`Proxying API request to: ${apiUrl}`);
+    
+    // Forward the request to the API
+    const fetch = (await import('node-fetch')).default;
+    const apiResponse = await fetch(apiUrl, {
+      method: req.method,
+      headers: {
+        'Content-Type': req.get('Content-Type') || 'application/json',
+        'Accept': req.get('Accept') || 'application/json',
+        'Cookie': req.get('Cookie') || '',
+      },
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
+    });
+    
+    // Forward the API response back to the client
+    const contentType = apiResponse.headers.get('content-type') || 'application/json';
+    res.setHeader('Content-Type', contentType);
+    
+    // Set all headers from the API response
+    apiResponse.headers.forEach((value, name) => {
+      res.setHeader(name, value);
+    });
+    
+    // Set the status code
+    res.status(apiResponse.status);
+    
+    // Send the body
+    const responseBody = await apiResponse.text();
+    res.send(responseBody);
+  } catch (error) {
+    console.error('API proxy error:', error);
+    res.status(500).json({ error: 'Error connecting to API service', details: error.message });
+  }
 });
 
 // For client-side routing - all routes serve index.html
