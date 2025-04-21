@@ -164,13 +164,19 @@ additionalAssetDirs.forEach(dir => {
   }
 });
 
-// Start the API server on a different port
+// Start the API server on a different port, with environment vars to disable optional features
 try {
   console.log(`Starting API server on port ${API_PORT}...`);
   const apiProcess = spawn('npx', ['tsx', 'server/index.ts'], {
     stdio: 'inherit',
     shell: true,
-    env: { ...process.env, PORT: API_PORT.toString() }
+    env: { 
+      ...process.env, 
+      PORT: API_PORT.toString(),
+      DISABLE_CLOUDINARY: 'true',
+      DISABLE_CLOUDFLARE: 'true',
+      NODE_ENV: 'production'
+    }
   });
 
   apiProcess.on('error', (err) => {
