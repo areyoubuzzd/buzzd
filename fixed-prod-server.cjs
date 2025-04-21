@@ -242,6 +242,15 @@ app.get('/api/establishments/:establishmentId', async (req, res) => {
     const { establishmentId } = req.params;
     console.log(`API: Getting establishment ${establishmentId}`);
     
+    // Validate establishmentId
+    if (!establishmentId || isNaN(parseInt(establishmentId))) {
+      console.error(`Invalid establishment ID: ${establishmentId}`);
+      return res.status(400).json({
+        error: 'Invalid establishment ID',
+        message: 'Please provide a valid numeric establishment ID.'
+      });
+    }
+    
     // Get the establishment
     const { rows: establishments } = await pool.query(
       `SELECT 
