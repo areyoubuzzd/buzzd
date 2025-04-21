@@ -1,0 +1,156 @@
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+at emitErrorEvent (node:_http_client:101:11)
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+at Socket.socketOnEnd (node:_http_client:528:5)
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+at Socket.emit (node:events:530:35)
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+at endReadableNT (node:internal/streams/readable:1698:12)
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+type: 'system',
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+errno: 'ECONNRESET',
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+code: 'ECONNRESET',
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+erroredSysCall: undefined
+2025-04-21 08:43:52.86
+7d77e9a6
+User
+}
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+API proxy error: FetchError: request to http://127.0.0.1:5000/api/deals/collections/all?lat=1.3521&lng=103.8198 failed, reason: connect EMFILE 127.0.0.1:5000 - Local (undefined:undefined)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at ClientRequest. (file:///home/runner/workspace/node_modules/node-fetch/src/index.js:108:11)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at ClientRequest.emit (node:events:518:28)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at emitErrorEvent (node:_http_client:101:11)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at Socket.socketErrorListener (node:_http_client:504:5)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at Socket.emit (node:events:518:28)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at emitErrorNT (node:internal/streams/destroy:169:8)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at emitErrorCloseNT (node:internal/streams/destroy:128:3)
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+type: 'system',
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+errno: 'EMFILE',
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+code: 'EMFILE',
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+erroredSysCall: 'connect'
+2025-04-21 08:43:52.87
+7d77e9a6
+User
+}
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+API proxy error: FetchError: request to http://127.0.0.1:5000/api/establishments failed, reason: socket hang up
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at ClientRequest. (file:///home/runner/workspace/node_modules/node-fetch/src/index.js:108:11)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at ClientRequest.emit (node:events:518:28)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at emitErrorEvent (node:_http_client:101:11)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at Socket.socketOnEnd (node:_http_client:528:5)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at Socket.emit (node:events:530:35)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at endReadableNT (node:internal/streams/readable:1698:12)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+errno: 'ECONNRESET',
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+code: 'ECONNRESET',
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+}
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at ClientRequest. (file:///home/runner/workspace/node_modules/node-fetch/src/index.js:108:11)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at emitErrorEvent (node:_http_client:101:11)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+at Socket.socketOnEnd (node:_http_client:528:5)
+2025-04-21 08:43:52.88
+7d77e9a6
+User
+}

@@ -1,13 +1,17 @@
 /**
- * Simple Deployment Server for Buzzd App
- * This avoids complex build processes and focuses on reliability
+ * Ultra-simple deployment server for Buzzd App
+ * This file directly combines the frontend and API in a single server
  */
 
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { spawn } from 'child_process';
+
+// Database imports
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from 'ws';
 
 // Get directory name in ESM context
 const __filename = fileURLToPath(import.meta.url);
@@ -16,20 +20,24 @@ const __dirname = path.dirname(__filename);
 // Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_PORT = process.env.API_PORT || 5000;
+
+// Add middleware for parsing request bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 console.log(`
 =================================================
-  BUZZD DEPLOYMENT SERVER (STARTED: ${new Date().toISOString()})
+  BUZZD SIMPLIFIED DEPLOYMENT SERVER (STARTED: ${new Date().toISOString()})
 =================================================
 Environment: ${process.env.NODE_ENV || 'development'}
 Node Version: ${process.version}
 Current Directory: ${process.cwd()}
+Available Files: ${fs.readdirSync('.').join(', ')}
 =================================================
 `);
 
-// Create a simple HTML landing page
-const landingHtml = `<!DOCTYPE html>
+// First, create a fallback HTML that will always work
+const fallbackHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -71,8 +79,8 @@ const landingHtml = `<!DOCTYPE html>
   <p class="subtitle">Singapore's Happy Hour Deals App</p>
   
   <div class="message">
-    <p><strong>Find the best happy hour deals in Singapore!</strong></p>
-    <p>Discover great deals on drinks and food around you.</p>
+    <p><strong>Coming soon to this URL!</strong></p>
+    <p>The best happy hour deals in Singapore at your fingertips.</p>
   </div>
   
   <p>Find great deals on:</p>
@@ -96,37 +104,189 @@ const landingHtml = `<!DOCTYPE html>
     </div>
   </div>
   
-  <p>The app is also available at:</p>
-  <p><a href="https://3ba57093-d855-4595-8517-8bf472da2d09-00-10dy66ta88a3h.riker.replit.dev/" target="_blank">Development Version</a></p>
-  
   <p class="signature">© Buzzd 2025</p>
 </body>
 </html>`;
 
-// Write this to a file
-fs.writeFileSync('index.html', landingHtml);
+// Create a fallback index.html in case everything else fails
+fs.writeFileSync('index.html', fallbackHtml);
+console.log('✅ Created fallback index.html');
 
-// Serve the static HTML file and any assets
-app.use(express.static('.'));
+// Check for built React app in various locations
+const possibleClientPaths = [
+  'dist/public',
+  'client/dist',
+  'dist',
+  'client',
+  'public'
+];
 
-// Start the API server if needed (optional for landing page)
-try {
-  console.log(`Starting API server on port ${API_PORT}...`);
-  const apiProcess = spawn('npx', ['tsx', 'server/index.ts'], {
-    stdio: 'inherit',
-    shell: true,
-    env: { ...process.env, PORT: API_PORT.toString() }
-  });
-
-  apiProcess.on('error', (err) => {
-    console.error('Failed to start API server:', err);
-  });
-} catch (error) {
-  console.error('Error starting API server:', error);
+let clientPath = '';
+for (const path of possibleClientPaths) {
+  if (fs.existsSync(path)) {
+    try {
+      const stats = fs.statSync(path);
+      if (stats.isDirectory()) {
+        const files = fs.readdirSync(path);
+        if (files.includes('index.html') || files.includes('assets')) {
+          clientPath = path;
+          console.log(`✅ Found client files at: ${path}`);
+          console.log(`Files in ${path}:`, files.join(', '));
+          break;
+        }
+      }
+    } catch (err) {
+      console.error(`Error checking path ${path}:`, err);
+    }
+  }
 }
 
-// For all other routes, serve the static HTML
+// If we found a client path, serve those static files
+if (clientPath) {
+  app.use(express.static(clientPath));
+  console.log(`Serving static files from ${clientPath}`);
+} else {
+  console.log('❌ No client directory found, using fallback');
+  // If no client path was found, we'll still serve the fallback index.html
+}
+
+// Serve additional assets from other directories
+const additionalAssetDirs = [
+  'dist/client',
+  'public',
+  'public/assets',
+  'public/images',
+  'assets'
+];
+
+additionalAssetDirs.forEach(dir => {
+  if (fs.existsSync(dir)) {
+    app.use('/' + path.basename(dir), express.static(dir));
+    console.log(`Serving additional assets from ${dir}`);
+  }
+});
+
+// Connect to database for direct API handling
+let db = null;
+try {
+  console.log('Connecting to database...');
+  
+  if (process.env.DATABASE_URL) {
+    neonConfig.webSocketConstructor = ws;
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    
+    // Import schema dynamically
+    const schemaModule = await import('./dist/shared/schema.js');
+    db = drizzle({ client: pool, schema: schemaModule });
+    
+    console.log('✅ Connected to database');
+  } else {
+    console.error('DATABASE_URL environment variable not set');
+  }
+} catch (error) {
+  console.error('Failed to connect to database:', error);
+}
+
+// API Routes
+app.get('/api/establishments', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    console.log('API: Getting establishments');
+    const establishments = await db.query.establishments.findMany();
+    res.json(establishments);
+  } catch (error) {
+    console.error('Error fetching establishments:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch establishments', 
+      message: 'There was an error retrieving the data. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    const { collectionSlug } = req.params;
+    const { lat, lng } = req.query;
+    const radius = Number(req.query.radius) || 5;
+    
+    console.log(`API: Getting deals for collection ${collectionSlug}, location: ${lat}, ${lng}, radius: ${radius}`);
+    
+    // Simplified query that returns all deals for now
+    // In a real app, we would filter by location and collection
+    const deals = await db.query.deals.findMany({
+      with: {
+        establishment: true
+      }
+    });
+    
+    res.json(deals);
+  } catch (error) {
+    console.error(`Error fetching deals for collection ${req.params.collectionSlug}:`, error);
+    res.status(500).json({ 
+      error: 'Failed to fetch deals', 
+      message: 'There was an error retrieving the deals. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/collections', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error('Database not connected');
+    }
+    
+    console.log('API: Getting collections');
+    const collections = await db.query.collections.findMany({
+      where: (collections, { eq }) => eq(collections.active, true),
+      orderBy: (collections, { asc }) => [asc(collections.priority)]
+    });
+    
+    res.json(collections);
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch collections', 
+      message: 'There was an error retrieving the collections. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/user', (req, res) => {
+  // Since we don't have full authentication in this direct handler,
+  // just return a 401 to indicate the user is not logged in
+  res.status(401).end();
+});
+
+// Add a diagnostic API test endpoint
+app.get('/api-test', (req, res) => {
+  res.json({
+    status: 'API Test',
+    environment: process.env.NODE_ENV,
+    port: PORT,
+    dbConnected: db ? true : false,
+    clientPath,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// For client-side routing - all routes serve index.html
 app.get('*', (req, res) => {
+  // If we have a client path and it has an index.html, serve that
+  if (clientPath && fs.existsSync(path.join(clientPath, 'index.html'))) {
+    return res.sendFile(path.resolve(path.join(clientPath, 'index.html')));
+  }
+  
+  // Otherwise, serve our fallback index.html
   res.sendFile(path.resolve('index.html'));
 });
 
@@ -136,7 +296,8 @@ app.listen(PORT, '0.0.0.0', () => {
 =================================================
   SERVER STARTED
 =================================================
-Server listening on: http://localhost:${PORT}
+Frontend & API: http://localhost:${PORT}
+Database Connected: ${db ? 'Yes' : 'No'}
 =================================================
 `);
 });
