@@ -105,9 +105,28 @@ app.get('/api/establishments', async (req, res) => {
     }
     
     console.log('API: Getting establishments');
-    // Simple raw query with minimal SQL
+    
+    // Get basic establishment data
     const { rows } = await pool.query('SELECT * FROM establishments');
-    res.json(rows);
+    
+    // Map to the expected format for the frontend
+    const establishments = rows.map(est => ({
+      id: est.id,
+      name: est.name,
+      address: est.address,
+      lat: est.lat,
+      lng: est.lng,
+      neighbourhood: est.neighbourhood,
+      hasActiveDeals: est.has_active_deals || false,
+      logoUrl: est.logo_url,
+      imageUrl: est.image_url,
+      cloudflareImageId: est.cloudflare_image_id,
+      externalId: est.external_id,
+      createdAt: est.created_at,
+      updatedAt: est.updated_at
+    }));
+    
+    res.json(establishments);
   } catch (error) {
     console.error('Error fetching establishments:', error);
     res.status(500).json({ 
@@ -128,14 +147,76 @@ app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
     
     console.log(`API: Getting deals for collection ${collectionSlug}`);
     
-    // Simple join with minimal SQL
-    const { rows } = await pool.query(`
-      SELECT d.*, e.name as establishment_name, e.id as establishment_id 
-      FROM deals d
-      JOIN establishments e ON d.establishment_id = e.id
+    // Get basic deal info
+    const { rows: dealRows } = await pool.query(`
+      SELECT * FROM deals
     `);
     
-    res.json(rows);
+    // Get basic establishment info
+    const { rows: establishmentRows } = await pool.query(`
+      SELECT * FROM establishments
+    `);
+    
+    // Create a map of establishment IDs to establishments
+    const establishmentMap = {};
+    establishmentRows.forEach(est => {
+      establishmentMap[est.id] = {
+        id: est.id,
+        name: est.name,
+        address: est.address,
+        lat: est.lat,
+        lng: est.lng,
+        neighbourhood: est.neighbourhood,
+        logoUrl: est.logo_url,
+        imageUrl: est.image_url,
+        cloudflareImageId: est.cloudflare_image_id,
+        hasActiveDeals: est.has_active_deals
+      };
+    });
+    
+    // Transform the deals data to add establishment information
+    const deals = dealRows.map(deal => {
+      const establishment = establishmentMap[deal.establishment_id] || { 
+        id: deal.establishment_id,
+        name: 'Unknown Restaurant'
+      };
+      
+      return {
+        id: deal.id,
+        establishmentId: deal.establishment_id,
+        alcohol_category: deal.alcohol_category,
+        alcohol_subcategory: deal.alcohol_subcategory,
+        alcohol_subcategory2: deal.alcohol_subcategory2,
+        drink_name: deal.drink_name,
+        standard_price: deal.standard_price,
+        happy_hour_price: deal.happy_hour_price,
+        savings: deal.savings,
+        savings_percentage: deal.savings_percentage,
+        valid_days: deal.valid_days,
+        hh_start_time: deal.hh_start_time,
+        hh_end_time: deal.hh_end_time,
+        collections: deal.collections,
+        description: deal.description,
+        sort_order: deal.sort_order,
+        imageUrl: deal.image_url,
+        imageId: deal.image_id,
+        createdAt: deal.created_at,
+        updatedAt: deal.updated_at,
+        isActive: false, // We'll calculate this in the UI
+        establishment: establishment
+      };
+    });
+    
+    // If a collection is specified, filter the deals
+    let filteredDeals = deals;
+    if (collectionSlug !== 'all') {
+      filteredDeals = deals.filter(deal => {
+        const dealCollections = (deal.collections || '').split(',').map(c => c.trim());
+        return dealCollections.includes(collectionSlug);
+      });
+    }
+    
+    res.json(filteredDeals);
   } catch (error) {
     console.error(`Error fetching deals for collection ${req.params.collectionSlug}:`, error);
     res.status(500).json({ 
@@ -160,6 +241,84 @@ app.get('/api/collections', async (req, res) => {
     res.status(500).json({ 
       error: 'Failed to fetch collections', 
       message: 'There was an error retrieving the collections. Please try again later.',
+      details: error.message
+    });
+  }
+});
+
+app.get('/api/establishments/:establishmentId', async (req, res) => {
+  try {
+    if (!pool) {
+      throw new Error('Database not connected');
+    }
+    
+    const { establishmentId } = req.params;
+    console.log(`API: Getting establishment ${establishmentId}`);
+    
+    // Get the establishment
+    const { rows: establishments } = await pool.query(
+      'SELECT * FROM establishments WHERE id = $1',
+      [establishmentId]
+    );
+    
+    if (establishments.length === 0) {
+      return res.status(404).json({ error: 'Establishment not found' });
+    }
+    
+    const establishment = establishments[0];
+    
+    // Get deals for this establishment
+    const { rows: dealRows } = await pool.query(
+      'SELECT * FROM deals WHERE establishment_id = $1',
+      [establishmentId]
+    );
+    
+    // Format the establishment data
+    const formattedEstablishment = {
+      id: establishment.id,
+      name: establishment.name,
+      address: establishment.address,
+      lat: establishment.lat,
+      lng: establishment.lng,
+      neighbourhood: establishment.neighbourhood,
+      hasActiveDeals: establishment.has_active_deals || false,
+      logoUrl: establishment.logo_url,
+      imageUrl: establishment.image_url,
+      cloudflareImageId: establishment.cloudflare_image_id,
+      externalId: establishment.external_id,
+      createdAt: establishment.created_at,
+      updatedAt: establishment.updated_at,
+      deals: dealRows.map(deal => ({
+        id: deal.id,
+        establishmentId: deal.establishment_id,
+        alcoholCategory: deal.alcohol_category,
+        alcoholSubcategory: deal.alcohol_subcategory,
+        alcoholSubcategory2: deal.alcohol_subcategory2,
+        drinkName: deal.drink_name,
+        standardPrice: deal.standard_price,
+        happyHourPrice: deal.happy_hour_price,
+        savings: deal.savings,
+        savingsPercentage: deal.savings_percentage,
+        validDays: deal.valid_days,
+        hhStartTime: deal.hh_start_time,
+        hhEndTime: deal.hh_end_time,
+        collections: deal.collections,
+        description: deal.description,
+        sortOrder: deal.sort_order,
+        imageUrl: deal.image_url,
+        imageId: deal.image_id,
+        cloudflareImageId: deal.cloudflare_image_id,
+        createdAt: deal.created_at,
+        updatedAt: deal.updated_at
+      }))
+    };
+    
+    res.json(formattedEstablishment);
+  } catch (error) {
+    console.error(`Error fetching establishment ${req.params.establishmentId}:`, error);
+    res.status(500).json({
+      error: 'Failed to fetch establishment',
+      message: 'There was an error retrieving the establishment. Please try again later.',
       details: error.message
     });
   }
