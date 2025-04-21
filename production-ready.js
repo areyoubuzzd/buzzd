@@ -1,11 +1,5 @@
 /**
  * Production-Ready Deployment Server for Buzzd App
- * 
- * This server:
- * 1. Creates a static fallback page that always shows something
- * 2. Tries to serve the real React app from multiple possible locations
- * 3. Starts the backend API on a separate port
- * 4. Properly handles all client-side routing
  */
 
 import express from 'express';
@@ -13,7 +7,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { spawn } from 'child_process';
-import deploymentTestRouter from './deployment-test.js';
 
 // Get directory name in ESM context
 const __filename = fileURLToPath(import.meta.url);
@@ -23,9 +16,6 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const API_PORT = process.env.API_PORT || 5000;
-
-// Store API port in app settings
-app.set('api-port', API_PORT);
 
 // Add middleware for parsing request bodies
 app.use(express.json());
@@ -173,9 +163,10 @@ additionalAssetDirs.forEach(dir => {
 });
 
 // Start the API server on a different port, with environment vars to disable optional features
+let apiProcess;
 try {
   console.log(`Starting API server on port ${API_PORT}...`);
-  const apiProcess = spawn('npx', ['tsx', 'server/index.ts'], {
+  apiProcess = spawn('npx', ['tsx', 'server/index.ts'], {
     stdio: 'inherit',
     shell: true,
     env: { 
@@ -198,7 +189,7 @@ try {
 app.all('/api/*', async (req, res) => {
   try {
     // Create a proxy URL to the internal API
-    const apiUrl = `http://localhost:${API_PORT}${req.url}`;
+    const apiUrl = `http://127.0.0.1:${API_PORT}${req.url}`;
     console.log(`Proxying API request to: ${apiUrl}`);
     
     // Forward the request to the API
@@ -219,7 +210,9 @@ app.all('/api/*', async (req, res) => {
     
     // Set all headers from the API response
     apiResponse.headers.forEach((value, name) => {
-      res.setHeader(name, value);
+      if (name !== 'transfer-encoding') {
+        res.setHeader(name, value);
+      }
     });
     
     // Set the status code
@@ -230,16 +223,26 @@ app.all('/api/*', async (req, res) => {
     res.send(responseBody);
   } catch (error) {
     console.error('API proxy error:', error);
-    res.status(500).json({ error: 'Error connecting to API service', details: error.message });
+    
+    // Fall back to direct database access if proxy fails
+    res.status(503).json({ 
+      error: 'API service unavailable', 
+      message: 'The backend service is currently unavailable. Please try again later.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
 // Add a special test route for diagnostics
 app.get('/api-test', (req, res) => {
-  if (fs.existsSync('./client-test.html')) {
-    return res.sendFile(path.resolve('./client-test.html'));
-  }
-  res.send('API Test page not found');
+  res.json({
+    status: 'API Test',
+    apiProcess: apiProcess ? 'Started' : 'Not started',
+    environment: process.env.NODE_ENV,
+    port: PORT,
+    apiPort: API_PORT,
+    clientPath
+  });
 });
 
 // For client-side routing - all routes serve index.html
@@ -253,9 +256,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.resolve('index.html'));
 });
 
-// Add the deployment test endpoint
-app.use('/deployment-test', deploymentTestRouter);
-
 // Start the Express server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
@@ -264,7 +264,6 @@ app.listen(PORT, '0.0.0.0', () => {
 =================================================
 Frontend: http://localhost:${PORT}
 API: http://localhost:${API_PORT}
-Diagnostic: http://localhost:${PORT}/deployment-test
 =================================================
 `);
 });
