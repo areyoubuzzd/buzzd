@@ -13,6 +13,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { spawn } from 'child_process';
+import deploymentTestRouter from './deployment-test.js';
 
 // Get directory name in ESM context
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +23,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const API_PORT = process.env.API_PORT || 5000;
+
+// Store API port in app settings
+app.set('api-port', API_PORT);
 
 // Add middleware for parsing request bodies
 app.use(express.json());
@@ -230,6 +234,14 @@ app.all('/api/*', async (req, res) => {
   }
 });
 
+// Add a special test route for diagnostics
+app.get('/api-test', (req, res) => {
+  if (fs.existsSync('./client-test.html')) {
+    return res.sendFile(path.resolve('./client-test.html'));
+  }
+  res.send('API Test page not found');
+});
+
 // For client-side routing - all routes serve index.html
 app.get('*', (req, res) => {
   // If we have a client path and it has an index.html, serve that
@@ -241,6 +253,9 @@ app.get('*', (req, res) => {
   res.sendFile(path.resolve('index.html'));
 });
 
+// Add the deployment test endpoint
+app.use('/deployment-test', deploymentTestRouter);
+
 // Start the Express server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
@@ -249,6 +264,7 @@ app.listen(PORT, '0.0.0.0', () => {
 =================================================
 Frontend: http://localhost:${PORT}
 API: http://localhost:${API_PORT}
+Diagnostic: http://localhost:${PORT}/deployment-test
 =================================================
 `);
 });

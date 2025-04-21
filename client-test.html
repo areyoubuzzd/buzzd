@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buzzd - Singapore Happy Hour Deals</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1 { color: #e63946; margin-bottom: 0.5rem; }
+    .subtitle { font-size: 1.2rem; color: #457b9d; margin-bottom: 1.5rem; }
+    .button {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: #1d3557;
+      color: white;
+      text-decoration: none;
+      border-radius: 0.25rem;
+      margin: 0.5rem 0;
+    }
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border: 1px solid #eee;
+    }
+    .error {
+      background: #ffeeee;
+      border-left: 4px solid #e63946;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    pre {
+      background: #f1f1f1;
+      padding: 1rem;
+      overflow: auto;
+      max-height: 300px;
+      border-radius: 0.25rem;
+    }
+    #responseLog {
+      margin-top: 1rem;
+      background: #f8f8f8;
+      padding: 1rem;
+      border-radius: 0.25rem;
+      max-height: 400px;
+      overflow: auto;
+    }
+    #statusDisplay {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: #f1faee;
+      border-radius: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Buzzd Diagnostic Page</h1>
+  <p class="subtitle">Testing API connectivity and deployment status</p>
+  
+  <div class="card">
+    <h2>Test API Connectivity</h2>
+    <p>Click the buttons below to test API connectivity:</p>
+    
+    <button id="testCollections" class="button">Test Collections API</button>
+    <button id="testDeals" class="button">Test Deals API</button>
+    <button id="testDiagnostic" class="button">Run Deployment Diagnostic</button>
+    
+    <div id="statusDisplay">Status: Ready</div>
+    <div id="responseLog"></div>
+  </div>
+  
+  <script>
+    const responseLog = document.getElementById('responseLog');
+    const statusDisplay = document.getElementById('statusDisplay');
+    
+    function logResponse(message, isError = false) {
+      const entry = document.createElement('div');
+      entry.className = isError ? 'error' : '';
+      entry.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+      responseLog.prepend(entry);
+    }
+    
+    function updateStatus(message) {
+      statusDisplay.textContent = `Status: ${message}`;
+    }
+    
+    document.getElementById('testCollections').addEventListener('click', async () => {
+      try {
+        updateStatus('Fetching collections...');
+        const response = await fetch('/api/collections');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        logResponse(`Collections API Success! Got ${data.length} collections`);
+        logResponse(`<pre>${JSON.stringify(data.slice(0, 3), null, 2)}...</pre>`);
+        updateStatus('Collections API test completed successfully');
+      } catch (error) {
+        logResponse(`Error fetching collections: ${error.message}`, true);
+        updateStatus('Collections API test failed');
+      }
+    });
+    
+    document.getElementById('testDeals').addEventListener('click', async () => {
+      try {
+        updateStatus('Fetching deals...');
+        const response = await fetch('/api/deals/collections/all?lat=1.3521&lng=103.8198');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        logResponse(`Deals API Success! Got ${data.length} deals`);
+        logResponse(`<pre>${JSON.stringify(data.slice(0, 2), null, 2)}...</pre>`);
+        updateStatus('Deals API test completed successfully');
+      } catch (error) {
+        logResponse(`Error fetching deals: ${error.message}`, true);
+        updateStatus('Deals API test failed');
+      }
+    });
+    
+    document.getElementById('testDiagnostic').addEventListener('click', async () => {
+      try {
+        updateStatus('Running deployment diagnostic...');
+        const response = await fetch('/deployment-test');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        logResponse('Diagnostic completed successfully');
+        logResponse(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+        updateStatus('Diagnostic test completed');
+      } catch (error) {
+        logResponse(`Error running diagnostic: ${error.message}`, true);
+        updateStatus('Diagnostic test failed');
+      }
+    });
+    
+    // Log initial status
+    logResponse('Diagnostic page loaded successfully');
+  </script>
+</body>
+</html>
