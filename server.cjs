@@ -203,18 +203,134 @@ if (process.env.DATABASE_URL) {
       query: {
         establishments: {
           findMany: async () => {
-            const { rows } = await pool.query('SELECT * FROM establishments');
-            return rows;
+            const { rows } = await pool.query(`
+              SELECT 
+                id,
+                name,
+                address,
+                lat,
+                lng,
+                neighbourhood,
+                has_active_deals as "hasActiveDeals",
+                logo_url as "logoUrl",
+                image_url as "imageUrl",
+                cloudflare_image_id as "cloudflareImageId",
+                external_id as "externalId",
+                created_at as "createdAt",
+                updated_at as "updatedAt"
+              FROM establishments
+              ORDER BY name ASC
+            `);
+            
+            // Process data to calculate proper hasActiveDeals
+            return rows.map(establishment => {
+              // Add a real value for imageUrl if not present but cloudflare ID exists
+              if (!establishment.imageUrl && establishment.cloudflareImageId) {
+                establishment.imageUrl = `https://imagedelivery.net/your-account-hash/${establishment.cloudflareImageId}/public`;
+              }
+              return establishment;
+            });
           }
         },
         deals: {
           findMany: async () => {
+            // Fetch deals and establishments with proper column aliasing
             const { rows } = await pool.query(`
-              SELECT d.*, e.* 
+              SELECT 
+                d.id, 
+                d.establishment_id as "establishmentId", 
+                d.alcohol_category, 
+                d.alcohol_subcategory, 
+                d.alcohol_subcategory2, 
+                d.drink_name, 
+                d.standard_price, 
+                d.happy_hour_price, 
+                d.savings, 
+                d.savings_percentage, 
+                d.valid_days, 
+                d.hh_start_time, 
+                d.hh_end_time, 
+                d.collections, 
+                d.description, 
+                d.sort_order, 
+                d.image_url as "imageUrl",
+                d.image_id as "imageId",
+                d.created_at as "createdAt",
+                d.updated_at as "updatedAt",
+                e.id as "establishment.id",
+                e.name as "establishment.name",
+                e.address as "establishment.address",
+                e.lat as "establishment.lat", 
+                e.lng as "establishment.lng",
+                e.neighbourhood as "establishment.neighbourhood",
+                e.logo_url as "establishment.logoUrl",
+                e.image_url as "establishment.imageUrl",
+                e.cloudflare_image_id as "establishment.cloudflareImageId",
+                e.has_active_deals as "establishment.hasActiveDeals"
               FROM deals d
               JOIN establishments e ON d.establishment_id = e.id
             `);
-            return rows;
+            
+            // Process rows to create proper nested structure
+            return rows.map(row => {
+              const deal = {};
+              const establishment = {};
+              
+              // Extract establishment properties
+              Object.keys(row).forEach(key => {
+                if (key.startsWith('establishment.')) {
+                  establishment[key.replace('establishment.', '')] = row[key];
+                  delete row[key];
+                } else {
+                  deal[key] = row[key];
+                }
+              });
+              
+              // Add establishment to deal
+              deal.establishment = establishment;
+              
+              // Calculate isActive property based on time
+              const now = new Date();
+              const currentHour = now.getHours();
+              const currentMinute = now.getMinutes();
+              const currentTimeValue = currentHour * 60 + currentMinute;
+              
+              const startTimeParts = (deal.hh_start_time || '').split(':');
+              const endTimeParts = (deal.hh_end_time || '').split(':');
+              
+              if (startTimeParts.length === 2 && endTimeParts.length === 2) {
+                const startTimeValue = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+                const endTimeValue = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+                
+                // Check current day
+                const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+                const currentDay = days[now.getDay()].toLowerCase();
+                
+                // Check if the deal is valid for the current day
+                const validDays = (deal.valid_days || '').toLowerCase();
+                let validForToday = false;
+                
+                if (validDays === 'all days') {
+                  validForToday = true;
+                } else if (validDays.includes('-')) {
+                  // Handle day ranges like mon-fri
+                  const [startDay, endDay] = validDays.split('-');
+                  const startDayIndex = days.indexOf(startDay);
+                  const endDayIndex = days.indexOf(endDay);
+                  const currentDayIndex = now.getDay();
+                  validForToday = currentDayIndex >= startDayIndex && currentDayIndex <= endDayIndex;
+                } else {
+                  // Handle comma-separated list like mon,wed,fri
+                  validForToday = validDays.split(',').some(day => day.trim() === currentDay);
+                }
+                
+                deal.isActive = validForToday && currentTimeValue >= startTimeValue && currentTimeValue <= endTimeValue;
+              } else {
+                deal.isActive = false;
+              }
+              
+              return deal;
+            });
           }
         },
         collections: {
@@ -270,7 +386,50 @@ app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
     
     console.log(`API: Getting deals for collection ${collectionSlug}, location: ${lat}, ${lng}, radius: ${radius}`);
     
-    const deals = await db.query.deals.findMany();
+    // Get all deals since we need to filter client-side based on calculated fields
+    let deals = await db.query.deals.findMany();
+    
+    // Filter deals by collection if not "all"
+    if (collectionSlug !== 'all') {
+      deals = deals.filter(deal => {
+        // Check if the deal belongs to the requested collection
+        const dealCollections = (deal.collections || '').split(',').map(c => c.trim());
+        return dealCollections.includes(collectionSlug);
+      });
+    }
+    
+    // If we have lat/lng coordinates, filter by distance
+    if (lat && lng) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+      
+      if (!isNaN(userLat) && !isNaN(userLng)) {
+        deals = deals.filter(deal => {
+          const establishment = deal.establishment;
+          if (!establishment || !establishment.lat || !establishment.lng) return false;
+          
+          const estLat = parseFloat(establishment.lat);
+          const estLng = parseFloat(establishment.lng);
+          
+          if (isNaN(estLat) || isNaN(estLng)) return false;
+          
+          // Calculate distance using Haversine formula
+          const R = 6371; // Earth radius in km
+          const dLat = (estLat - userLat) * Math.PI / 180;
+          const dLon = (estLng - userLng) * Math.PI / 180;
+          const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(userLat * Math.PI / 180) * Math.cos(estLat * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distance = R * c;
+          
+          // Accept deals within radius
+          return distance <= radius;
+        });
+      }
+    }
+    
     res.json(deals);
   } catch (error) {
     console.error(`Error fetching deals for collection ${req.params.collectionSlug}:`, error);
