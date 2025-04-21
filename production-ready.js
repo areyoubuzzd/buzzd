@@ -224,7 +224,101 @@ app.all('/api/*', async (req, res) => {
   } catch (error) {
     console.error('API proxy error:', error);
     
-    // Fall back to direct database access if proxy fails
+    // Check if it's an establishments endpoint with ID
+    if (req.url.startsWith('/api/establishments/') && !isNaN(parseInt(req.url.split('/').pop()))) {
+      try {
+        // This is a direct fallback for establishment details when API server is not available
+        console.log('Attempting direct database access for establishment details');
+        
+        // Connect to the database directly
+        const { Pool } = await import('@neondatabase/serverless');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+        
+        const establishmentId = parseInt(req.url.split('/').pop());
+        console.log(`Fetching establishment ID: ${establishmentId}`);
+        
+        // Get the establishment
+        const { rows: establishments } = await pool.query(
+          `SELECT 
+            id,
+            name,
+            address,
+            city,
+            postal_code as "postalCode",
+            latitude,
+            longitude,
+            cuisine,
+            rating,
+            price,
+            priority,
+            image_url as "imageUrl",
+            image_id as "imageId",
+            external_id as "externalId",
+            created_at as "createdAt",
+            updated_at as "updatedAt"
+          FROM establishments 
+          WHERE id = $1`,
+          [establishmentId]
+        );
+        
+        if (establishments.length === 0) {
+          return res.status(404).json({ error: 'Establishment not found' });
+        }
+        
+        const establishment = establishments[0];
+        
+        // Add lat/lng for frontend
+        establishment.lat = establishment.latitude;
+        establishment.lng = establishment.longitude;
+        
+        // Get deals for this establishment
+        const { rows: dealRows } = await pool.query(
+          `SELECT 
+            id,
+            establishment_id as "establishmentId",
+            alcohol_category,
+            alcohol_subcategory,
+            alcohol_subcategory2,
+            drink_name,
+            standard_price,
+            happy_hour_price,
+            savings,
+            savings_percentage as "savingsPercentage",
+            valid_days,
+            hh_start_time,
+            hh_end_time,
+            collections,
+            description,
+            sort_order,
+            image_url as "imageUrl",
+            image_id as "imageId",
+            cloudflare_image_id as "cloudflareImageId",
+            created_at as "createdAt",
+            updated_at as "updatedAt"
+          FROM deals 
+          WHERE establishment_id = $1`,
+          [establishmentId]
+        );
+        
+        // Format the establishment data as expected by the client-side interface
+        const formattedResponse = {
+          establishment: establishment,
+          activeDeals: dealRows
+        };
+        
+        console.log(`[Fallback DB] Restaurant details returned for ID ${establishmentId}`);
+        return res.json(formattedResponse);
+      } catch (dbError) {
+        console.error('Direct database access error:', dbError);
+        return res.status(503).json({ 
+          error: 'Database service unavailable', 
+          message: 'Both the API and database fallback are unavailable. Please try again later.',
+          details: process.env.NODE_ENV === 'development' ? `API Error: ${error.message}, DB Error: ${dbError.message}` : undefined
+        });
+      }
+    }
+    
+    // For all other endpoints, return the standard error
     res.status(503).json({ 
       error: 'API service unavailable', 
       message: 'The backend service is currently unavailable. Please try again later.',
