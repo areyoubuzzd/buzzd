@@ -1,5 +1,5 @@
 /**
- * Ultra-minimal production server for Buzzd app
+ * Ultra-minimal production server for Buzzd app - ES Module Version
  * No proxy, no fancy stuff - just direct execution of the main server
  */
 
@@ -56,7 +56,7 @@ app.get('/api/servercheck', async (req, res) => {
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
-      server: 'ultra-simple-server',
+      server: 'deploy-server',
       database: dbStatus,
       innerServer: innerServerRunning ? 'running' : 'starting',
       env: {
@@ -122,7 +122,7 @@ app.all('/api/*', async (req, res, next) => {
 // Skip proxy altogether and just run the main app directly
 console.log(`
 =================================================
-  ULTRA-SIMPLE SERVER STARTING UP
+  DEPLOYMENT SERVER STARTING UP
 =================================================
 NODE_ENV: ${process.env.NODE_ENV || 'not set'}
 DATABASE_URL: ${process.env.DATABASE_URL ? 'configured' : 'not configured'}
@@ -265,16 +265,10 @@ app.get('*', (req, res, next) => {
   `);
 });
 
-// In ES modules, we can check if this is the main module
-// by comparing import.meta.url against the process.argv[1]
-const isMainModule = import.meta.url === `file://${process.argv[1]}`;
-
-// Only start listening if we're the main module (not imported)
-if (isMainModule) {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://0.0.0.0:${PORT}`);
-  });
-}
+// Start the server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running at http://0.0.0.0:${PORT}`);
+});
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

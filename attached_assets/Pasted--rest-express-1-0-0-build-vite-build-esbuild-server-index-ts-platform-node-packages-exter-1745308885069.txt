@@ -1,0 +1,86 @@
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.14 building for production...
+transforming (231) ../node_modules/lucide-react/dist/esm/icons/at-sign.js
+./files/fredoka-one-all-400-normal.woff referenced in ./files/fredoka-one-all-400-normal.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+✓ 2572 modules transformed.
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/runner/workspace/client/src/lib/cloudinary-utils.ts is dynamically imported by /home/runner/workspace/client/src/components/deals/deal-card.tsx, /home/runner/workspace/client/src/components/deals/square-deal-card.tsx but also statically imported by /home/runner/workspace/client/src/hooks/use-drink-images.ts, dynamic import will not move module into another chunk.
+
+../dist/public/assets/manrope-vietnamese-400-normal-ooLdXFia.woff2            4.41 kB
+../dist/public/assets/rubik-mono-one-cyrillic-400-normal-DJOtYBN1.woff        4.49 kB
+../dist/public/index.html                                                     4.52 kB │ gzip:   1.30 kB
+../dist/public/assets/baloo-2-vietnamese-400-normal-BG9SkaxD.woff2            5.00 kB
+../dist/public/assets/fredoka-hebrew-400-normal-CT3eDt6U.woff2                5.06 kB
+../dist/public/assets/manrope-greek-400-normal-B7YXE4JD.woff2                 5.21 kB
+../dist/public/assets/rubik-mono-one-latin-ext-400-normal-plJcw_cN.woff       5.42 kB
+../dist/public/assets/titan-one-latin-ext-400-normal-Dhr62_Yl.woff2           6.02 kB
+../dist/public/assets/alfa-slab-one-vietnamese-400-normal-8O1WNOZK.woff       6.05 kB
+../dist/public/assets/manrope-vietnamese-400-normal-DJunoU0M.woff             6.08 kB
+../dist/public/assets/rubik-mono-one-cyrillic-400-normal-BOcI7D0U.woff2       6.14 kB
+../dist/public/assets/fredoka-hebrew-400-normal-S03uWvSu.woff                 6.48 kB
+../dist/public/assets/bangers-vietnamese-400-normal-_bd9wsER.woff             6.52 kB
+../dist/public/assets/manrope-greek-400-normal-BAy2wLnG.woff                  6.76 kB
+../dist/public/assets/baloo-2-vietnamese-400-normal-CxNXlgcA.woff             6.93 kB
+../dist/public/assets/luckiest-guy-latin-ext-400-normal-Dzj4o2hI.woff2        7.61 kB
+../dist/public/assets/manrope-cyrillic-400-normal-DYJIFuzK.woff2              7.80 kB
+../dist/public/assets/titan-one-latin-ext-400-normal-Cw6DHxVp.woff            7.84 kB
+../dist/public/assets/alfa-slab-one-vietnamese-400-normal-DsEHT_sq.woff2      7.98 kB
+../dist/public/assets/bangers-vietnamese-400-normal-CqY-T-W0.woff2            8.11 kB
+../dist/public/assets/rubik-mono-one-latin-ext-400-normal-BsiHVyE2.woff2      8.11 kB
+../dist/public/assets/manrope-latin-ext-400-normal-CdEq0HKV.woff2             8.22 kB
+../dist/public/assets/luckiest-guy-latin-ext-400-normal-Dplr6uOI.woff         9.24 kB
+../dist/public/assets/rubik-mono-one-latin-400-normal-B1Gf3ixn.woff           9.81 kB
+../dist/public/assets/manrope-cyrillic-400-normal-BSokYSPU.woff              10.02 kB
+../dist/public/assets/titan-one-latin-400-normal-DwVbh4mi.woff2              10.75 kB
+../dist/public/assets/manrope-latin-ext-400-normal-hdRL3SMy.woff             11.36 kB
+../dist/public/assets/rubik-mono-one-latin-400-normal-CNmoPlom.woff2         12.84 kB
+../dist/public/assets/titan-one-latin-400-normal-VZVzRR2h.woff               13.72 kB
+../dist/public/assets/manrope-latin-400-normal-BWi5-Pby.woff2                14.14 kB
+../dist/public/assets/alfa-slab-one-latin-400-normal-C_PEk4-h.woff           14.90 kB
+../dist/public/assets/baloo-2-latin-ext-400-normal-DGqeLh7h.woff2            15.04 kB
+../dist/public/assets/bangers-latin-ext-400-normal-CE1yv2Kp.woff             15.29 kB
+../dist/public/assets/alfa-slab-one-latin-ext-400-normal-ymPIhbQC.woff       15.35 kB
+../dist/public/assets/fredoka-one-latin-400-normal-CqP-Tvqc.woff2            15.60 kB
+../dist/public/assets/fredoka-latin-400-normal-Bxuk_fn1.woff2                16.12 kB
+../dist/public/assets/bangers-latin-ext-400-normal-CuUygl31.woff2            17.15 kB
+../dist/public/assets/luckiest-guy-latin-400-normal-dJClyBWO.woff2           17.36 kB
+../dist/public/assets/manrope-latin-400-normal-CVCPdBT6.woff                 18.40 kB
+../dist/public/assets/baloo-2-latin-400-normal-BjbNs3fj.woff2                18.96 kB
+../dist/public/assets/alfa-slab-one-latin-400-normal-BBRcKc_J.woff2          19.07 kB
+../dist/public/assets/alfa-slab-one-latin-ext-400-normal-S2XmuAoM.woff2      19.20 kB
+../dist/public/assets/baloo-2-latin-ext-400-normal-BD976ui_.woff             19.56 kB
+../dist/public/assets/fredoka-latin-400-normal-DNPgCJDw.woff                 20.12 kB
+../dist/public/assets/bangers-latin-400-normal-_pKr8EKx.woff                 20.82 kB
+../dist/public/assets/luckiest-guy-latin-400-normal-f5b8-b44.woff            21.46 kB
+../dist/public/assets/baloo-2-latin-400-normal-DAZg-NrK.woff                 23.07 kB
+../dist/public/assets/bangers-latin-400-normal-CondpPRf.woff2                23.60 kB
+../dist/public/assets/baloo-2-devanagari-400-normal-CK0zHhxV.woff2           58.16 kB
+../dist/public/assets/Logo_black-CXxqb_kR.png                                77.14 kB
+../dist/public/assets/baloo-2-devanagari-400-normal-CdldAOsi.woff            93.08 kB
+../dist/public/assets/index-DYS4AexB.css                                    104.25 kB │ gzip:  25.74 kB
+../dist/public/assets/images-Cq8ERSqV.js                                     16.51 kB │ gzip:   2.76 kB
+../dist/public/assets/index-CvXg6_Im.js                                   1,035.60 kB │ gzip: 286.55 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 14.83s
+▲ [WARNING] Duplicate member "getFutureDeals" in class body [duplicate-class-member]
+
+    server/storage.ts:1495:8:
+      1495 │   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEs...
+           ╵         ~~~~~~~~~~~~~~
+
+  The original member "getFutureDeals" is here:
+
+    server/storage.ts:1357:8:
+      1357 │   async getFutureDeals(latitude: number, longitude: number, radiusKm: number): Promise<DealWithEs...
+           ╵         ~~~~~~~~~~~~~~
+
+1 warning
+
+  dist/index.js
