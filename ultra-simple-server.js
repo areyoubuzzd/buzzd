@@ -161,15 +161,49 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
   });
 });
 
-// For frontend routing - pass through, 
-// since tsx server/index.ts will handle everything
+// Check for client side files to serve
+const possibleClientPaths = [
+  'dist',
+  'client/dist',
+  'dist/public',
+  'client',
+  'public'
+];
+
+// Find client files to serve
+let clientDirectory = null;
+for (const dir of possibleClientPaths) {
+  if (fs.existsSync(dir)) {
+    const files = fs.readdirSync(dir);
+    if (files.includes('index.html') || files.includes('assets')) {
+      clientDirectory = dir;
+      console.log(`Found client files in: ${dir}`);
+      break;
+    }
+  }
+}
+
+// Serve static client files if available
+if (clientDirectory) {
+  console.log(`Serving static files from: ${clientDirectory}`);
+  app.use(express.static(clientDirectory));
+}
+
+// For frontend routing - serve the main app or a splash screen
 app.get('*', (req, res, next) => {
   // Only handle API checking route directly
   if (req.path === '/api/servercheck') {
     return next();
   }
+
+  // If we found a client directory, try to serve its index.html
+  if (clientDirectory && fs.existsSync(`${clientDirectory}/index.html`)) {
+    console.log(`Serving index.html from ${clientDirectory}`);
+    return res.sendFile(path.resolve(`${clientDirectory}/index.html`));
+  }
   
-  // Everything else passes through to the main server
+  // If we don't have a client directory, show the loading/splash page
+  console.log('No client directory found, serving splash screen');
   res.status(200).send(`
 <!DOCTYPE html>
 <html>
@@ -201,10 +235,26 @@ app.get('*', (req, res, next) => {
     </div>
   </div>
   <script>
-    // Redirect to home page after 3 seconds
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 3000);
+    // Retry connecting to the app every 3 seconds
+    function checkServerStatus() {
+      fetch('/api/servercheck')
+        .then(response => response.json())
+        .then(data => {
+          console.log('Server status:', data);
+          if (data.innerServer === 'running') {
+            window.location.reload();
+          } else {
+            setTimeout(checkServerStatus, 3000);
+          }
+        })
+        .catch(err => {
+          console.error('Error checking server status:', err);
+          setTimeout(checkServerStatus, 3000);
+        });
+    }
+    
+    // Start checking server status
+    setTimeout(checkServerStatus, 3000);
   </script>
 </body>
 </html>
