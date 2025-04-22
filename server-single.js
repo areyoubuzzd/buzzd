@@ -1,22 +1,13 @@
 /**
  * Unified Server for Buzzd App
- * This server handles both API routes and static file serving
+ * This server handles both API routes and static file serving in a single process
  */
 
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-
-// Import route modules
-import establishmentRoutes from './server/routes/establishments.js';
-import dealRoutes from './server/routes/deals.js';
-import collectionRoutes from './server/routes/collections.js';
-import locationRoutes from './server/routes/locations.js';
-import cloudinaryRoutes from './server/routes/cloudinaryRoutes.js';
-import localImageRoutes from './server/routes/local-images.js';
-import cloudflareRoutes from './server/routes/cloudflare-images.js';
-import imageGenerationRoutes from './server/routes/imageGenerationRoutes.js';
+import { Pool } from 'pg';
 
 // Get directory name in ESM context
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +16,12 @@ const __dirname = path.dirname(__filename);
 // Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 // Add middleware for parsing request bodies
 app.use(express.json());
@@ -64,21 +61,229 @@ additionalAssetDirs.forEach(dir => {
   }
 });
 
-// Register API endpoints
-app.use('/api/establishments', establishmentRoutes);
-app.use('/api/deals', dealRoutes);
-app.use('/api/collections', collectionRoutes);
-app.use('/api/locations', locationRoutes);
-app.use('/api/image-generation', imageGenerationRoutes);
+// Define API endpoints directly here
+// 1. Establishments API
+app.get('/api/establishments', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        id, 
+        name, 
+        address, 
+        city, 
+        postal_code as "postalCode", 
+        latitude, 
+        longitude,
+        cuisine, 
+        rating, 
+        price, 
+        priority, 
+        image_url as "imageUrl",
+        image_id as "imageId",
+        external_id as "externalId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM establishments
+    `);
+    
+    // Transform to expected format
+    const formattedRows = rows.map(row => ({
+      ...row,
+      lat: row.latitude,  // Add lat/lng for client compatibility
+      lng: row.longitude
+    }));
+    
+    res.json(formattedRows);
+  } catch (error) {
+    console.error('Error fetching establishments:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch establishments', 
+      message: 'There was an error retrieving the data. Please try again later.',
+      details: error.message
+    });
+  }
+});
 
-// Also register them under v2 namespace for compatibility
-app.use('/api/v2/establishments', establishmentRoutes);
-app.use('/api/v2/deals', dealRoutes);
+// 2. Single Establishment API
+app.get('/api/establishments/:establishmentId', async (req, res) => {
+  try {
+    const { establishmentId } = req.params;
+    console.log(`API: Getting establishment ${establishmentId}`);
+    
+    // Validate establishmentId
+    if (!establishmentId || isNaN(parseInt(establishmentId))) {
+      console.error(`Invalid establishment ID: ${establishmentId}`);
+      return res.status(400).json({
+        error: 'Invalid establishment ID',
+        message: 'Please provide a valid numeric establishment ID.'
+      });
+    }
+    
+    // Get the establishment
+    const { rows: establishments } = await pool.query(
+      `SELECT 
+        id,
+        name,
+        address,
+        city,
+        postal_code as "postalCode",
+        latitude,
+        longitude,
+        cuisine,
+        rating,
+        price,
+        priority,
+        image_url as "imageUrl",
+        image_id as "imageId",
+        external_id as "externalId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM establishments 
+      WHERE id = $1`,
+      [establishmentId]
+    );
+    
+    if (establishments.length === 0) {
+      return res.status(404).json({ error: 'Establishment not found' });
+    }
+    
+    const establishment = establishments[0];
+    
+    // Transform to expected format
+    establishment.lat = establishment.latitude;
+    establishment.lng = establishment.longitude;
+    
+    // Get deals for this establishment
+    const { rows: dealRows } = await pool.query(
+      `SELECT 
+        id,
+        establishment_id as "establishmentId",
+        alcohol_category,
+        alcohol_subcategory,
+        alcohol_subcategory2,
+        drink_name,
+        standard_price,
+        happy_hour_price,
+        savings,
+        savings_percentage as "savingsPercentage",
+        valid_days,
+        hh_start_time,
+        hh_end_time,
+        collections,
+        description,
+        sort_order,
+        image_url as "imageUrl",
+        image_id as "imageId",
+        cloudflare_image_id as "cloudflareImageId",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM deals 
+      WHERE establishment_id = $1`,
+      [establishmentId]
+    );
+    
+    // Format the establishment data as expected by the client-side interface
+    const formattedResponse = {
+      establishment: establishment,
+      activeDeals: dealRows
+    };
+    
+    console.log('Restaurant details endpoint returned:', JSON.stringify({
+      id: establishment.id,
+      name: establishment.name,
+      responseFormat: 'Checking response format',
+      hasEstablishment: !!establishment,
+      dealsCount: dealRows.length
+    }));
+    
+    res.json(formattedResponse);
+  } catch (error) {
+    console.error(`Error fetching establishment ${req.params.establishmentId}:`, error);
+    res.status(500).json({
+      error: 'Failed to fetch establishment',
+      message: 'There was an error retrieving the establishment. Please try again later.',
+      details: error.message
+    });
+  }
+});
 
-// Register utility routes
-app.use('/', cloudinaryRoutes);
-app.use('/', cloudflareRoutes);
-app.use('/', localImageRoutes);
+// 3. Deals API
+app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
+  try {
+    const { collectionSlug } = req.params;
+    console.log(`API: Getting deals for collection: ${collectionSlug}`);
+    
+    // Add default deals query
+    const { rows } = await pool.query(`
+      SELECT 
+        d.id,
+        d.establishment_id as "establishmentId",
+        d.alcohol_category,
+        d.alcohol_subcategory,
+        d.alcohol_subcategory2,
+        d.drink_name,
+        d.standard_price,
+        d.happy_hour_price,
+        d.savings,
+        d.savings_percentage as "savingsPercentage",
+        d.valid_days,
+        d.hh_start_time,
+        d.hh_end_time,
+        d.collections,
+        d.description,
+        d.sort_order,
+        d.image_url as "imageUrl",
+        d.image_id as "imageId",
+        d.cloudflare_image_id as "cloudflareImageId",
+        d.created_at as "createdAt",
+        d.updated_at as "updatedAt",
+        e.name as "establishmentName",
+        e.address as "establishmentAddress",
+        e.latitude,
+        e.longitude,
+        e.rating as "establishmentRating",
+        e.price as "establishmentPrice",
+        e.image_url as "establishmentImageUrl"
+      FROM deals d
+      JOIN establishments e ON d.establishment_id = e.id
+      LIMIT 50
+    `);
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching deals:', error);
+    res.status(500).json({ error: 'Failed to fetch deals', details: error.message });
+  }
+});
+
+// 4. Collections API
+app.get('/api/collections', async (req, res) => {
+  try {
+    // Return hardcoded collections for simplicity since this is just for deployment testing
+    const collections = [
+      { id: 1, slug: "active_happy_hours", name: "Active Happy Hours", priority: 1 },
+      { id: 2, slug: "beers_under_12", name: "Beers Under $12", priority: 10 },
+      { id: 3, slug: "cocktails_under_12", name: "Cocktails Under $12", priority: 10 },
+      { id: 4, slug: "wine_under_12", name: "Wines Under $12", priority: 10 },
+      { id: 5, slug: "craft_beers", name: "Craft Beers", priority: 12 }
+    ];
+    
+    res.json(collections);
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    res.status(500).json({ error: 'Failed to fetch collections' });
+  }
+});
+
+// 5. Debug route
+app.get('/api-debug', (req, res) => {
+  res.json({
+    status: 'Unified API Server Running',
+    environment: process.env.NODE_ENV,
+    port: PORT,
+    databaseConnected: !!pool
+  });
+});
 
 // Serve static files for the client
 const possibleClientPaths = [
@@ -121,7 +326,7 @@ if (clientPath) {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Buzzd - Singapore Happy Hour Deals</title>
+        <title>Buzzd API - Singapore Happy Hour Deals</title>
         <style>
           body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -153,10 +358,16 @@ if (clientPath) {
           }
           .card p { margin: 0; }
           .card p:first-child { font-size: 2rem; }
-          .note {
-            font-size: 0.875rem;
-            opacity: 0.8;
-            margin-top: 2rem;
+          .endpoints {
+            margin: 2rem 0;
+            text-align: left;
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 8px;
+          }
+          .endpoint {
+            margin-bottom: 0.5rem;
+            font-family: monospace;
           }
           .signature {
             margin-top: 3rem;
@@ -169,7 +380,14 @@ if (clientPath) {
         <div class="logo">🍸 Buzzd</div>
         <h1>Singapore's Happy Hour Finder</h1>
         
-        <p>API server is running. Client files not found.</p>
+        <p>API server is running. API endpoints available:</p>
+        
+        <div class="endpoints">
+          <div class="endpoint">GET /api/establishments</div>
+          <div class="endpoint">GET /api/establishments/:id</div>
+          <div class="endpoint">GET /api/deals/collections/:slug</div>
+          <div class="endpoint">GET /api/collections</div>
+        </div>
         
         <p>Find great deals on:</p>
         
