@@ -1,6 +1,6 @@
 /**
  * Ultra-minimal production server for Buzzd app - ES Module Version
- * Version 1.2.0 (Fixed with full UI/UX retained)
+ * Version 1.2.0 (Fixed)
  */
 
 import express from 'express';
@@ -201,19 +201,16 @@ app.get('*', (req, res, next) => {
     function checkServerStatus() {
       const statusEl = document.getElementById('connection-status');
       statusEl.textContent = "Checking connection to server...";
-
       fetch('/api/servercheck')
         .then(response => response.json())
         .then(data => {
           if (data.database && data.database.status) {
             const dbStatusInfo = `Database: ${data.database.status}`;
             statusEl.textContent = dbStatusInfo;
-
             if (data.database.status === 'error') {
-              statusEl.innerHTML = `Database: <span style="color: #ff5252">Error</span> - ${data.database.details || 'Unknown error'}`;
+              statusEl.innerHTML = `Database: <span style='color: #ff5252'>Error</span> - ${data.database.details || 'Unknown error'}`;
             }
           }
-
           if (data.ok === true && data.message === "Inner server is alive") {
             statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is alive, loading app...</span>';
             setTimeout(() => window.location.reload(), 1000);
@@ -226,11 +223,10 @@ app.get('*', (req, res, next) => {
           }
         })
         .catch(err => {
-          statusEl.innerHTML = `<span style="color: #ff5252">Error connecting to server</span>: ${err.message}`;
+          statusEl.innerHTML = `<span style='color: #ff5252'>Error connecting to server</span>: ${err.message}`;
           setTimeout(checkServerStatus, 3000);
         });
     }
-
     setTimeout(checkServerStatus, 3000);
   </script>
 </body>
