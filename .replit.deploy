@@ -1,5 +1,5 @@
 {
-  "run": "node deployment-server.js",
+  "run": "node mirror-preview.js",
   "env": {
     "NODE_ENV": "production"
   }
