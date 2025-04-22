@@ -28,9 +28,9 @@ app.get('/api/servercheck', async (req, res) => {
     let dbStatus = 'unknown';
     let dbDetails = '';
     try {
-      const pool = new Pool({ 
+      const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
+        ssl: { rejectUnauthorized: false },
       });
       const client = await pool.connect();
       await client.query('SELECT 1');
@@ -60,14 +60,6 @@ app.get('/api/servercheck', async (req, res) => {
       }
     }
 
-    let innerServerStarted = false;
-    try {
-      const childProcess = exec('ps aux | grep "tsx server/index.ts" | grep -v grep');
-      childProcess.stdout.on('data', (data) => {
-        if (data.trim()) innerServerStarted = true;
-      });
-    } catch {}
-
     res.json({
       ok: true,
       status: 'ok',
@@ -76,23 +68,26 @@ app.get('/api/servercheck', async (req, res) => {
       version: '1.2.2',
       database: {
         status: dbStatus,
-        details: dbDetails
+        details: dbDetails,
       },
       innerServer: {
         running: innerServerRunning,
-        processFound: innerServerStarted,
         status: innerServerRunning ? 'running' : 'starting',
         details: innerServerDetails,
-        port: innerPort
+        port: innerPort,
       },
       env: {
         NODE_ENV: process.env.NODE_ENV || 'not set',
         DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'not configured',
-        PORT: process.env.PORT || 'not set'
-      }
+        PORT: process.env.PORT || 'not set',
+      },
     });
   } catch (error) {
-    res.json({ status: 'error', error: error.message, timestamp: new Date().toISOString() });
+    res.json({
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
   }
 });
 
@@ -103,8 +98,8 @@ app.all('/api/*', async (req, res, next) => {
     const body = ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body);
     const response = await nodeFetch(apiUrl, {
       method: req.method,
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body,
     });
     res.status(response.status);
     const data = await response.text();
@@ -114,11 +109,14 @@ app.all('/api/*', async (req, res, next) => {
   }
 });
 
-console.log(`\n=== DEPLOYMENT SERVER STARTING UP ===\nNODE_ENV: ${process.env.NODE_ENV || 'not set'}\nDATABASE_URL: ${process.env.DATABASE_URL ? 'configured' : 'not configured'}\nPORT: ${PORT}\n====================================`);
+console.log(`
+=== DEPLOYMENT SERVER STARTING UP ===
+NODE_ENV: ${process.env.NODE_ENV || 'not set'}
+DATABASE_URL: ${process.env.DATABASE_URL ? 'configured' : 'not configured'}
+PORT: ${PORT}
+====================================`);
 
-exec('pkill -f "tsx server/index.ts" || true', (error) => {
-  if (!error) console.log('Cleaned up any existing server processes');
-
+exec('pkill -f "tsx server/index.ts" || true', () => {
   const innerPort = parseInt(PORT) + 1;
   console.log(`Starting inner server on port ${innerPort}...`);
   const serverProcess = exec(`tsx server/index.ts`, {
@@ -127,8 +125,8 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
       PORT: innerPort.toString(),
       NODE_ENV: process.env.NODE_ENV || 'production',
       DATABASE_URL: process.env.DATABASE_URL,
-      DEPLOYMENT_ENVIRONMENT: 'true'
-    }
+      DEPLOYMENT_ENVIRONMENT: 'true',
+    },
   });
 
   serverProcess.stdout.on('data', (data) => {
@@ -144,7 +142,7 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
   });
 });
 
-const clientDirectory = path.resolve(__dirname, '../client/dist');
+const clientDirectory = path.resolve(__dirname, '../dist/public');
 if (fs.existsSync(path.join(clientDirectory, 'index.html'))) {
   console.log(`✅ Serving static files from: ${clientDirectory}`);
   app.use(express.static(clientDirectory));
@@ -154,7 +152,7 @@ if (fs.existsSync(path.join(clientDirectory, 'index.html'))) {
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
-  return res.sendFile(path.resolve(clientDirectory, 'index.html'));
+  res.sendFile(path.resolve(clientDirectory, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
