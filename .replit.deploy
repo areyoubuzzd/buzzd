@@ -1,5 +1,5 @@
 {
-  "run": "node mirror-preview.js",
+  "run": "node direct-server.cjs",
   "env": {
     "NODE_ENV": "production"
   }
