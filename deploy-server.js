@@ -230,7 +230,9 @@ app.get('*', (req, res, next) => {
         setTimeout(checkServerStatus, 3000);
       </script>
     </body>
-    </html>`);
+</html>`);
+}); // ← this closes the app.get('*', ...) route
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at http://0.0.0.0:${PORT}`);
 });
