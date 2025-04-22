@@ -37,24 +37,126 @@ if (!process.env.DATABASE_URL) {
   console.error('Database features may not work correctly without this variable.');
 }
 
-// Endpoint to check deployment health
+// Endpoints for direct access without proxy
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    database_configured: !!process.env.DATABASE_URL
+    database_configured: !!process.env.DATABASE_URL,
+    server: 'direct-server',
+    version: '1.0.1'
+  });
+});
+
+app.get('/api/deployment-info', async (req, res) => {
+  // Add direct database check
+  let dbStatus = 'unknown';
+  
+  // Get environment variables (safely)
+  const env = {
+    NODE_ENV: process.env.NODE_ENV || 'not set',
+    PORT: process.env.PORT || '3000',
+    DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'not configured',
+    // Other safe environment variables to display
+    HOSTNAME: process.env.HOSTNAME || 'not set',
+    REPL_ID: process.env.REPL_ID || 'not set',
+    REPL_OWNER: process.env.REPL_OWNER || 'not set'
+  };
+  
+  // Check database connection directly
+  if (process.env.DATABASE_URL) {
+    try {
+      const { Pool } = require('pg');
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      });
+      
+      const client = await pool.connect();
+      const result = await client.query('SELECT NOW() as time');
+      dbStatus = {
+        connected: true,
+        time: result.rows[0].time,
+        connection_test: 'successful'
+      };
+      client.release();
+    } catch (error) {
+      dbStatus = {
+        connected: false,
+        error: error.message,
+        connection_test: 'failed'
+      };
+    }
+  }
+  
+  res.json({
+    timestamp: new Date().toISOString(),
+    environment: env,
+    server: {
+      type: 'direct-server',
+      version: '1.0.2',
+      started_at: new Date().toISOString()
+    },
+    database: dbStatus
+  });
+});
+
+// Debug endpoint to check proxy
+app.get('/api/no-proxy', (req, res) => {
+  res.json({
+    message: "This endpoint is served directly (not proxied)",
+    time: new Date().toISOString()
   });
 });
 
 // Start the actual server in a child process
-const serverProcess = spawn('npm', ['run', 'dev'], {
-  stdio: 'pipe', // Capture output
-  env: { 
-    ...process.env,
-    PORT: 5000 // Run the main server on a different port
-  }
-});
+let serverProcess;
+let serverStartAttempts = 0;
+const maxServerStartAttempts = 3;
+
+function startApplicationServer() {
+  console.log(`Starting application server (attempt ${serverStartAttempts + 1}/${maxServerStartAttempts})...`);
+  
+  serverProcess = spawn('npm', ['run', 'dev'], {
+    stdio: 'pipe', // Capture output
+    env: { 
+      ...process.env,
+      PORT: 5000 // Run the main server on a different port
+    }
+  });
+  
+  serverStartAttempts++;
+  
+  // Set timeout to check if server started successfully
+  const startupTimeout = setTimeout(() => {
+    console.log('Checking if application server started properly...');
+    // We'll consider it started if the process is still running
+    if (serverProcess && !serverProcess.killed) {
+      console.log('Application server appears to be running.');
+    } else {
+      console.error('Application server failed to start or crashed early.');
+      if (serverStartAttempts < maxServerStartAttempts) {
+        console.log('Attempting to restart application server...');
+        startApplicationServer();
+      } else {
+        console.error(`Maximum restart attempts (${maxServerStartAttempts}) reached. Falling back to direct service.`);
+      }
+    }
+  }, 10000); // Check after 10 seconds
+  
+  // Clear timeout if process exits before timeout
+  serverProcess.on('exit', () => {
+    clearTimeout(startupTimeout);
+  });
+  
+  return serverProcess;
+}
+
+// Start the application server
+serverProcess = startApplicationServer();
 
 // Pipe output to our console
 serverProcess.stdout.on('data', (data) => {
@@ -69,8 +171,16 @@ serverProcess.on('error', (err) => {
   console.error('Failed to start application server:', err);
 });
 
-// Proxy all API requests to the server
-app.all('/api/*', async (req, res) => {
+// Proxy all API requests to the server EXCEPT our direct endpoints
+app.all('/api/*', async (req, res, next) => {
+  // Skip proxying for our direct endpoints
+  if (
+    req.path === '/api/health' || 
+    req.path === '/api/deployment-info' || 
+    req.path === '/api/no-proxy'
+  ) {
+    return next();
+  }
   try {
     const apiUrl = `http://localhost:5000${req.url}`;
     console.log(`Proxy request: ${req.method} ${apiUrl}`);
