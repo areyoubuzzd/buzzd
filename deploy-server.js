@@ -1,6 +1,6 @@
 /**
  * Ultra-minimal production server for Buzzd app - ES Module Version
- * Version 1.2.1 (Final with ok:true fix)
+ * Version 1.2.2 (Static path hardcoded for Railway)
  */
 
 import express from 'express';
@@ -73,7 +73,7 @@ app.get('/api/servercheck', async (req, res) => {
       status: 'ok',
       timestamp: new Date().toISOString(),
       server: 'deploy-server',
-      version: '1.2.1',
+      version: '1.2.2',
       database: {
         status: dbStatus,
         details: dbDetails
@@ -144,94 +144,17 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
   });
 });
 
-const possibleClientPaths = ['dist', 'client/dist', 'dist/public', 'client', 'public'];
-let clientDirectory = null;
-for (const dir of possibleClientPaths) {
-  if (fs.existsSync(dir)) {
-    const files = fs.readdirSync(dir);
-    if (files.includes('index.html') || files.includes('assets')) {
-      clientDirectory = dir;
-      console.log(`Found client files in: ${dir}`);
-      break;
-    }
-  }
-}
-
-if (clientDirectory) {
-  console.log(`Serving static files from: ${clientDirectory}`);
+const clientDirectory = path.resolve(__dirname, '../client/dist');
+if (fs.existsSync(path.join(clientDirectory, 'index.html'))) {
+  console.log(`✅ Serving static files from: ${clientDirectory}`);
   app.use(express.static(clientDirectory));
+} else {
+  console.error(`❌ Could not find index.html in: ${clientDirectory}`);
 }
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
-  if (clientDirectory && fs.existsSync(`${clientDirectory}/index.html`)) {
-    return res.sendFile(path.resolve(`${clientDirectory}/index.html`));
-  }
-  res.status(200).send(`<!DOCTYPE html>
-    <html>
-    <head>
-      <title>Buzzd - Starting Up</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <style>
-        body { font-family: sans-serif; background: #1c1c1c; color: #fff; text-align: center; padding: 50px 20px; margin: 0; }
-        .container { max-width: 600px; margin: 0 auto; }
-        h1 { color: #ff9b42; font-size: 2em; margin-bottom: 10px; }
-        p { line-height: 1.6; opacity: 0.9; }
-        .loader { border: 5px solid rgba(255, 155, 66, 0.2); border-top: 5px solid #ff9b42; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 30px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .subtitle { color: #ff9b42; font-weight: bold; }
-        .status { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-top: 30px; text-align: left; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>Buzzd App</h1>
-        <p class="subtitle">Deployment In Progress</p>
-        <div class="loader"></div>
-        <p>Please wait while the server initializes...</p>
-        <p>This process may take up to 30 seconds.</p>
-        <div class="status">
-          <p>Server Status: Starting main application</p>
-          <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
-          <p>Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}</p>
-          <p>WebSocket Support: ${typeof ws !== 'undefined' ? 'Enabled' : 'Disabled'}</p>
-          <p id="connection-status">Checking inner server...</p>
-        </div>
-      </div>
-      <script>
-        function checkServerStatus() {
-          const statusEl = document.getElementById('connection-status');
-          statusEl.textContent = "Checking connection to server...";
-          fetch('/api/servercheck')
-            .then(response => response.json())
-            .then(data => {
-              if (data.database && data.database.status) {
-                const dbStatusInfo = `Database: ${data.database.status}`;
-                statusEl.textContent = dbStatusInfo;
-                if (data.database.status === 'error') {
-                  statusEl.innerHTML = `Database: <span style='color: #ff5252'>Error</span> - ${data.database.details || 'Unknown error'}`;
-                }
-              }
-              if (data.ok === true && data.message === "Inner server is alive") {
-                statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is alive, loading app...</span>';
-                setTimeout(() => window.location.reload(), 1000);
-              } else if (data.innerServer === 'running') {
-                statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is running, loading app...</span>';
-                setTimeout(() => window.location.reload(), 1000);
-              } else {
-                statusEl.textContent = "Inner server starting... Checking again in 3 seconds";
-                setTimeout(checkServerStatus, 3000);
-              }
-            })
-            .catch(err => {
-              statusEl.innerHTML = `<span style='color: #ff5252'>Error connecting to server</span>: ${err.message}`;
-              setTimeout(checkServerStatus, 3000);
-            });
-        }
-        setTimeout(checkServerStatus, 3000);
-      </script>
-    </body>
-</html>`);
+  return res.sendFile(path.resolve(clientDirectory, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
