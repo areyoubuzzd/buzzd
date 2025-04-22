@@ -1,6 +1,6 @@
 /**
  * Ultra-minimal production server for Buzzd app
- * No proxy, no fancy stuff - just direct execution
+ * No proxy, no fancy stuff - just direct execution of the main server
  */
 
 // Use regular require for maximum compatibility
@@ -15,7 +15,6 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(express.static('client/dist'));
 
 // Direct health check endpoint
 app.get('/api/servercheck', (req, res) => {
@@ -28,6 +27,51 @@ app.get('/api/servercheck', (req, res) => {
       DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'not configured'
     }
   });
+});
+
+// Add proxy for API requests
+app.all('/api/*', async (req, res, next) => {
+  // Skip the servercheck endpoint
+  if (req.path === '/api/servercheck') {
+    return next();
+  }
+  
+  try {
+    // The inner server runs on PORT + 1
+    const innerPort = parseInt(process.env.PORT || '3000') + 1;
+    const apiUrl = `http://localhost:${innerPort}${req.url}`;
+    
+    console.log(`[PROXY] ${req.method} ${apiUrl}`);
+    
+    // Get request body if needed
+    const body = ['GET', 'HEAD'].includes(req.method) 
+      ? undefined
+      : JSON.stringify(req.body);
+    
+    // Make the fetch request to the inner server
+    const fetch = require('node-fetch');
+    const response = await fetch(apiUrl, {
+      method: req.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body
+    });
+    
+    // Copy status
+    res.status(response.status);
+    
+    // Send response data
+    const data = await response.text();
+    res.send(data);
+  } catch (error) {
+    console.error('[PROXY ERROR]', error.message);
+    res.status(502).json({
+      error: 'Server starting',
+      message: 'The server is still starting up. Please try again in a moment.'
+    });
+  }
 });
 
 // Skip proxy altogether and just run the main app directly
@@ -50,10 +94,16 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
   }
   
   // Now directly run the development server
-  const serverProcess = exec('tsx server/index.ts', {
+  // Use a different port for the inner server
+  const innerPort = parseInt(PORT) + 1;
+  console.log(`Starting inner server on port ${innerPort}...`);
+  
+  const serverProcess = exec(`tsx server/index.ts`, {
     env: {
       ...process.env,
-      PORT: PORT // Use the same port for simplicity
+      PORT: innerPort.toString(), 
+      NODE_ENV: process.env.NODE_ENV || 'production',
+      DATABASE_URL: process.env.DATABASE_URL
     }
   });
   
@@ -70,9 +120,54 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
   });
 });
 
-// For frontend routing - serve index.html for all non-matched routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/dist/index.html'));
+// For frontend routing - pass through, 
+// since tsx server/index.ts will handle everything
+app.get('*', (req, res, next) => {
+  // Only handle API checking route directly
+  if (req.path === '/api/servercheck') {
+    return next();
+  }
+  
+  // Everything else passes through to the main server
+  res.status(200).send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Buzzd - Starting Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; background: #1c1c1c; color: #fff; text-align: center; padding: 50px 20px; margin: 0; }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { color: #ff9b42; font-size: 2em; margin-bottom: 10px; }
+    p { line-height: 1.6; opacity: 0.9; }
+    .loader { border: 5px solid rgba(255, 155, 66, 0.2); border-top: 5px solid #ff9b42; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 30px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .subtitle { color: #ff9b42; font-weight: bold; }
+    .status { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-top: 30px; text-align: left; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Buzzd App</h1>
+    <p class="subtitle">Deployment In Progress</p>
+    <div class="loader"></div>
+    <p>Please wait while the server initializes...</p>
+    <p>This process may take up to 30 seconds.</p>
+    <div class="status">
+      <p>Server Status: Starting main application</p>
+      <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
+      <p>Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}</p>
+    </div>
+  </div>
+  <script>
+    // Redirect to home page after 10 seconds
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 10000);
+  </script>
+</body>
+</html>
+  `);
 });
 
 // Only start listening if we're the main module (not imported)
