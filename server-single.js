@@ -7,8 +7,11 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
+
+// Configure Neon WebSocket constructor
+neonConfig.webSocketConstructor = ws;
 
 // Get directory name in ESM context
 const __filename = fileURLToPath(import.meta.url);
@@ -18,10 +21,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Add middleware for parsing request bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
+// Log startup information
 console.log(`
 =================================================
   BUZZD UNIFIED SERVER (STARTED: ${new Date().toISOString()})
@@ -29,8 +29,13 @@ console.log(`
 Environment: ${process.env.NODE_ENV || 'development'}
 Node Version: ${process.version}
 Current Directory: ${process.cwd()}
+Port: ${PORT}
 =================================================
 `);
+
+// Add middleware for parsing request bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Explicitly serve images from the public directory
 const imagePath = path.join(process.cwd(), 'public/images');
@@ -57,11 +62,27 @@ additionalAssetDirs.forEach(dir => {
 });
 
 // Set up database connection
-const neonConfig = { webSocketConstructor: ws };
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
 }
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// Define pool in the outer scope
+let pool;
+
+try {
+  // Safely mask the connection string to only show host
+  const connectionString = process.env.DATABASE_URL;
+  const maskedConnection = connectionString.includes('@') 
+    ? connectionString.split('@')[1].split('/')[0]
+    : 'masked-database-url';
+    
+  console.log(`🔌 Connecting to database: ${maskedConnection}`);
+  pool = new Pool({ connectionString });
+  console.log('✅ Database connection successful');
+} catch (error) {
+  console.error('❌ Failed to connect to database:', error);
+  throw error;
+}
 
 // Environment variables to control optional services
 process.env.DISABLE_CLOUDINARY = process.env.NODE_ENV === 'production' ? 'true' : process.env.DISABLE_CLOUDINARY;
