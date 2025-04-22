@@ -17,16 +17,57 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Direct health check endpoint
-app.get('/api/servercheck', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    server: 'ultra-simple-server',
-    env: {
-      NODE_ENV: process.env.NODE_ENV || 'not set',
-      DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'not configured'
+app.get('/api/servercheck', async (req, res) => {
+  try {
+    // Check if we can access the inner server
+    const innerPort = parseInt(process.env.PORT || '3000') + 1;
+    const fetch = require('node-fetch');
+    
+    // Try to connect to database
+    let dbStatus = 'unknown';
+    try {
+      const { Pool } = require('@neondatabase/serverless');
+      const pool = new Pool({ 
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+      });
+      const client = await pool.connect();
+      await client.query('SELECT 1');
+      client.release();
+      dbStatus = 'connected';
+    } catch (err) {
+      dbStatus = `error: ${err.message}`;
     }
-  });
+    
+    // Check if inner server is running
+    let innerServerRunning = false;
+    try {
+      const response = await fetch(`http://localhost:${innerPort}/api/collections`);
+      innerServerRunning = response.ok;
+    } catch (e) {
+      innerServerRunning = false;
+    }
+    
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      server: 'ultra-simple-server',
+      database: dbStatus,
+      innerServer: innerServerRunning ? 'running' : 'starting',
+      env: {
+        NODE_ENV: process.env.NODE_ENV || 'not set',
+        DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'not configured',
+        PORT: process.env.PORT || 'not set',
+        INNER_PORT: innerPort
+      }
+    });
+  } catch (error) {
+    res.json({
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Add proxy for API requests
