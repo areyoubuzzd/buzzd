@@ -17,7 +17,11 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import nodeFetch from 'node-fetch';
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws'; // Required for Neon Serverless WebSocket connections
+
+// Configure Neon to use ws for WebSocket connections in deployment environments
+neonConfig.webSocketConstructor = ws;
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -195,7 +199,10 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
       ...process.env,
       PORT: innerPort.toString(), 
       NODE_ENV: process.env.NODE_ENV || 'production',
-      DATABASE_URL: process.env.DATABASE_URL
+      DATABASE_URL: process.env.DATABASE_URL,
+      // Add a flag to indicate this is being run in the deployment environment
+      // This helps with configuring specific production settings
+      DEPLOYMENT_ENVIRONMENT: 'true'
     }
   });
   
@@ -296,29 +303,49 @@ app.get('*', (req, res, next) => {
       <p>Server Status: Starting main application</p>
       <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
       <p>Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}</p>
+      <p>WebSocket Support: ${typeof ws !== 'undefined' ? 'Enabled' : 'Disabled'}</p>
+      <p id="connection-status">Checking inner server...</p>
     </div>
   </div>
   <script>
     // Retry connecting to the app every 3 seconds
     function checkServerStatus() {
+      const statusEl = document.getElementById('connection-status');
+      statusEl.textContent = "Checking connection to server...";
+      
       fetch('/api/servercheck')
         .then(response => response.json())
         .then(data => {
           console.log('Server status:', data);
+          
+          // Update status display with database info
+          if (data.database && data.database.status) {
+            const dbStatusInfo = `Database: ${data.database.status}`;
+            statusEl.textContent = dbStatusInfo;
+            
+            if (data.database.status === 'error') {
+              statusEl.innerHTML = `Database: <span style="color: #ff5252">Error</span> - ${data.database.details || 'Unknown error'}`;
+            }
+          }
+          
           if (data.ok === true && data.message === "Inner server is alive") {
+            statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is alive, loading app...</span>';
             console.log("✅ Inner server is alive, reloading page");
-            window.location.reload();
+            setTimeout(() => window.location.reload(), 1000);
           } else if (data.innerServer === 'running') {
             // Support old format for backward compatibility
+            statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is running, loading app...</span>';
             console.log("✅ Inner server is running (legacy format), reloading page");
-            window.location.reload();
+            setTimeout(() => window.location.reload(), 1000);
           } else {
             console.log("⏳ Inner server not ready yet, retrying in 3 seconds");
+            statusEl.textContent = "Inner server starting... Checking again in 3 seconds";
             setTimeout(checkServerStatus, 3000);
           }
         })
         .catch(err => {
           console.error('Error checking server status:', err);
+          statusEl.innerHTML = `<span style="color: #ff5252">Error connecting to server</span>: ${err.message}`;
           setTimeout(checkServerStatus, 3000);
         });
     }
