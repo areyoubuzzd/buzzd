@@ -21,6 +21,16 @@ import { db, pool } from "./db";
 import { checkConnection as checkCloudflareConnection } from "./services/cloudflare-images";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Special health check endpoint to verify inner server is running
+  app.get("/api/servercheck", (req, res) => {
+    res.json({ 
+      ok: true, 
+      message: "Inner server is alive",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development"
+    });
+  });
+
   // Set up authentication routes
   setupAuth(app);
   

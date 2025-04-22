@@ -119,10 +119,8 @@ app.get('/api/servercheck', async (req, res) => {
 
 // Add proxy for API requests
 app.all('/api/*', async (req, res, next) => {
-  // Skip the servercheck endpoint
-  if (req.path === '/api/servercheck') {
-    return next();
-  }
+  // Don't skip the servercheck endpoint - we now want to proxy it to the inner server
+  // to ensure the inner server is truly alive
   
   try {
     // The inner server runs on PORT + 1
@@ -300,9 +298,15 @@ app.get('*', (req, res, next) => {
         .then(response => response.json())
         .then(data => {
           console.log('Server status:', data);
-          if (data.innerServer === 'running') {
+          if (data.ok === true && data.message === "Inner server is alive") {
+            console.log("✅ Inner server is alive, reloading page");
+            window.location.reload();
+          } else if (data.innerServer === 'running') {
+            // Support old format for backward compatibility
+            console.log("✅ Inner server is running (legacy format), reloading page");
             window.location.reload();
           } else {
+            console.log("⏳ Inner server not ready yet, retrying in 3 seconds");
             setTimeout(checkServerStatus, 3000);
           }
         })
