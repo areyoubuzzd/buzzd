@@ -1,5 +1,5 @@
 {
-  "run": "node direct-server.cjs",
+  "run": "node ultra-simple-server.js",
   "env": {
     "NODE_ENV": "production"
   }
