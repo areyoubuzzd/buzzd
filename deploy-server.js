@@ -167,72 +167,70 @@ app.get('*', (req, res, next) => {
     return res.sendFile(path.resolve(`${clientDirectory}/index.html`));
   }
   res.status(200).send(`<!DOCTYPE html>
-<html>
-<head>
-  <title>Buzzd - Starting Up</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; background: #1c1c1c; color: #fff; text-align: center; padding: 50px 20px; margin: 0; }
-    .container { max-width: 600px; margin: 0 auto; }
-    h1 { color: #ff9b42; font-size: 2em; margin-bottom: 10px; }
-    p { line-height: 1.6; opacity: 0.9; }
-    .loader { border: 5px solid rgba(255, 155, 66, 0.2); border-top: 5px solid #ff9b42; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 30px auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .subtitle { color: #ff9b42; font-weight: bold; }
-    .status { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-top: 30px; text-align: left; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Buzzd App</h1>
-    <p class="subtitle">Deployment In Progress</p>
-    <div class="loader"></div>
-    <p>Please wait while the server initializes...</p>
-    <p>This process may take up to 30 seconds.</p>
-    <div class="status">
-      <p>Server Status: Starting main application</p>
-      <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
-      <p>Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}</p>
-      <p>WebSocket Support: ${typeof ws !== 'undefined' ? 'Enabled' : 'Disabled'}</p>
-      <p id="connection-status">Checking inner server...</p>
-    </div>
-  </div>
-  <script>
-    function checkServerStatus() {
-      const statusEl = document.getElementById('connection-status');
-      statusEl.textContent = "Checking connection to server...";
-      fetch('/api/servercheck')
-        .then(response => response.json())
-        .then(data => {
-          if (data.database && data.database.status) {
-            const dbStatusInfo = `Database: ${data.database.status}`;
-            statusEl.textContent = dbStatusInfo;
-            if (data.database.status === 'error') {
-              statusEl.innerHTML = `Database: <span style='color: #ff5252'>Error</span> - ${data.database.details || 'Unknown error'}`;
-            }
-          }
-          if (data.ok === true && data.message === "Inner server is alive") {
-            statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is alive, loading app...</span>';
-            setTimeout(() => window.location.reload(), 1000);
-          } else if (data.innerServer === 'running') {
-            statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is running, loading app...</span>';
-            setTimeout(() => window.location.reload(), 1000);
-          } else {
-            statusEl.textContent = "Inner server starting... Checking again in 3 seconds";
-            setTimeout(checkServerStatus, 3000);
-          }
-        })
-        .catch(err => {
-          statusEl.innerHTML = `<span style='color: #ff5252'>Error connecting to server</span>: ${err.message}`;
-          setTimeout(checkServerStatus, 3000);
-        });
-    }
-    setTimeout(checkServerStatus, 3000);
-  </script>
-</body>
-</html>`);
-});
-
+    <html>
+    <head>
+      <title>Buzzd - Starting Up</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        body { font-family: sans-serif; background: #1c1c1c; color: #fff; text-align: center; padding: 50px 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { color: #ff9b42; font-size: 2em; margin-bottom: 10px; }
+        p { line-height: 1.6; opacity: 0.9; }
+        .loader { border: 5px solid rgba(255, 155, 66, 0.2); border-top: 5px solid #ff9b42; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 30px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .subtitle { color: #ff9b42; font-weight: bold; }
+        .status { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-top: 30px; text-align: left; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Buzzd App</h1>
+        <p class="subtitle">Deployment In Progress</p>
+        <div class="loader"></div>
+        <p>Please wait while the server initializes...</p>
+        <p>This process may take up to 30 seconds.</p>
+        <div class="status">
+          <p>Server Status: Starting main application</p>
+          <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
+          <p>Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}</p>
+          <p>WebSocket Support: ${typeof ws !== 'undefined' ? 'Enabled' : 'Disabled'}</p>
+          <p id="connection-status">Checking inner server...</p>
+        </div>
+      </div>
+      <script>
+        function checkServerStatus() {
+          const statusEl = document.getElementById('connection-status');
+          statusEl.textContent = "Checking connection to server...";
+          fetch('/api/servercheck')
+            .then(response => response.json())
+            .then(data => {
+              if (data.database && data.database.status) {
+                const dbStatusInfo = \`Database: \${data.database.status}\`;
+                statusEl.textContent = dbStatusInfo;
+                if (data.database.status === 'error') {
+                  statusEl.innerHTML = \`Database: <span style='color: #ff5252'>Error</span> - \${data.database.details || 'Unknown error'}\`;
+                }
+              }
+              if (data.ok === true && data.message === "Inner server is alive") {
+                statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is alive, loading app...</span>';
+                setTimeout(() => window.location.reload(), 1000);
+              } else if (data.innerServer === 'running') {
+                statusEl.innerHTML = '<span style="color: #52ff7a">✅ Inner server is running, loading app...</span>';
+                setTimeout(() => window.location.reload(), 1000);
+              } else {
+                statusEl.textContent = "Inner server starting... Checking again in 3 seconds";
+                setTimeout(checkServerStatus, 3000);
+              }
+            })
+            .catch(err => {
+              statusEl.innerHTML = \`<span style='color: #ff5252'>Error connecting to server</span>: \${err.message}\`;
+              setTimeout(checkServerStatus, 3000);
+            });
+        }
+        setTimeout(checkServerStatus, 3000);
+      </script>
+    </body>
+    </html>`);
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at http://0.0.0.0:${PORT}`);
 });
