@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { config } from "../config";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -7,12 +8,19 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+/**
+ * Makes an API request using fetch
+ * Uses the configured API base URL from config.ts
+ */
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  // Make sure we're using the correct base URL
+  const fullUrl = url.startsWith('http') ? url : `${config.apiBaseUrl}${url}`;
+  
+  const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -38,7 +46,9 @@ export const getQueryFn: <T>(options: {
       : null;
     
     // Build URL with query parameters if they exist
-    let url = baseUrl;
+    // Add the API base URL for relative paths
+    let url = baseUrl.startsWith('http') ? baseUrl : `${config.apiBaseUrl}${baseUrl}`;
+    
     if (params) {
       const urlParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
@@ -83,16 +93,16 @@ export const getQueryFn: <T>(options: {
       try {
         if (text.trim() === '') {
           console.log('Empty response text, returning empty array');
-          return [] as T;
+          return [] as unknown as T;
         }
         
         const json = JSON.parse(text);
         console.log(`Successfully parsed JSON. Type: ${Array.isArray(json) ? 'array' : typeof json}, Length: ${Array.isArray(json) ? json.length : 'N/A'}`);
         return json;
-      } catch (parseError) {
+      } catch (parseError: unknown) {
         console.error('Error parsing JSON:', parseError);
         console.error('Raw response:', text);
-        throw new Error(`Failed to parse JSON response: ${parseError.message}`);
+        throw new Error(`Failed to parse JSON response: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
       }
     } catch (fetchError) {
       console.error(`Error fetching ${url}:`, fetchError);

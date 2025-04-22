@@ -1,0 +1,596 @@
+Buzzd deployment: No production CSS found, using development mode
+index-CvXg6_Im.js:1581 Firebase initialized successfully
+index-CvXg6_Im.js:211 HomePage: Set lastVisitedPage to / in sessionStorage
+index-CvXg6_Im.js:153 Fetching from URL: /api/deals/collections/all?lat=1.3521&lng=103.8198
+index-CvXg6_Im.js:153 Fetching from URL: /api/collections
+index-CvXg6_Im.js:211 LocationContext: Initializing...
+index-CvXg6_Im.js:211 LocationContext: Found cached location: {lat: 1.3246442, lng: 103.8252201, name: 'My Location', isDefaultLocation: true, timestamp: 1745242249095}
+index-CvXg6_Im.js:211 LocationContext: Using cached location name: My Location
+index-CvXg6_Im.js:153 Fetching from URL: /api/user
+index-CvXg6_Im.js:211 LocationContext: Updating userPosition with real GPS: {lat: 1.3246625, lng: 103.825234}
+index-CvXg6_Im.js:211 LocationContext: Selected location unchanged (custom location or position close to cached)
+index-CvXg6_Im.js:153 Fetching from URL: /api/deals/collections/all?lat=1.3246442&lng=103.8252201
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/collections 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/deals/collections/all?lat=1.3521&lng=103.8198 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/user 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/deals/collections/all?lat=1.3246442&lng=103.8252201 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/collections: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/deals/collections/all?lat=1.3521&lng=103.8198: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/user: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/deals/collections/all?lat=1.3246442&lng=103.8252201: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Fetching from URL: /api/collections
+index-CvXg6_Im.js:153 Fetching from URL: /api/deals/collections/all?lat=1.3246442&lng=103.8252201
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/deals/collections/all?lat=1.3246442&lng=103.8252201 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/deals/collections/all?lat=1.3246442&lng=103.8252201: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/collections 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/collections: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Fetching from URL: /api/deals/collections/all?lat=1.3246442&lng=103.8252201
+index-CvXg6_Im.js:153 Fetching from URL: /api/collections
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/collections 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/collections: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+onSubscribe @ index-CvXg6_Im.js:153
+subscribe @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Zk @ index-CvXg6_Im.js:38
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 
+            
+            
+           GET https://happy-hour-hub-sandmanideastre.replit.app/api/deals/collections/all?lat=1.3246442&lng=103.8252201 502 (Bad Gateway)
+(anonymous) @ index-CvXg6_Im.js:153
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Received response with status: 502
+index-CvXg6_Im.js:153 Error response: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+(anonymous) @ index-CvXg6_Im.js:153
+await in (anonymous)
+i @ index-CvXg6_Im.js:153
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.then
+(anonymous) @ index-CvXg6_Im.js:153
+Promise.catch
+x @ index-CvXg6_Im.js:153
+start @ index-CvXg6_Im.js:153
+fetch @ index-CvXg6_Im.js:153
+ac @ index-CvXg6_Im.js:153
+setOptions @ index-CvXg6_Im.js:153
+(anonymous) @ index-CvXg6_Im.js:153
+Yh @ index-CvXg6_Im.js:40
+Aa @ index-CvXg6_Im.js:40
+lb @ index-CvXg6_Im.js:40
+Bi @ index-CvXg6_Im.js:38
+bL @ index-CvXg6_Im.js:40
+Ji @ index-CvXg6_Im.js:40
+ET @ index-CvXg6_Im.js:40
+j @ index-CvXg6_Im.js:25
+D @ index-CvXg6_Im.js:25Understand this errorAI
+index-CvXg6_Im.js:153 Error fetching /api/deals/collections/all?lat=1.3246442&lng=103.8252201: Error: 502: {"error":"Server starting","message":"The server is still starting up. Please try again in a moment."}
+    at index-CvXg6_Im.js:153:165171
