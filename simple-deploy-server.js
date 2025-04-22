@@ -7,19 +7,44 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-
-// Database imports
+import dotenv from 'dotenv';
 import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from 'ws';
+import session from 'express-session';
+import MemoryStore from 'memorystore';
+
+// Load environment variables
+dotenv.config();
+
+// For Neon Database connection
+neonConfig.webSocketConstructor = ws;
+
+// Create Express app
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Get directory name in ESM context
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create Express app
-const app = express();
-const PORT = process.env.PORT || 3000;
+// Session storage
+const SessionStore = MemoryStore(session);
+const sessionStore = new SessionStore({
+  checkPeriod: 86400000 // 24 hours
+});
+
+// Configure session
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'buzzd-happy-hour-secret',
+  resave: false,
+  saveUninitialized: false,
+  store: sessionStore,
+  cookie: {
+    secure: false,
+    sameSite: 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+  }
+}));
 
 // Add middleware for parsing request bodies
 app.use(express.json());
@@ -27,267 +52,99 @@ app.use(express.urlencoded({ extended: true }));
 
 console.log(`
 =================================================
-  BUZZD SIMPLIFIED DEPLOYMENT SERVER (STARTED: ${new Date().toISOString()})
+  BUZZD DEPLOYMENT SERVER (STARTED: ${new Date().toISOString()})
 =================================================
 Environment: ${process.env.NODE_ENV || 'development'}
-Node Version: ${process.version}
-Current Directory: ${process.cwd()}
-Available Files: ${fs.readdirSync('.').join(', ')}
+Database URL configured: ${process.env.DATABASE_URL ? 'YES' : 'NO'}
 =================================================
 `);
 
-// First, create a fallback HTML that will always work
-const fallbackHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buzzd - Singapore Happy Hour Deals</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 2rem;
-      text-align: center;
-      line-height: 1.6;
-      color: #333;
-    }
-    h1 { color: #e63946; margin-bottom: 0.5rem; font-size: 2.5rem; }
-    p { margin: 0.5rem 0; }
-    .subtitle { font-size: 1.2rem; color: #457b9d; margin-bottom: 1.5rem; }
-    .message { background: #f1faee; padding: 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .card { 
-      background: white; 
-      border-radius: 0.5rem; 
-      padding: 1rem; 
-      margin: 1rem 0; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: inline-block;
-      margin: 0.5rem;
-      width: 40%;
-    }
-    .drinks { display: flex; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }
-    .signature { font-style: italic; margin-top: 2rem; color: #1d3557; }
-    @media (max-width: 600px) {
-      .card { width: 100%; }
-    }
-  </style>
-</head>
-<body>
-  <h1>Buzzd</h1>
-  <p class="subtitle">Singapore's Happy Hour Deals App</p>
-  
-  <div class="message">
-    <p><strong>Coming soon to this URL!</strong></p>
-    <p>The best happy hour deals in Singapore at your fingertips.</p>
-  </div>
-  
-  <p>Find great deals on:</p>
-  
-  <div class="drinks">
-    <div class="card">
-      <p>🍺</p>
-      <p>Beer</p>
-    </div>
-    <div class="card">
-      <p>🍷</p>
-      <p>Wine</p>
-    </div>
-    <div class="card">
-      <p>🍸</p>
-      <p>Cocktails</p>
-    </div>
-    <div class="card">
-      <p>🥃</p>
-      <p>Spirits</p>
-    </div>
-  </div>
-  
-  <p class="signature">© Buzzd 2025</p>
-</body>
-</html>`;
-
-// Create a fallback index.html in case everything else fails
-fs.writeFileSync('index.html', fallbackHtml);
-console.log('✅ Created fallback index.html');
-
-// Check for built React app in various locations
-const possibleClientPaths = [
-  'dist/public',
-  'client/dist',
-  'dist',
-  'client',
-  'public'
-];
-
-let clientPath = '';
-for (const path of possibleClientPaths) {
-  if (fs.existsSync(path)) {
-    try {
-      const stats = fs.statSync(path);
-      if (stats.isDirectory()) {
-        const files = fs.readdirSync(path);
-        if (files.includes('index.html') || files.includes('assets')) {
-          clientPath = path;
-          console.log(`✅ Found client files at: ${path}`);
-          console.log(`Files in ${path}:`, files.join(', '));
-          break;
-        }
-      }
-    } catch (err) {
-      console.error(`Error checking path ${path}:`, err);
-    }
-  }
-}
-
-// If we found a client path, serve those static files
-if (clientPath) {
-  app.use(express.static(clientPath));
-  console.log(`Serving static files from ${clientPath}`);
-} else {
-  console.log('❌ No client directory found, using fallback');
-  // If no client path was found, we'll still serve the fallback index.html
-}
-
-// Serve additional assets from other directories
-const additionalAssetDirs = [
-  'dist/client',
-  'public',
-  'public/assets',
-  'public/images',
-  'assets'
-];
-
-additionalAssetDirs.forEach(dir => {
-  if (fs.existsSync(dir)) {
-    app.use('/' + path.basename(dir), express.static(dir));
-    console.log(`Serving additional assets from ${dir}`);
-  }
-});
-
-// Connect to database for direct API handling
-let db = null;
-try {
-  console.log('Connecting to database...');
-  
-  if (process.env.DATABASE_URL) {
-    neonConfig.webSocketConstructor = ws;
+// Verify database connection
+let dbConnected = false;
+if (process.env.DATABASE_URL) {
+  try {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    
-    // Import schema dynamically
-    const schemaModule = await import('./dist/shared/schema.js');
-    db = drizzle({ client: pool, schema: schemaModule });
-    
-    console.log('✅ Connected to database');
-  } else {
-    console.error('DATABASE_URL environment variable not set');
+    const client = await pool.connect();
+    const res = await client.query('SELECT NOW()');
+    console.log('✅ Database connection successful:', res.rows[0].now);
+    client.release();
+    dbConnected = true;
+  } catch (err) {
+    console.error('❌ Database connection failed:', err.message);
   }
-} catch (error) {
-  console.error('Failed to connect to database:', error);
 }
 
-// API Routes
-app.get('/api/establishments', async (req, res) => {
-  try {
-    if (!db) {
-      throw new Error('Database not connected');
-    }
-    
-    console.log('API: Getting establishments');
-    const establishments = await db.query.establishments.findMany();
-    res.json(establishments);
-  } catch (error) {
-    console.error('Error fetching establishments:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch establishments', 
-      message: 'There was an error retrieving the data. Please try again later.',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+// Initialize API routes
+console.log('Initializing API routes...');
+let apiRoutesRegistered = false;
+
+try {
+  // Import the server module directly
+  const { default: initServer } = await import('./server/index.js');
+  if (typeof initServer === 'function') {
+    await initServer(app);
+    console.log('✅ API routes initialized successfully');
+    apiRoutesRegistered = true;
+  } else {
+    console.error('❌ Server module exports unexpected format:', initServer);
+  }
+} catch (err) {
+  console.error('❌ Failed to initialize API routes:', err);
+}
+
+// Find and serve static client files
+const clientPath = fs.existsSync('dist') ? 'dist' : 
+                  (fs.existsSync('client/dist') ? 'client/dist' : 'public');
+
+if (fs.existsSync(clientPath)) {
+  console.log(`✅ Serving client files from: ${clientPath}`);
+  app.use(express.static(clientPath));
+}
+
+// Serve other static directories
+['public', 'assets', 'images'].forEach(dir => {
+  if (fs.existsSync(dir)) {
+    app.use(`/${dir}`, express.static(dir));
+    console.log(`✅ Serving additional static files from: ${dir}`);
   }
 });
 
-app.get('/api/deals/collections/:collectionSlug', async (req, res) => {
-  try {
-    if (!db) {
-      throw new Error('Database not connected');
-    }
-    
-    const { collectionSlug } = req.params;
-    const { lat, lng } = req.query;
-    const radius = Number(req.query.radius) || 5;
-    
-    console.log(`API: Getting deals for collection ${collectionSlug}, location: ${lat}, ${lng}, radius: ${radius}`);
-    
-    // Simplified query that returns all deals for now
-    // In a real app, we would filter by location and collection
-    const deals = await db.query.deals.findMany({
-      with: {
-        establishment: true
-      }
-    });
-    
-    res.json(deals);
-  } catch (error) {
-    console.error(`Error fetching deals for collection ${req.params.collectionSlug}:`, error);
-    res.status(500).json({ 
-      error: 'Failed to fetch deals', 
-      message: 'There was an error retrieving the deals. Please try again later.',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-app.get('/api/collections', async (req, res) => {
-  try {
-    if (!db) {
-      throw new Error('Database not connected');
-    }
-    
-    console.log('API: Getting collections');
-    const collections = await db.query.collections.findMany({
-      where: (collections, { eq }) => eq(collections.active, true),
-      orderBy: (collections, { asc }) => [asc(collections.priority)]
-    });
-    
-    res.json(collections);
-  } catch (error) {
-    console.error('Error fetching collections:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch collections', 
-      message: 'There was an error retrieving the collections. Please try again later.',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-app.get('/api/user', (req, res) => {
-  // Since we don't have full authentication in this direct handler,
-  // just return a 401 to indicate the user is not logged in
-  res.status(401).end();
-});
-
-// Add a diagnostic API test endpoint
-app.get('/api-test', (req, res) => {
+// Add diagnostic route
+app.get('/api/diagnostic', (req, res) => {
   res.json({
-    status: 'API Test',
+    status: 'Deployment diagnostic',
+    timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    port: PORT,
-    dbConnected: db ? true : false,
+    databaseConnected: dbConnected,
+    apiRoutesRegistered,
     clientPath,
-    timestamp: new Date().toISOString()
+    nodeVersion: process.version
   });
 });
 
-// For client-side routing - all routes serve index.html
+// For client-side routing - serve index.html for all unmatched routes
 app.get('*', (req, res) => {
-  // If we have a client path and it has an index.html, serve that
-  if (clientPath && fs.existsSync(path.join(clientPath, 'index.html'))) {
-    return res.sendFile(path.resolve(path.join(clientPath, 'index.html')));
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
   }
   
-  // Otherwise, serve our fallback index.html
-  res.sendFile(path.resolve('index.html'));
+  // Try to find index.html in different locations
+  const possibleIndexLocations = [
+    path.join(clientPath, 'index.html'),
+    'dist/index.html',
+    'public/index.html',
+    'index.html'
+  ];
+  
+  for (const indexPath of possibleIndexLocations) {
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(path.resolve(indexPath));
+    }
+  }
+  
+  // Last resort fallback
+  res.status(404).send('Application files not found. Deployment may be incomplete.');
 });
 
 // Start the Express server
@@ -296,8 +153,9 @@ app.listen(PORT, '0.0.0.0', () => {
 =================================================
   SERVER STARTED
 =================================================
-Frontend & API: http://localhost:${PORT}
-Database Connected: ${db ? 'Yes' : 'No'}
+Server running on: http://0.0.0.0:${PORT}
+Database connection: ${dbConnected ? '✅ Connected' : '❌ Failed'}
+API routes: ${apiRoutesRegistered ? '✅ Registered' : '❌ Failed'}
 =================================================
 `);
 });

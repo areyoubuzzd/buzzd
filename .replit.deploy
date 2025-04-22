@@ -1,0 +1,6 @@
+{
+  "run": "node deployment-server.js",
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
