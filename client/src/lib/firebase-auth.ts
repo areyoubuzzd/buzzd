@@ -1,66 +1,111 @@
 import { initializeApp } from "firebase/app";
-import {
-  getAuth,
+import { 
+  getAuth, 
   signInWithRedirect,
   getRedirectResult,
-  GoogleAuthProvider,
+  GoogleAuthProvider, 
   OAuthProvider,
   type Auth,
-  type UserCredential,
+  type UserCredential
 } from "firebase/auth";
 import { firebaseConfig } from "../firebase-config";
-import axios from "axios";
 
-// Firebase setup
+// Initialize Firebase only if properly configured
 let auth: Auth | null = null;
 let app: any = null;
 
 try {
-  if (
-    firebaseConfig.apiKey &&
-    firebaseConfig.projectId &&
-    firebaseConfig.appId
-  ) {
+  if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
-    console.log("✅ Firebase initialized");
+    console.log("Firebase initialized successfully");
   } else {
-    console.warn("⚠️ Firebase config incomplete");
+    console.warn("Firebase config is incomplete. Authentication features will be disabled.");
   }
 } catch (error) {
-  console.error("Firebase init error:", error);
+  console.error("Firebase initialization error:", error);
 }
 
-// === Google Redirect Sign-in ===
+// Import the necessary function for popup-based login
+import { signInWithPopup } from "firebase/auth";
+
+// Google authentication
 const googleProvider = new GoogleAuthProvider();
 
-export function signInWithGoogleRedirect(): void {
-  if (!auth) throw new Error("Firebase not initialized");
-  signInWithRedirect(auth, googleProvider);
+export function signInWithGoogle(): Promise<UserCredential> {
+  if (!auth) {
+    throw new Error("Firebase authentication is not initialized");
+  }
+  
+  try {
+    // Use popup instead of redirect for development
+    return signInWithPopup(auth, googleProvider);
+  } catch (error: any) {
+    console.error("Google sign-in error:", error);
+    throw new Error(error?.message || "Failed to sign in with Google");
+  }
 }
 
-// === Get Google Redirect Result ===
-export async function handleGoogleRedirectResult(): Promise<any> {
-  if (!auth) return null;
+// Apple authentication
+const appleProvider = new OAuthProvider('apple.com');
 
+export function signInWithApple(): Promise<UserCredential> {
+  if (!auth) {
+    throw new Error("Firebase authentication is not initialized");
+  }
+  
+  try {
+    // Use popup instead of redirect for development
+    return signInWithPopup(auth, appleProvider);
+  } catch (error: any) {
+    console.error("Apple sign-in error:", error);
+    throw new Error(error?.message || "Failed to sign in with Apple");
+  }
+}
+
+// Get redirect result
+export async function getAuthRedirectResult(): Promise<UserCredential | null> {
+  if (!auth) {
+    console.warn("Firebase authentication is not initialized");
+    return null;
+  }
+  
   try {
     const result = await getRedirectResult(auth);
-    if (!result?.user) return null;
-
-    const idToken = await result.user.getIdToken();
-    const payload = {
-      idToken,
-      authProvider: "google",
-      email: result.user.email,
-      displayName: result.user.displayName,
-      photoUrl: result.user.photoURL,
-      authProviderId: result.user.uid,
-    };
-
-    const response = await axios.post("/api/auth/google", payload);
-    return response.data;
-  } catch (error) {
-    console.error("Google redirect result error:", error);
+    return result;
+  } catch (error: any) {
+    console.error("Error getting redirect result:", error);
     throw error;
   }
+}
+
+// Check if Firebase Auth is properly configured
+export function isFirebaseConfigured(): boolean {
+  return !!(app && auth && firebaseConfig.apiKey && 
+            firebaseConfig.projectId && 
+            firebaseConfig.appId);
+}
+
+// Helper function for checking Firebase configuration details
+export function checkFirebaseConfig(): { 
+  hasApiKey: boolean; 
+  hasProjectId: boolean; 
+  hasAppId: boolean; 
+  isComplete: boolean; 
+} {
+  const hasApiKey = !!firebaseConfig.apiKey;
+  const hasProjectId = !!firebaseConfig.projectId;
+  const hasAppId = !!firebaseConfig.appId;
+  
+  console.log("Checking Firebase configuration...");
+  console.log("API Key available:", hasApiKey);
+  console.log("Project ID available:", hasProjectId);
+  console.log("App ID available:", hasAppId);
+  
+  return {
+    hasApiKey,
+    hasProjectId,
+    hasAppId,
+    isComplete: hasApiKey && hasProjectId && hasAppId
+  };
 }

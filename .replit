@@ -1,24 +1,29 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm start"
+run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
 
 [deployment]
+deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
-run = ["npm", "start"]
-deploymentTarget = "cloudrun"
+run = ["sh", "-c", "npm run start"]
 
 [[ports]]
 localPort = 3000
 externalPort = 3000
 
 [[ports]]
+localPort = 3001
+externalPort = 3001
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
 [workflows]
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
