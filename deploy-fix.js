@@ -1,84 +1,160 @@
 /**
- * Ultra-Simple Deployment Fix for Replit
+ * Special Deployment Fix for Replit
  * 
- * This script creates a server.js file that will be used
- * as the main entry point for deployment.
+ * This script:
+ * 1. Uses a simplified approach that runs both API and frontend on the same port
+ * 2. Ensures proper database connectivity
+ * 3. Makes sure environment variables are correctly passed
  */
 
-const fs = require('fs');
-const path = require('path');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import dotenv from 'dotenv';
 
-console.log("🔧 Creating deployment server...");
+// Load environment variables
+dotenv.config();
 
-// Create a specialized server.js for production deployment
-const serverCode = `
-// Deployment server for Buzzd App
-const express = require('express');
-const path = require('path');
-const { spawn } = require('child_process');
+// Get directory name in ESM context
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from client directory
-app.use(express.static(path.join(__dirname, 'client')));
-app.use('/assets', express.static(path.join(__dirname, 'client/assets')));
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// Add middleware for parsing request bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// For client-side routing - all routes that don't start with /api go to index.html
-app.get('*', (req, res, next) => {
-  if (!req.path.startsWith('/api')) {
-    return res.sendFile(path.join(__dirname, 'client/index.html'));
+console.log(`
+=================================================
+  BUZZD DEPLOYMENT FIX SERVER (STARTED: ${new Date().toISOString()})
+=================================================
+Environment: ${process.env.NODE_ENV || 'development'}
+Node Version: ${process.version}
+Current Directory: ${process.cwd()}
+Available Files: ${fs.readdirSync('.').join(', ')}
+Database URL configured: ${process.env.DATABASE_URL ? 'YES' : 'NO'}
+=================================================
+`);
+
+// Check for built React app in various locations
+const possibleClientPaths = [
+  'dist/public',
+  'client/dist',
+  'dist',
+  'client',
+  'public'
+];
+
+let clientPath = '';
+for (const path of possibleClientPaths) {
+  if (fs.existsSync(path)) {
+    try {
+      const stats = fs.statSync(path);
+      if (stats.isDirectory()) {
+        const files = fs.readdirSync(path);
+        if (files.includes('index.html') || files.includes('assets')) {
+          clientPath = path;
+          console.log(`✅ Found client files at: ${path}`);
+          console.log(`Files in ${path}:`, files.join(', '));
+          break;
+        }
+      }
+    } catch (err) {
+      console.error(`Error checking path ${path}:`, err);
+    }
   }
-  next();
+}
+
+// If we found a client path, serve those static files
+if (clientPath) {
+  app.use(express.static(clientPath));
+  console.log(`Serving static files from ${clientPath}`);
+} else {
+  console.log('❌ No client directory found, will serve API only');
+}
+
+// Serve additional assets from other directories
+const additionalAssetDirs = [
+  'dist/client',
+  'public',
+  'public/assets',
+  'public/images',
+  'assets'
+];
+
+additionalAssetDirs.forEach(dir => {
+  if (fs.existsSync(dir)) {
+    app.use('/' + path.basename(dir), express.static(dir));
+    console.log(`Serving additional assets from ${dir}`);
+  }
 });
 
-// Start server
-const httpServer = app.listen(PORT, '0.0.0.0', () => {
-  console.log(\`Express server listening on port \${PORT}\`);
+// Import the API routes directly (this is the key difference - we don't spawn a separate process)
+import('./server/index.js').then(module => {
+  const { registerRoutes } = module.default || module;
   
-  // Start the main application server in a child process
-  console.log('Starting main application server...');
-  const serverProcess = spawn('node', ['-r', 'tsx/register', 'server/index.ts'], {
-    stdio: 'inherit',
-    shell: true
+  // Register API routes
+  if (typeof registerRoutes === 'function') {
+    registerRoutes(app);
+    console.log('✅ API routes registered successfully');
+  } else {
+    console.error('❌ Failed to register API routes - registerRoutes is not a function');
+  }
+
+  // Add a special diagnostic route
+  app.get('/api/diagnostic', (req, res) => {
+    res.json({
+      status: 'API is running',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      database: process.env.DATABASE_URL ? 'Configured' : 'Not configured',
+      clientPath
+    });
   });
   
-  serverProcess.on('error', (error) => {
-    console.error('Failed to start server process:', error);
+  // For client-side routing - all routes serve index.html
+  app.get('*', (req, res) => {
+    if (clientPath && fs.existsSync(path.join(clientPath, 'index.html'))) {
+      return res.sendFile(path.resolve(path.join(clientPath, 'index.html')));
+    }
+    
+    // Fall back to API-only mode
+    res.status(404).send('Frontend not found. This deployment is running in API-only mode.');
   });
   
-  process.on('SIGINT', () => {
-    console.log('Shutting down...');
-    if (serverProcess) serverProcess.kill();
-    process.exit(0);
+  // Start the Express server
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`
+=================================================
+  SERVER STARTED
+=================================================
+Server running on: http://localhost:${PORT}
+=================================================
+`);
+  });
+}).catch(err => {
+  console.error('Failed to import API routes:', err);
+  
+  // Start the server anyway (in static-only mode)
+  app.get('/api/*', (req, res) => {
+    res.status(500).json({ 
+      error: 'API unavailable',
+      message: 'The API failed to initialize. Check server logs for details.'
+    });
   });
   
-  process.on('SIGTERM', () => {
-    console.log('Shutting down...');
-    if (serverProcess) serverProcess.kill();
-    process.exit(0);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`
+=================================================
+  SERVER STARTED (STATIC-ONLY MODE)
+=================================================
+Server running on: http://localhost:${PORT}
+WARNING: API routes failed to initialize!
+=================================================
+`);
   });
 });
-
-// Export for potential testing
-module.exports = { app, httpServer };
-`;
-
-// Write the server.js file
-fs.writeFileSync('server.js', serverCode);
-console.log("✅ Created server.js for deployment");
-
-// Create a simple index.js file that loads our server
-const indexCode = `
-// Main entry point for deployment
-require('./server.js');
-`;
-
-fs.writeFileSync('index.js', indexCode);
-console.log("✅ Created index.js for deployment");
-
-console.log("\n🚀 DEPLOYMENT INSTRUCTIONS:");
-console.log("1. Deploy your app using Replit's deploy button");
-console.log("2. Once deployed, your app should be accessible externally");
-console.log("\nThe deployment will use the created server.js as an entry point");
