@@ -1,6 +1,6 @@
 /**
  * Ultra-minimal production server for Buzzd app - ES Module Version
- * Version 1.2.0 (Fixed)
+ * Version 1.2.1 (Final with ok:true fix)
  */
 
 import express from 'express';
@@ -69,10 +69,11 @@ app.get('/api/servercheck', async (req, res) => {
     } catch {}
 
     res.json({
+      ok: true,
       status: 'ok',
       timestamp: new Date().toISOString(),
       server: 'deploy-server',
-      version: '1.2.0',
+      version: '1.2.1',
       database: {
         status: dbStatus,
         details: dbDetails
@@ -205,10 +206,10 @@ app.get('*', (req, res, next) => {
             .then(response => response.json())
             .then(data => {
               if (data.database && data.database.status) {
-                const dbStatusInfo = \`Database: \${data.database.status}\`;
+                const dbStatusInfo = `Database: ${data.database.status}`;
                 statusEl.textContent = dbStatusInfo;
                 if (data.database.status === 'error') {
-                  statusEl.innerHTML = \`Database: <span style='color: #ff5252'>Error</span> - \${data.database.details || 'Unknown error'}\`;
+                  statusEl.innerHTML = `Database: <span style='color: #ff5252'>Error</span> - ${data.database.details || 'Unknown error'}`;
                 }
               }
               if (data.ok === true && data.message === "Inner server is alive") {
@@ -223,7 +224,7 @@ app.get('*', (req, res, next) => {
               }
             })
             .catch(err => {
-              statusEl.innerHTML = \`<span style='color: #ff5252'>Error connecting to server</span>: \${err.message}\`;
+              statusEl.innerHTML = `<span style='color: #ff5252'>Error connecting to server</span>: ${err.message}`;
               setTimeout(checkServerStatus, 3000);
             });
         }
@@ -231,7 +232,7 @@ app.get('*', (req, res, next) => {
       </script>
     </body>
 </html>`);
-}); // ← this closes the app.get('*', ...) route
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running at http://0.0.0.0:${PORT}`);
