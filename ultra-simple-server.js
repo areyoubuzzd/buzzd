@@ -160,10 +160,10 @@ app.get('*', (req, res, next) => {
     </div>
   </div>
   <script>
-    // Redirect to home page after 10 seconds
+    // Redirect to home page after 3 seconds
     setTimeout(() => {
       window.location.href = '/';
-    }, 10000);
+    }, 3000);
   </script>
 </body>
 </html>

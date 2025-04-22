@@ -37,13 +37,15 @@ const createPoolWithRetries = async (connectionString: string, retries = MAX_CON
     } finally {
       client.release();
     }
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error;
     console.error(`Database connection error: ${error.message}`);
     
     if (retries > 0) {
       console.log(`Retrying database connection in ${RETRY_DELAY_MS/1000} seconds...`);
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
-      return createPoolWithRetries(connectionString, retries - 1);
+      // Use non-null assertion since we know connectionString can't be undefined here
+      return createPoolWithRetries(connectionString!, retries - 1);
     }
     
     console.error('Maximum database connection retries reached. Using fallback mode.');
@@ -73,8 +75,8 @@ export const db = drizzle({ client: pool, schema });
 // Test the connection and retry if needed (does not block app startup)
 (async () => {
   try {
-    // Wake up the database
-    await createPoolWithRetries(process.env.DATABASE_URL);
+    // Wake up the database - we know DATABASE_URL is set because we check above
+    await createPoolWithRetries(process.env.DATABASE_URL as string);
     console.log('Database connection fully initialized and tested.');
   } catch (err) {
     console.error('Failed to establish reliable database connection:', err);
