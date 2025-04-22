@@ -7,16 +7,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-
-// Import route modules
-import establishmentRoutes from './server/routes/establishments.js';
-import dealRoutes from './server/routes/deals.js';
-import collectionRoutes from './server/routes/collections.js';
-import locationRoutes from './server/routes/locations.js';
-import cloudinaryRoutes from './server/routes/cloudinaryRoutes.js';
-import localImageRoutes from './server/routes/local-images.js';
-import cloudflareRoutes from './server/routes/cloudflare-images.js';
-import imageGenerationRoutes from './server/routes/imageGenerationRoutes.js';
+import { Pool } from '@neondatabase/serverless';
+import ws from 'ws';
 
 // Get directory name in ESM context
 const __filename = fileURLToPath(import.meta.url);
@@ -64,21 +56,59 @@ additionalAssetDirs.forEach(dir => {
   }
 });
 
-// Register API endpoints
-app.use('/api/establishments', establishmentRoutes);
-app.use('/api/deals', dealRoutes);
-app.use('/api/collections', collectionRoutes);
-app.use('/api/locations', locationRoutes);
-app.use('/api/image-generation', imageGenerationRoutes);
+// Set up database connection
+const neonConfig = { webSocketConstructor: ws };
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
+}
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-// Also register them under v2 namespace for compatibility
-app.use('/api/v2/establishments', establishmentRoutes);
-app.use('/api/v2/deals', dealRoutes);
+// Dynamic import and registration for API routes
+async function setupRoutes() {
+  try {
+    // Import and register establishments routes
+    const establishmentsModule = await import('./server/routes/establishments.ts');
+    app.use('/api/establishments', establishmentsModule.default);
+    app.use('/api/v2/establishments', establishmentsModule.default); // v2 compatibility
+    
+    // Import and register deals routes
+    const dealsModule = await import('./server/routes/deals.ts');
+    app.use('/api/deals', dealsModule.default);
+    app.use('/api/v2/deals', dealsModule.default); // v2 compatibility
+    
+    // Import and register collections routes
+    const collectionsModule = await import('./server/routes/collections.ts');
+    app.use('/api/collections', collectionsModule.default);
+    
+    // Import and register locations routes
+    const locationsModule = await import('./server/routes/locations.ts');
+    app.use('/api/locations', locationsModule.default);
+    
+    // Import and register image generation routes
+    const imageGenModule = await import('./server/routes/imageGenerationRoutes.ts');
+    app.use('/api/image-generation', imageGenModule.default);
+    
+    // Import and register cloudinary routes
+    const cloudinaryModule = await import('./server/routes/cloudinaryRoutes.js');
+    app.use('/', cloudinaryModule.default);
+    
+    // Import and register cloudflare routes
+    const cloudflareModule = await import('./server/routes/cloudflare-images.ts');
+    app.use('/', cloudflareModule.default);
+    
+    // Import and register local image routes
+    const localImagesModule = await import('./server/routes/local-images.ts');
+    app.use('/', localImagesModule.default);
+    
+    console.log('✅ All API routes registered successfully');
+  } catch (error) {
+    console.error('❌ Error setting up routes:', error);
+    process.exit(1);
+  }
+}
 
-// Register utility routes
-app.use('/', cloudinaryRoutes);
-app.use('/', cloudflareRoutes);
-app.use('/', localImageRoutes);
+// Setup routes before starting the server
+await setupRoutes();
 
 // Serve static files for the client
 const possibleClientPaths = [
