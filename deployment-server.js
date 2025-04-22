@@ -163,8 +163,90 @@ function startApiServer() {
   return serverProcess;
 }
 
+// Add direct API routes for critical endpoints to handle database access
+async function setupDirectApiRoutes() {
+  try {
+    // Import database modules directly to eliminate proxy problems
+    const { Pool, neonConfig } = await import('@neondatabase/serverless');
+    const { drizzle } = await import('drizzle-orm/neon-serverless');
+    const ws = await import('ws');
+    const schema = await import('./shared/schema.js');
+
+    // Setup database connection
+    neonConfig.webSocketConstructor = ws.default;
+    
+    if (!process.env.DATABASE_URL) {
+      console.error('❌ DATABASE_URL environment variable is not set!');
+      return false;
+    }
+    
+    console.log('Setting up direct database connection...');
+    
+    // Create connection pool
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    
+    // Initialize Drizzle ORM
+    const db = drizzle({ client: pool, schema });
+    
+    // Test database connection
+    const client = await pool.connect();
+    const result = await client.query('SELECT NOW()');
+    console.log(`✅ Direct database connection successful: ${result.rows[0].now}`);
+    client.release();
+    
+    // Define API endpoint for diagnostics
+    app.get('/api/system-status', async (req, res) => {
+      try {
+        const [collections] = await db.select().from(schema.collections).limit(1);
+        const [deals] = await db.select().from(schema.deals).limit(1);
+        const [establishments] = await db.select().from(schema.establishments).limit(1);
+        
+        res.json({
+          status: 'ok',
+          timestamp: new Date().toISOString(),
+          environment: process.env.NODE_ENV,
+          database: {
+            connected: true,
+            collectionsAvailable: !!collections,
+            dealsAvailable: !!deals,
+            establishmentsAvailable: !!establishments
+          }
+        });
+      } catch (error) {
+        console.error('Database access error:', error);
+        res.status(500).json({
+          status: 'error',
+          timestamp: new Date().toISOString(),
+          error: error.message,
+          database: {
+            connected: false,
+            reason: error.message
+          }
+        });
+      }
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to set up direct database access:', error);
+    return false;
+  }
+}
+
 // Proxy API requests to the API server
 function setupApiProxy() {
+  // Add direct API access for key endpoints
+  app.get('/api/healthcheck', (req, res) => {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      message: 'Deployment server is running',
+      database_url_configured: !!process.env.DATABASE_URL,
+      node_env: process.env.NODE_ENV
+    });
+  });
+  
+  // Setup proxy for all other API requests
   app.all('/api/*', async (req, res) => {
     try {
       const apiUrl = `http://localhost:${API_PORT}${req.url}`;
@@ -195,7 +277,8 @@ function setupApiProxy() {
       console.error('API proxy error:', error);
       res.status(503).json({
         error: 'API service unavailable',
-        message: 'The API server is not responding. Please try again later.'
+        message: 'The API server is not responding. Please try again later.',
+        details: error.message
       });
     }
   });
