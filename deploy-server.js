@@ -31,6 +31,7 @@ app.get('/api/servercheck', async (req, res) => {
     
     // Try to connect to database
     let dbStatus = 'unknown';
+    let dbDetails = '';
     try {
       const pool = new Pool({ 
         connectionString: process.env.DATABASE_URL,
@@ -41,29 +42,70 @@ app.get('/api/servercheck', async (req, res) => {
       client.release();
       dbStatus = 'connected';
     } catch (err) {
-      dbStatus = `error: ${err.message}`;
+      dbStatus = 'error';
+      dbDetails = err.message;
+      console.error('Database connection error:', err.message);
     }
     
-    // Check if inner server is running
+    // Check if inner server is running by trying different endpoints
     let innerServerRunning = false;
+    let innerServerDetails = 'not responding';
+    let apiEndpoints = ['/api/collections', '/api/deals/collections/all?lat=1.3521&lng=103.8198'];
+    
+    // Try each endpoint until we get a successful response
+    for (const endpoint of apiEndpoints) {
+      try {
+        console.log(`Checking inner server by requesting ${endpoint}...`);
+        const response = await nodeFetch(`http://localhost:${innerPort}${endpoint}`);
+        
+        if (response.ok) {
+          innerServerRunning = true;
+          innerServerDetails = `responding on ${endpoint}`;
+          // No need to check other endpoints if one succeeded
+          break;
+        } else {
+          innerServerDetails = `responded with status ${response.status} on ${endpoint}`;
+        }
+      } catch (e) {
+        innerServerDetails = `connection failed on ${endpoint}: ${e.message}`;
+        console.error(`Inner server check failed on ${endpoint}:`, e.message);
+        // Continue to try other endpoints
+      }
+    }
+    
+    // Get direct inner server logs
+    let innerServerStarted = false;
     try {
-      const response = await nodeFetch(`http://localhost:${innerPort}/api/collections`);
-      innerServerRunning = response.ok;
+      const childProcess = exec('ps aux | grep "tsx server/index.ts" | grep -v grep');
+      childProcess.stdout.on('data', (data) => {
+        if (data.trim()) {
+          innerServerStarted = true;
+        }
+      });
     } catch (e) {
-      innerServerRunning = false;
+      console.error('Error checking process list:', e.message);
     }
     
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
       server: 'deploy-server',
-      database: dbStatus,
-      innerServer: innerServerRunning ? 'running' : 'starting',
+      version: '1.1.0',
+      database: {
+        status: dbStatus,
+        details: dbDetails
+      },
+      innerServer: {
+        running: innerServerRunning,
+        processFound: innerServerStarted,
+        status: innerServerRunning ? 'running' : 'starting',
+        details: innerServerDetails,
+        port: innerPort
+      },
       env: {
         NODE_ENV: process.env.NODE_ENV || 'not set',
         DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'not configured',
-        PORT: process.env.PORT || 'not set',
-        INNER_PORT: innerPort
+        PORT: process.env.PORT || 'not set'
       }
     });
   } catch (error) {
@@ -152,8 +194,18 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
     }
   });
   
+  // Track inner server startup status
+  let innerServerStarted = false;
+  
   serverProcess.stdout.on('data', (data) => {
-    console.log(`[SERVER] ${data.trim()}`);
+    const trimmedData = data.trim();
+    console.log(`[SERVER] ${trimmedData}`);
+    
+    // Check for the inner server ready signal
+    if (trimmedData.includes('Inner server running')) {
+      innerServerStarted = true;
+      console.log('✅ DEPLOYMENT: Inner API server has started successfully');
+    }
   });
   
   serverProcess.stderr.on('data', (data) => {
@@ -162,6 +214,9 @@ exec('pkill -f "tsx server/index.ts" || true', (error) => {
   
   serverProcess.on('exit', (code) => {
     console.log(`Server process exited with code ${code}`);
+    if (!innerServerStarted) {
+      console.error('⚠️ WARNING: Inner server process exited before fully starting up');
+    }
   });
 });
 

@@ -257,5 +257,6 @@ app.use((req, res, next) => {
   }, () => {
     log(`Server running on http://0.0.0.0:${port}`);
     console.log(`Application is ready to receive HTTP traffic on port ${port}`);
+    console.log(`✅ Inner server running on port ${port}`);
   });
 })();
