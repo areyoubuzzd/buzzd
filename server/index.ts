@@ -1,3 +1,13 @@
+/**
+ * Buzzd App API Server
+ * 
+ * This express server provides API endpoints for the Buzzd happy hours app.
+ * It uses Passport.js for authentication and Drizzle ORM for database access.
+ * 
+ * Available diagnostic endpoints:
+ * - GET /api/servercheck - Returns server status for health checking
+ */
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";

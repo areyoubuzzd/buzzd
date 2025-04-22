@@ -1,6 +1,13 @@
 /**
  * Ultra-minimal production server for Buzzd app - ES Module Version
- * No proxy, no fancy stuff - just direct execution of the main server
+ * Version 1.2.0
+ * 
+ * Features:
+ * - Direct API server execution
+ * - Enhanced health checking through /api/servercheck
+ * - Database connectivity verification
+ * - Improved server startup detection
+ * - Dynamic client file detection
  */
 
 // Use ES modules syntax for compatibility with "type": "module" in package.json
@@ -90,7 +97,7 @@ app.get('/api/servercheck', async (req, res) => {
       status: 'ok',
       timestamp: new Date().toISOString(),
       server: 'deploy-server',
-      version: '1.1.0',
+      version: '1.2.0',
       database: {
         status: dbStatus,
         details: dbDetails
@@ -248,8 +255,8 @@ if (clientDirectory) {
 
 // For frontend routing - serve the main app or a splash screen
 app.get('*', (req, res, next) => {
-  // Only handle API checking route directly
-  if (req.path === '/api/servercheck') {
+  // Forward API requests to the proxy
+  if (req.path.startsWith('/api/')) {
     return next();
   }
 
