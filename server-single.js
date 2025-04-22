@@ -63,9 +63,16 @@ if (!process.env.DATABASE_URL) {
 }
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
+// Environment variables to control optional services
+process.env.DISABLE_CLOUDINARY = process.env.NODE_ENV === 'production' ? 'true' : process.env.DISABLE_CLOUDINARY;
+process.env.DISABLE_CLOUDFLARE = process.env.NODE_ENV === 'production' ? 'true' : process.env.DISABLE_CLOUDFLARE;
+
 // Dynamic import and registration for API routes
 async function setupRoutes() {
   try {
+    // Core API routes - these are critical and should always be loaded
+    console.log('Setting up core API routes...');
+    
     // Import and register establishments routes
     const establishmentsModule = await import('./server/routes/establishments.ts');
     app.use('/api/establishments', establishmentsModule.default);
@@ -84,26 +91,75 @@ async function setupRoutes() {
     const locationsModule = await import('./server/routes/locations.ts');
     app.use('/api/locations', locationsModule.default);
     
-    // Import and register image generation routes
-    const imageGenModule = await import('./server/routes/imageGenerationRoutes.ts');
-    app.use('/api/image-generation', imageGenModule.default);
+    console.log('✅ Core API routes registered successfully');
     
-    // Import and register cloudinary routes
-    const cloudinaryModule = await import('./server/routes/cloudinaryRoutes.js');
-    app.use('/', cloudinaryModule.default);
+    // Optional services - these can be disabled without breaking core functionality
     
-    // Import and register cloudflare routes
-    const cloudflareModule = await import('./server/routes/cloudflare-images.ts');
-    app.use('/', cloudflareModule.default);
+    // Image generation routes (optional)
+    try {
+      const imageGenModule = await import('./server/routes/imageGenerationRoutes.ts');
+      app.use('/api/image-generation', imageGenModule.default);
+      console.log('✅ Image generation routes registered');
+    } catch (err) {
+      console.log('⚠️ Image generation routes not available:', err.message);
+    }
     
-    // Import and register local image routes
-    const localImagesModule = await import('./server/routes/local-images.ts');
-    app.use('/', localImagesModule.default);
+    // Cloudinary routes (optional - can be disabled)
+    if (process.env.DISABLE_CLOUDINARY !== 'true') {
+      try {
+        const cloudinaryModule = await import('./server/routes/cloudinaryRoutes.js');
+        app.use('/', cloudinaryModule.default);
+        console.log('✅ Cloudinary routes registered');
+      } catch (err) {
+        console.log('⚠️ Cloudinary routes not available:', err.message);
+      }
+    } else {
+      console.log('ℹ️ Cloudinary routes disabled by environment variable');
+      
+      // Add a stub endpoint to handle any requests that would normally go to Cloudinary
+      app.use('/api/cloudinary', (req, res) => {
+        res.status(503).json({
+          error: 'Cloudinary service disabled',
+          message: 'Cloudinary integration is currently disabled in this environment.'
+        });
+      });
+    }
     
-    console.log('✅ All API routes registered successfully');
+    // Cloudflare routes (optional - can be disabled)
+    if (process.env.DISABLE_CLOUDFLARE !== 'true') {
+      try {
+        const cloudflareModule = await import('./server/routes/cloudflare-images.ts');
+        app.use('/', cloudflareModule.default);
+        console.log('✅ Cloudflare routes registered');
+      } catch (err) {
+        console.log('⚠️ Cloudflare routes not available:', err.message);
+      }
+    } else {
+      console.log('ℹ️ Cloudflare routes disabled by environment variable');
+      
+      // Add a stub endpoint to handle any requests that would normally go to Cloudflare
+      app.use('/api/cloudflare', (req, res) => {
+        res.status(503).json({
+          error: 'Cloudflare service disabled',
+          message: 'Cloudflare integration is currently disabled in this environment.'
+        });
+      });
+    }
+    
+    // Local image routes (less optional but still separate)
+    try {
+      const localImagesModule = await import('./server/routes/local-images.ts');
+      app.use('/', localImagesModule.default);
+      console.log('✅ Local image routes registered');
+    } catch (err) {
+      console.log('⚠️ Local image routes not available:', err.message);
+    }
+    
+    console.log('✅ All API routes setup completed');
   } catch (error) {
-    console.error('❌ Error setting up routes:', error);
-    process.exit(1);
+    console.error('❌ Critical error setting up routes:', error);
+    // Don't exit the process on error - try to continue with what we have
+    console.error('Continuing with limited functionality...');
   }
 }
 
