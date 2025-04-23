@@ -137,7 +137,7 @@ exec('pkill -f "tsx server/index.ts" || true', () => {
   });
 });
 
-const clientDirectory = path.resolve(__dirname, '../dist/public');
+const clientDirectory = path.resolve(__dirname, 'client/dist/public');
 if (fs.existsSync(path.join(clientDirectory, 'index.html'))) {
   console.log(`✅ Serving static files from: ${clientDirectory}`);
   app.use(express.static(clientDirectory));
