@@ -37,9 +37,9 @@ app.get('/api/servercheck', async (req, res) => {
       await client.query('SELECT 1');
       client.release();
       dbStatus = 'connected';
-    } catch (err) {
+    } catch (err: any) {
       dbStatus = 'error';
-      dbDetails = (err as Error).message;
+      dbDetails = err.message;
     }
 
     let innerServerRunning = false;
@@ -114,7 +114,8 @@ console.log(`
 NODE_ENV: ${process.env.NODE_ENV || 'not set'}
 DATABASE_URL: ${process.env.DATABASE_URL ? 'configured' : 'not configured'}
 PORT: ${PORT}
-====================================`);
+====================================
+`);
 
 exec('pkill -f "tsx server/index.ts" || true', () => {
   const innerPort = parseInt(PORT.toString()) + 1;
