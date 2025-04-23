@@ -1,6 +1,6 @@
 /**
  * Ultra-minimal production server for Buzzd app - ES Module Version
- * Version 1.2.2 (Static path hardcoded for Railway)
+ * Version 1.2.3 (Final — with correct static path for Railway)
  */
 
 import express from 'express';
@@ -24,9 +24,10 @@ app.use(express.json());
 
 app.get('/api/servercheck', async (req, res) => {
   try {
-    const innerPort = parseInt(process.env.PORT || '3000') + 1;
+    const innerPort = parseInt(PORT.toString()) + 1;
     let dbStatus = 'unknown';
     let dbDetails = '';
+
     try {
       const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
@@ -38,12 +39,15 @@ app.get('/api/servercheck', async (req, res) => {
       dbStatus = 'connected';
     } catch (err) {
       dbStatus = 'error';
-      dbDetails = err.message;
+      dbDetails = (err as Error).message;
     }
 
     let innerServerRunning = false;
     let innerServerDetails = 'not responding';
-    let apiEndpoints = ['/api/collections', '/api/deals/collections/all?lat=1.3521&lng=103.8198'];
+    const apiEndpoints = [
+      '/api/collections',
+      '/api/deals/collections/all?lat=1.3521&lng=103.8198',
+    ];
 
     for (const endpoint of apiEndpoints) {
       try {
@@ -53,19 +57,19 @@ app.get('/api/servercheck', async (req, res) => {
           innerServerDetails = `responding on ${endpoint}`;
           break;
         } else {
-          innerServerDetails = `responded with status ${response.status} on ${endpoint}`;
+          innerServerDetails = `status ${response.status} on ${endpoint}`;
         }
-      } catch (e) {
-        innerServerDetails = `connection failed on ${endpoint}: ${e.message}`;
+      } catch (e: any) {
+        innerServerDetails = `error on ${endpoint}: ${e.message}`;
       }
     }
 
     res.json({
       ok: true,
       status: 'ok',
-      timestamp: new Date().toISOString(),
       server: 'deploy-server',
-      version: '1.2.2',
+      version: '1.2.3',
+      timestamp: new Date().toISOString(),
       database: {
         status: dbStatus,
         details: dbDetails,
@@ -79,22 +83,18 @@ app.get('/api/servercheck', async (req, res) => {
       env: {
         NODE_ENV: process.env.NODE_ENV || 'not set',
         DATABASE_URL: process.env.DATABASE_URL ? 'configured' : 'not configured',
-        PORT: process.env.PORT || 'not set',
+        PORT: PORT,
       },
     });
-  } catch (error) {
-    res.json({
-      status: 'error',
-      error: error.message,
-      timestamp: new Date().toISOString(),
-    });
+  } catch (error: any) {
+    res.json({ status: 'error', error: error.message, timestamp: new Date().toISOString() });
   }
 });
 
-app.all('/api/*', async (req, res, next) => {
+app.all('/api/*', async (req, res) => {
+  const innerPort = parseInt(PORT.toString()) + 1;
+  const apiUrl = `http://localhost:${innerPort}${req.url}`;
   try {
-    const innerPort = parseInt(process.env.PORT || '3000') + 1;
-    const apiUrl = `http://localhost:${innerPort}${req.url}`;
     const body = ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body);
     const response = await nodeFetch(apiUrl, {
       method: req.method,
@@ -117,7 +117,7 @@ PORT: ${PORT}
 ====================================`);
 
 exec('pkill -f "tsx server/index.ts" || true', () => {
-  const innerPort = parseInt(PORT) + 1;
+  const innerPort = parseInt(PORT.toString()) + 1;
   console.log(`Starting inner server on port ${innerPort}...`);
   const serverProcess = exec(`tsx server/index.ts`, {
     env: {
@@ -142,6 +142,7 @@ exec('pkill -f "tsx server/index.ts" || true', () => {
   });
 });
 
+// FINAL STATIC PATH SETUP FOR RAILWAY DEPLOYMENTS
 const clientDirectory = path.resolve(__dirname, '../dist/public');
 if (fs.existsSync(path.join(clientDirectory, 'index.html'))) {
   console.log(`✅ Serving static files from: ${clientDirectory}`);
@@ -156,7 +157,7 @@ app.get('*', (req, res, next) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${PORT}`);
+  console.log(`🚀 Server running at http://0.0.0.0:${PORT}`);
 });
 
 process.on('SIGTERM', () => {
