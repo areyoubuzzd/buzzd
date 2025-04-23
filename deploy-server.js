@@ -1,8 +1,3 @@
-/**
- * Ultra-minimal production server for Buzzd app - ES Module Version
- * Version 1.2.3 (Final — with correct static path for Railway)
- */
-
 import express from 'express';
 import { exec } from 'child_process';
 import path from 'path';
@@ -37,7 +32,7 @@ app.get('/api/servercheck', async (req, res) => {
       await client.query('SELECT 1');
       client.release();
       dbStatus = 'connected';
-    } catch (err: any) {
+    } catch (err) {
       dbStatus = 'error';
       dbDetails = err.message;
     }
@@ -59,7 +54,7 @@ app.get('/api/servercheck', async (req, res) => {
         } else {
           innerServerDetails = `status ${response.status} on ${endpoint}`;
         }
-      } catch (e: any) {
+      } catch (e) {
         innerServerDetails = `error on ${endpoint}: ${e.message}`;
       }
     }
@@ -86,7 +81,7 @@ app.get('/api/servercheck', async (req, res) => {
         PORT: PORT,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     res.json({ status: 'error', error: error.message, timestamp: new Date().toISOString() });
   }
 });
@@ -114,8 +109,7 @@ console.log(`
 NODE_ENV: ${process.env.NODE_ENV || 'not set'}
 DATABASE_URL: ${process.env.DATABASE_URL ? 'configured' : 'not configured'}
 PORT: ${PORT}
-====================================
-`);
+====================================`);
 
 exec('pkill -f "tsx server/index.ts" || true', () => {
   const innerPort = parseInt(PORT.toString()) + 1;
@@ -143,7 +137,6 @@ exec('pkill -f "tsx server/index.ts" || true', () => {
   });
 });
 
-// FINAL STATIC PATH SETUP FOR RAILWAY DEPLOYMENTS
 const clientDirectory = path.resolve(__dirname, '../dist/public');
 if (fs.existsSync(path.join(clientDirectory, 'index.html'))) {
   console.log(`✅ Serving static files from: ${clientDirectory}`);
